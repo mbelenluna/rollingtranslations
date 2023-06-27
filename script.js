@@ -49,7 +49,19 @@ function functionOut6() {
     imp.innerHTML = "6. Continuous Improvement and Innovation";
 }
 
-
+window.addEventListener('scroll', function() {
+    if (window.innerWidth > 768) {
+      let currentScrollPosition = window.scrollY;
+  
+      if (currentScrollPosition > lastScrollPosition) {
+        header.classList.add('slide-down');
+      } else {
+        header.classList.remove('slide-down');
+      }
+  
+      lastScrollPosition = currentScrollPosition;
+    }
+  });
 
 window.onload = function () {
     let servicesMenuItem = document.querySelector(".item-dropdown");
@@ -96,3 +108,25 @@ tech.addEventListener("mouseout", functionOut5);
 imp.addEventListener("mouseover", functionIn6);
 imp.addEventListener("mouseout", functionOut6);
 
+// Add this code to your existing JavaScript code
+let navbar = document.querySelector('.mobile-nav');
+let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+
+
+
+
+window.onscroll = function () {
+    myFunction()
+};
+
+let navbarmobile = document.querySelector(".mobile-nav");
+let sticky = navbar.offsetTop;
+
+function myFunction() {
+    if (window.scrollY >= sticky) {
+        navbar.classList.add("sticky")
+    } else {
+        navbar.classList.remove("sticky");
+    }
+}
