@@ -50,7 +50,7 @@ function functionOut6() {
 }
 
 window.addEventListener('scroll', function () {
-    let currentScrollPosition = window.pageYOffset;
+    let currentScrollPosition = window.scrollY;
 
     if (currentScrollPosition > lastScrollPosition) {
         header.classList.add('slide-down');
