@@ -1,51 +1,51 @@
 let header = document.querySelector('.fixed-header');
 let lastScrollPosition = 0;
 
-function functionIn1 () {
+function functionIn1() {
     exp.innerHTML = "Our team comprises highly skilled translators, linguists, and subject matter experts with deep domain knowledge in various industries, ensuring accurate and contextually appropriate translations.";
 }
 
-function functionOut1 () {
+function functionOut1() {
     exp.innerHTML = "1. Expertise and Specialization";
 }
 
-function functionIn2 () {
+function functionIn2() {
     qual.innerHTML = "Quality is at the heart of our operations. We have stringent quality assurance processes in place to ensure that every translation undergoes thorough review and linguistic validation.";
 }
 
-function functionOut2 () {
+function functionOut2() {
     qual.innerHTML = "2. Uncompromising Quality";
 }
 
-function functionIn3 () {
+function functionIn3() {
     clients.innerHTML = "We are proud to serve a diverse range of clients, including multinational corporations, government agencies, educational institutions, and small to medium-sized enterprises.";
 }
 
-function functionOut3 () {
+function functionOut3() {
     clients.innerHTML = "3. Diverse and Loyal Client Base";
 }
 
-function functionIn4 () {
+function functionIn4() {
     reach.innerHTML = "With an extensive network of professional translators and resources in multiple languages, we have the capability to provide translation services for a wide range of language pairs.";
 }
 
-function functionOut4 () {
+function functionOut4() {
     reach.innerHTML = "4. Global Reach and Language Capabilities";
 }
 
-function functionIn5 () {
+function functionIn5() {
     tech.innerHTML = "We embrace cutting-edge translation technologies, including advanced CAT (Computer-Assisted Translation) tools, to enhance our efficiency and accuracy.";
 }
 
-function functionOut5 () {
+function functionOut5() {
     tech.innerHTML = "5. Technological Advancements";
 }
 
-function functionIn6 () {
+function functionIn6() {
     imp.innerHTML = "By embracing innovation and continuously improving our processes, we strive to provide our clients with the most efficient and effective translation solutions available.";
 }
 
-function functionOut6 () {
+function functionOut6() {
     imp.innerHTML = "6. Continuous Improvement and Innovation";
 }
 
@@ -106,3 +106,18 @@ tech.addEventListener("mouseout", functionOut5);
 imp.addEventListener("mouseover", functionIn6);
 imp.addEventListener("mouseout", functionOut6);
 
+// Add this code to your existing JavaScript code
+let navbar = document.querySelector('.mobile-nav');
+let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+window.addEventListener('scroll', function () {
+    let currentScrollPos = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScrollPos < scrollPosition) {
+        navbar.classList.add('show');
+    } else {
+        navbar.classList.remove('show');
+    }
+
+    scrollPosition = currentScrollPos;
+});
