@@ -831,6 +831,22 @@ ul {
         margin-bottom: 3rem;
     }
 
+    .hero-video video {
+        display: none;
+    }
+
+    .hero-video-mobile {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-image: url(images/pexels-tima-miroshnichenko-7991319.jpg);
+        color: white;
+        text-align: center;
+        height: 50vh;
+        background-size: cover;
+    }
+
     footer {
         grid-template-areas: "logo""info""sitemap";
     }
