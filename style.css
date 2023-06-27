@@ -12,6 +12,7 @@
 
 body {
     font-family: heebo-regular;
+    padding-top: 78px;
 }
 
 h1 {
@@ -819,8 +820,21 @@ ul {
         width: 50%;
     }
 
+    #hero-localization {
+        height: 80vh;
+    }
+
+    #hero-gaming {
+        height: 80vh;
+        margin-bottom: 3rem;
+    }
+
     footer {
         grid-template-areas: "logo""info""sitemap";
+    }
+
+    #hero-services {
+        height: 90vh;
     }
 
     #hero-services h3 {
