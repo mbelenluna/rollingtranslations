@@ -756,7 +756,7 @@ ul {
         -webkit-overflow-scrolling: touch;
     }
 
-    
+
 
     .mobile-nav a {
         display: block;
@@ -960,4 +960,10 @@ ul {
 
 .show {
     position: sticky;
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
 }
