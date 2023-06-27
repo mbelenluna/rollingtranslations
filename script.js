@@ -112,10 +112,10 @@ let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
 
 
-var prevScrollpos = window.pageYOffset;
+var prevScrollpos = window.scrollY;
 window.onscroll = function () {
-    var currentScrollPos = window.pageYOffset;
-    if (prevScrollpos > currentScrollPos || window.pageYOffset < 50) {
+    var currentScrollPos = window.scrollY;
+    if (prevScrollpos > currentScrollPos || window.scrollY < 50) {
         document.querySelector(".mobile-nav").style.top = "0";
     } else {
         document.querySelector(".mobile-nav").style.top = "-50px";
