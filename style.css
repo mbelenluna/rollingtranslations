@@ -139,7 +139,7 @@ body .fixed-header #menu-items .contact-menu-item a {
 
 #hero {
     height: 100vh;
-    background-image: url(images/earth-11595_1920\ -\ Copy.jpg);
+    background-image: url(./images/earth-11595_1920\ -\ Copy.jpg);
     background-attachment: fixed;
     color: white;
     display: flex;
@@ -292,7 +292,7 @@ h1 h2 h3 h4 h5 h6 {
 /* CTA */
 
 #cta {
-    background-image: url(images/pexels-shawn-stutzman-1010496.jpg);
+    background-image: url(./images/pexels-shawn-stutzman-1010496.jpg);
     color: white;
     padding: 5% 30% 5% 30%;
 }
@@ -373,7 +373,7 @@ ul {
 
 #hero-services {
     height: 60vh;
-    background-image: url(images/pexels-marek-piwnicki-8193808.jpg);
+    background-image: url(./images/pexels-marek-piwnicki-8193808.jpg);
     color: white;
     display: flex;
     text-align: center;
@@ -513,7 +513,7 @@ ul {
 /* Localization */
 
 #hero-localization {
-    background-image: url(images/pexels-stein-egil-liland-3374210.jpg);
+    background-image: url(./images/pexels-stein-egil-liland-3374210.jpg);
     color: white;
     height: 60vh;
     display: flex;
@@ -546,7 +546,7 @@ ul {
     justify-content: center;
     align-items: center;
     text-align: center;
-    background-image: url(../images/pexels-dana-tentis-370799.jpg);
+    background-image: url(./images/pexels-dana-tentis-370799.jpg);
     color: white;
     margin-bottom: 3rem;
 }
@@ -574,63 +574,63 @@ ul {
 }
 
 .exp {
-    background-image: url(images/laptop-3196481_1280.jpg);
+    background-image: url(./images/laptop-3196481_1280.jpg);
     background-size: cover;
 }
 
 .exp:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
 .qual {
-    background-image: url(images/pexels-fauxels-3184339.jpg);
+    background-image: url(./images/pexels-fauxels-3184339.jpg);
     background-size: cover;
 }
 
 .qual:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
 
 .clients {
-    background-image: url(images/pexels-kindel-media-7688336.jpg);
+    background-image: url(./images/pexels-kindel-media-7688336.jpg);
     background-size: cover;
 }
 
 .clients:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
 .reach {
-    background-image: url(images/plans-1867745_1280.jpg);
+    background-image: url(./images/plans-1867745_1280.jpg);
     background-size: cover;
 }
 
 .reach:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
 .tech {
-    background-image: url(images/programming-593312_1280.jpg);
+    background-image: url(./images/programming-593312_1280.jpg);
     background-size: cover;
 }
 
 .tech:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
 .imp {
-    background-image: url(images/teamwork-3309829_1280.jpg);
+    background-image: url(./images/teamwork-3309829_1280.jpg);
     background-size: cover;
 }
 
 .imp:hover {
-    background-image: url(images/black.png);
+    background-image: url(./images/black.png);
     transition: 1s ease-in;
 }
 
@@ -646,7 +646,7 @@ ul {
 /* Gaming Localization */
 
 #hero-gaming {
-    background-image: url(/images/pexels-soumil-kumar-735911.jpg);
+    background-image: url(./images/pexels-soumil-kumar-735911.jpg);
     height: 60vh;
     background-size: cover;
     color: white;
@@ -840,7 +840,7 @@ ul {
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background-image: url(images/pexels-tima-miroshnichenko-7991319.jpg);
+        background-image: url(./images/pexels-tima-miroshnichenko-7991319.jpg);
         color: white;
         text-align: center;
         height: 50vh;
