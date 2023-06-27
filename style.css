@@ -51,7 +51,7 @@ a:hover {
 /* Header */
 
 .fixed-header {
-    position: sticky;
+    position: fixed;
     top: 0;
     z-index: 999;
     transition: transform 0.3s ease-in-out;
@@ -705,7 +705,7 @@ ul {
     .hamburger {
         position: relative;
         display: block;
-        width: 35px;
+        width: 50px;
         cursor: pointer;
         appearance: none;
         background: none;
