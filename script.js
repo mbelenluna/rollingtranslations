@@ -110,14 +110,15 @@ imp.addEventListener("mouseout", functionOut6);
 let navbar = document.querySelector('.mobile-nav');
 let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
-window.addEventListener('scroll', function () {
-    let currentScrollPos = window.pageYOffset || document.documentElement.scrollTop;
 
-    if (currentScrollPos < scrollPosition) {
-        navbar.classList.add('show');
+
+var prevScrollpos = window.pageYOffset;
+window.onscroll = function () {
+    var currentScrollPos = window.pageYOffset;
+    if (prevScrollpos > currentScrollPos || window.pageYOffset < 50) {
+        document.querySelector(".mobile-nav").style.top = "0";
     } else {
-        navbar.classList.remove('show');
+        document.querySelector(".mobile-nav").style.top = "-50px";
     }
-
-    scrollPosition = currentScrollPos;
-});
+    prevScrollpos = currentScrollPos;
+}
