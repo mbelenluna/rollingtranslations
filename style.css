@@ -962,8 +962,13 @@ ul {
     position: sticky;
 }
 
-.sticky {
-    position: fixed;
-    top: 0;
-    width: 100%;
+
+
+@media (max-width: 767px) {
+    .sticky {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 9999;
+    }
 }
