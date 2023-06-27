@@ -112,13 +112,19 @@ let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
 
 
-var prevScrollpos = window.scrollY;
+
+
 window.onscroll = function () {
-    var currentScrollPos = window.scrollY;
-    if (prevScrollpos > currentScrollPos || window.scrollY < 50) {
-        document.querySelector(".mobile-nav").style.top = "0";
+    myFunction()
+};
+
+let navbarmobile = document.querySelector(".mobile-nav");
+let sticky = navbar.offsetTop;
+
+function myFunction() {
+    if (window.scrollY >= sticky) {
+        navbar.classList.add("sticky")
     } else {
-        document.querySelector(".mobile-nav").style.top = "-50px";
+        navbar.classList.remove("sticky");
     }
-    prevScrollpos = currentScrollPos;
 }
