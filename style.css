@@ -739,6 +739,7 @@ ul {
 
     .mobile-nav {
         position: fixed;
+        margin: 0;
         top: 0;
         left: 0;
         width: 100%;
@@ -748,7 +749,11 @@ ul {
         background-color: white;
         padding-top: 120px;
         transition: 0.4s;
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
     }
+
+    
 
     .mobile-nav a {
         display: block;
