@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="/style.css">
+    <title>Rolling Translations - Audiovisual Translation</title>
+</head>
+
+<body>
+
+    <header>
+        <div class="fixed-header">
+        <div id="logo-header">
+            <h4>Rolling Translations</h4>
+        </div>
+        <nav>
+            <ul id="menu-items">
+                <li class="items"><a href="/index.html">Home</a></li>
+                <li class="items item-dropdown" onmouseover="showDropdownMenu()" onmouseout="hideDropdownMenu()">
+                    Services
+                    <ul id="dropdown-menu">
+                        <li class="items"><a href="document-translation.html">Document Translation</a></li>
+                        <li class="active-menu-item">Audiovisual Translation</li>
+                        <li class="items"><a href="localization.html">Localization</a></li>
+                        <li class="items"><a href="gaming.html">Gaming Localization</a></li>
+                    </ul>
+                </li>
+                <li class="items"><a href="about.html">About</a></li>
+                <li class="contact-menu-item"><a href="/index.html#cta"">Contact</a></li>
+            </ul>
+            <button class="hamburger">
+                <div class="bar">
+
+                </div>
+            </button>
+        </nav>
+        </div>
+        <nav class="mobile-nav">
+
+            <a class="items-mobile" href="/index.html">Home</a>
+            <a class="items-mobile" href="document-translation.html">
+                Services</a>
+            <div id="dropdown-menu-mobile">
+                <a class="items-mobile-dropdown" href="document-translation.html">Document Translation</a>
+                <a class="items-mobile-dropdown" href="audiovisual-translation.html">Audiovisual
+                    Translation</a>
+                <a class="items-mobile-dropdown" href="localization.html">Localization</a>
+                <a class="items-mobile-dropdown" href="gaming.html">Gaming Localization</a>
+            </div>
+
+            <a class="items-mobile" href="about.html">About</a>
+            <a class="items-mobile" href="#cta">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero-video">
+        <video autoplay loop muted>
+            <source src="/videos/Astarisbornmovie-1.m4v" class="video-bg" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </section>
+
+    <section id="audiovisual-translation">
+        <main class="container audiovisual-container">
+            <h2 class="audiov headline">Immerse Your Audience in Multilingual Subtitles</h2>
+            <p class="audiov">
+                Our subtitling service brings a new dimension to your audiovisual content, allowing you to reach a
+                broader audience while maintaining the original audio. We meticulously craft synchronized captions that
+                convey the dialogue, narration, and important audio elements in multiple languages. Our expert linguists
+                ensure accuracy, readability, and cultural adaptation, providing seamless integration of the subtitles
+                into your videos. By embracing subtitling, you enhance accessibility, engage international viewers, and
+                break language barriers to deliver an immersive and inclusive audiovisual experience.
+            </p>
+            <h2 class="audiov headline">Voiceover and Dubbing: Bridging Cultures through Authentic Narration</h2>
+            <p class="audiov">
+                With our voiceover and dubbing services, we go beyond translation to create authentic multilingual
+                content that resonates with diverse audiences. Our skilled voice actors and talented linguistic
+                professionals carefully match voices, tone, and intonation to the original audio, bringing your video to
+                life in different languages. Whether it's a promotional video, e-learning module, documentary, or film,
+                we ensure that the voiceover or dubbed version maintains the essence and emotion of the original
+                content. By leveraging our expertise in linguistic nuances and cultural understanding, we help you
+                communicate effectively across borders, fostering a deeper connection with your target viewers.
+            </p>
+        </main>
+    </section>
+
+    <section id="cta">
+        <div class="cta container">
+            <h2>Let's Connect!</h2>
+            <p class="cta-text">If you are interested in finding out our rates for these services, simply fill out the
+                form below with all
+                the
+                pertinent details about your project: attach the file(s) you would like to get a quote on, specify the
+                language(s) into which it/they need translation as well as your expected timeline, and we'll swiftly
+                craft a personalized quote just for you. Our
+                dedicated team will prioritize your request and respond within a matter of hours.</p>
+            <form method="post" action="form.php" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="text" name="name" class="form-control" placeholder="Name" required="">
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required="">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="subject" class="form-control" placeholder="Subject" required="">
+                </div>
+                <div class="form-group">
+                    <textarea name="message" class="form-control" placeholder="Write your message here" required=""
+                        style="resize: none;"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="file" name="attachment" class="form-control attachment">
+                </div>
+                <div class="submit">
+                    <input type="submit" name="submit" class="btn" value="SUBMIT">
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer class="container">
+        <div id="logo-footer">
+            <h4>Rolling Translations</h4>
+            <p>Copyright © 2023 Rolling Translations</p>
+        </div>
+        <div id="info">
+            <ul>
+                <li><img src="/images/icons8-address-50.png" alt="">Address</li>
+                <li><img src="/images/icons8-phone-50.png" alt="">Phone Number</li>
+                <li><img src="/images/icons8-email-50.png" alt="">Email Address</li>
+            </ul>
+        </div>
+        <div class="footer-navigation">
+            <ul>
+                <li>Home</li>
+                <li>Services</li>
+                <li>About</li>
+                <li>Contact</li>
+            </ul>
+        </div>
+    </footer>
+
+
+    <script type="module" src="/script.js"></script>
+    <!-- MDB -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
+    </script>
+</body>
+
+</html>
