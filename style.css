@@ -13,7 +13,7 @@
 body {
     font-family: heebo-regular;
     padding-top: 78px;
-
+    overscroll-behavior: none;
     width: 100%;
 }
 
