@@ -863,7 +863,15 @@ ul {
 
     #hero-gaming {
         height: 80vh;
-        margin-bottom: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .gaming-headline {
+        margin: 1rem;
+    }
+
+    .gaming-paragraph {
+        margin-bottom: 1rem;
     }
 
     .hero-video video {
@@ -983,9 +991,7 @@ ul {
         font-size: 18px!important;
     }
 
-    .gaming-headline {
-        margin: 0;
-    }
+
 
     #hero-gaming p {
         font-size: 16px;
