@@ -816,6 +816,10 @@ ul {
         height: 12rem;
     }
 
+    #hero {
+        height: 90vh;
+    }
+
 
     #hero h3 {
         margin: 0.5rem;
@@ -1033,6 +1037,7 @@ ul {
 
     .title-who-are-we {
         margin-top: 1rem;
+        padding: 1rem;
     }
 
     .testimonial-item {
