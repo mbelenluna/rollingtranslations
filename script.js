@@ -130,3 +130,11 @@ function myFunction() {
         navbar.classList.remove("sticky");
     }
 }
+
+window.onload = function () {
+    const values = document.querySelector(".hover");
+    if (window.innerWidth < 768) {
+        values.innerHTML = "Click on each value to learn more.";
+    }   
+}
+

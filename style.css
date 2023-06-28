@@ -257,6 +257,10 @@ body .fixed-header #menu-items .contact-menu-item a {
     height: 23px;
 }
 
+.services a {
+    color: white;
+}
+
 .icon-title-container {
     display: flex;
     align-content: center;
@@ -274,6 +278,7 @@ h1 h2 h3 h4 h5 h6 {
 .service-square {
     margin: 1rem;
 }
+
 
 
 
@@ -352,6 +357,10 @@ footer {
     justify-content: center;
 }
 
+footer li a {
+    color: #4F4F4F;
+}
+
 footer li {
     list-style-type: none;
 }
@@ -425,8 +434,12 @@ ul {
     row-gap: 3rem;
 }
 
-.container-workflow img {
+.main-img {
     width: 100%;
+}
+
+.workflow-mobile {
+    display: none;
 }
 
 .desktop-publishing {
@@ -492,6 +505,10 @@ ul {
     height: 100%;
     z-index: -1;
     object-fit: contain;
+}
+
+.hero-video-mobile {
+    display: none;
 }
 
 .hide-background {
@@ -794,6 +811,12 @@ ul {
         transform: translateX(0%);
     }
 
+    /* Home */
+
+    .image-who-are-we {
+        height: 12rem;
+    }
+
 
     #hero h3 {
         margin: 0.5rem;
@@ -822,8 +845,17 @@ ul {
         width: 50%;
     }
 
+    .workflow-mobile {
+        display: block;
+        width: 80%;
+    }
+
+    .main-img {
+        display: none;
+    }
+
     #hero-localization {
-        height: 80vh;
+        height: 90vh;
     }
 
     #hero-gaming {
@@ -835,6 +867,10 @@ ul {
         display: none;
     }
 
+    .hero-video {
+        display: none;
+    }
+
     .hero-video-mobile {
         display: flex;
         flex-direction: column;
@@ -843,8 +879,12 @@ ul {
         background-image: url(./images/pexels-tima-miroshnichenko-7991319.jpg);
         color: white;
         text-align: center;
-        height: 50vh;
+        height: 90vh;
         background-size: cover;
+    }
+
+    .hero-video-mobile p {
+        padding: 1rem;
     }
 
     footer {
@@ -861,6 +901,10 @@ ul {
 
     .list-of-languages {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .list-of-values li {
+        padding: 1rem;
     }
 
     .text-boxes {
@@ -893,6 +937,16 @@ ul {
         text-align: center;
     }
 
+    .container-workflow {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        row-gap: 1rem;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
     .hero-video {
         height: 50vh;
     }
@@ -902,11 +956,24 @@ ul {
     }
 
     h1 {
-        font-size: 45px !important;
+        font-size: 50px !important;
+        margin: 1rem!important;
     }
 
     h2 {
         font-size: 32px !important;
+    }
+
+    .image-container {
+        margin-top: 1rem;
+    }
+
+    .specialized-translation h2 {
+        margin: 1rem;
+    }
+
+    h3 {
+        font-size: 18px!important;
     }
 
     .gaming-headline {
@@ -914,11 +981,20 @@ ul {
     }
 
     #hero-gaming p {
-        font-size: 14px;
+        font-size: 16px;
+    }
+
+    #aboutus h2 {
+        margin: 1rem;
     }
 
     #hero-about p {
         font-size: 14px;
+    }
+
+    #hero-about {
+        height: 90vh;
+        margin-bottom: 0;
     }
 
     .list-of-values {
@@ -944,12 +1020,20 @@ ul {
         padding: 1rem;
     }
 
+    #who-are-we {
+        height: 100%;
+    }
+
     #testimonials-carrousel {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: start;
         min-height: 90vh;
+    }
+
+    .title-who-are-we {
+        margin-top: 1rem;
     }
 
     .testimonial-item {
