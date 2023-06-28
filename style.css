@@ -156,7 +156,6 @@ body .fixed-header #menu-items .contact-menu-item a {
 #hero h3 {
     font-size: 20px;
     font-family: heebo-subtitles;
-    margin: 0 3rem 0 3rem;
 }
 
 .animate__animated.animate__zoomIn {
@@ -1054,7 +1053,7 @@ ul {
 
 @media (min-width: 1080px) {
     #hero h3 {
-        margin: 0 10rem;
+        margin: 0 20rem;
     }
 }
 
