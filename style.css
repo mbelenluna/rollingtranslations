@@ -890,6 +890,10 @@ ul {
         padding: 1rem;
     }
 
+    .localization-headline {
+        margin: 1rem 0;
+    }
+
     footer {
         grid-template-areas: "logo""info""sitemap";
     }
