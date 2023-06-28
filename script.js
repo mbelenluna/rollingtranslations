@@ -51,42 +51,81 @@ function functionOut6() {
 
 window.addEventListener('scroll', function () {
     if (window.innerWidth > 768) {
-        let currentScrollPosition = window.scrollY;
-
-        if (currentScrollPosition > lastScrollPosition) {
-            header.classList.add('slide-down');
-        } else {
-            header.classList.remove('slide-down');
-        }
-
-        lastScrollPosition = currentScrollPosition;
+      let currentScrollPosition = window.scrollY;
+  
+      if (currentScrollPosition > lastScrollPosition) {
+        header.classList.add('slide-down');
+      } else {
+        header.classList.remove('slide-down');
+      }
+  
+      lastScrollPosition = currentScrollPosition;
     }
-});
+  });
 
-window.onload = function () {
+  window.onload = function () {
     let servicesMenuItem = document.querySelector(".item-dropdown");
     let dropdownMenu = document.getElementById("dropdown-menu");
-
+  
     servicesMenuItem.addEventListener("mouseover", showDropdownMenu);
     servicesMenuItem.addEventListener("mouseout", hideDropdownMenu);
-
+  
     function showDropdownMenu() {
-        dropdownMenu.style.display = "block";
+      dropdownMenu.style.display = "block";
     }
-
+  
     function hideDropdownMenu() {
-        dropdownMenu.style.display = "none";
+      dropdownMenu.style.display = "none";
     }
-
+  
     const menu_btn = document.querySelector(".hamburger");
     const mobile_menu = document.querySelector('.mobile-nav');
-
+  
     menu_btn.addEventListener('click', function () {
-        menu_btn.classList.toggle('is-active');
-        mobile_menu.classList.toggle('is-active');
-    })
-
-};
+      menu_btn.classList.toggle('is-active');
+      mobile_menu.classList.toggle('is-active');
+    });
+  
+    const values = document.querySelector(".hover");
+    if (window.innerWidth < 768) {
+      values.innerHTML = "Click on each value to learn more.";
+    }
+  
+    let exp = document.querySelector(".exp");
+    let qual = document.querySelector(".qual");
+    let clients = document.querySelector(".clients");
+    let reach = document.querySelector(".reach");
+    let tech = document.querySelector(".tech");
+    let imp = document.querySelector(".imp");
+  
+    exp.addEventListener("mouseover", functionIn1);
+    exp.addEventListener("mouseout", functionOut1);
+    qual.addEventListener("mouseover", functionIn2);
+    qual.addEventListener("mouseout", functionOut2);
+    clients.addEventListener("mouseover", functionIn3);
+    clients.addEventListener("mouseout", functionOut3);
+    reach.addEventListener("mouseover", functionIn4);
+    reach.addEventListener("mouseout", functionOut4);
+    tech.addEventListener("mouseover", functionIn5);
+    tech.addEventListener("mouseout", functionOut5);
+    imp.addEventListener("mouseover", functionIn6);
+    imp.addEventListener("mouseout", functionOut6);
+  
+    let navbar = document.querySelector('.mobile-nav');
+    let sticky = navbar.offsetTop;
+  
+    function myFunction() {
+      if (window.scrollY >= sticky) {
+        navbar.classList.add("sticky");
+      } else {
+        navbar.classList.remove("sticky");
+      }
+    }
+  
+    window.onscroll = function () {
+      myFunction();
+    };
+  };
 
 let exp = document.querySelector(".exp");
 let qual = document.querySelector(".qual");
@@ -107,12 +146,6 @@ tech.addEventListener("mouseover", functionIn5);
 tech.addEventListener("mouseout", functionOut5);
 imp.addEventListener("mouseover", functionIn6);
 imp.addEventListener("mouseout", functionOut6);
-
-// Add this code to your existing JavaScript code
-let navbar = document.querySelector('.mobile-nav');
-let scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-
-
 
 
 
