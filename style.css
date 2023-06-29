@@ -672,13 +672,64 @@ ul {
     text-align: center;
 }
 
+.gaming {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    justify-content: center;
+    align-items: center;
+}
+
+.joystick {
+    width: 70%;
+}
+
+.gaming-second {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.arcade {
+    width: 70%;
+}
+
+.gaming-list li::before {content: counter(li); color: #235789;
+    display: inline-block; width: 1.5em;
+    margin-left: -1.2em}
+
+.image-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gaming-second {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    margin-bottom: 3rem;
+}
+
+
 .gaming-headline {
-    text-align: center;
-    margin: 3rem;
+    text-align: left;
+    margin: 3rem 0;
 }
 
 .gaming-paragraph {
     margin-bottom: 3rem;
+}
+
+.gaming-third {
+    background-color: #235789;
+    color: white;
+}
+
+.step-by-step {
+    width: 40%;
+}
+
+.steps-container {
+    display: flex;
+    justify-content: center;
 }
 
 /* Responsiveness */
