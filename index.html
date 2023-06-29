@@ -339,27 +339,62 @@
                 language(s) into which it/they need translation as well as your expected timeline, and we'll swiftly
                 craft a personalized quote just for you. Our
                 dedicated team will prioritize your request and respond within a matter of hours.</p>
-            <form method="post" action="form.php" enctype="multipart/form-data">
-                <div class="form-group">
-                    <input type="text" name="name" class="form-control" placeholder="Name" required="">
-                </div>
-                <div class="form-group">
-                    <input type="email" name="email" class="form-control" placeholder="Email" required="">
-                </div>
-                <div class="form-group">
-                    <input type="text" name="subject" class="form-control" placeholder="Subject" required="">
-                </div>
-                <div class="form-group">
-                    <textarea name="message" class="form-control" placeholder="Write your message here" required=""
-                        style="resize: none;"></textarea>
-                </div>
-                <div class="form-group">
-                    <input type="file" name="attachment" class="form-control attachment">
-                </div>
-                <div class="submit">
-                    <input type="submit" name="submit" class="btn" value="SUBMIT">
-                </div>
-            </form>
+                <form action="form.php" method="POST" class="contact-form">
+                    <div class="form-row">
+                        <label for="fullname">Full name:</label>
+                        <input type="text" id="fullname" placeholder="e.g., John Doe" name="fullname" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="email">Email address:</label>
+                        <input type="text" id="email" placeholder="e.g., hello@live.com" name="email" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="phonenumber">Phone number:</label>
+                        <input type="text" id="phonenumber" placeholder="+1 (111) 111-1111" name="phonenumber">
+                    </div>
+                    <fieldset class="service-requested" for="servicerequested">
+                        <legend>Service(s) needed</legend>
+                        <input type="checkbox" name="translation" id="translation">
+                        <label for="translation" class="checkbox-label">Translation</label>
+
+                        <input type="checkbox" name="proofreading" id="proofreading">
+                        <label for="proofreading" class="checkbox-label">Proofreading</label>
+
+                        <input type="checkbox" name="subtitling" id="subtitling">
+                        <label for="subtitling" class="checkbox-label">Subtitling</label>
+
+                        <input type="checkbox" name="transcription" id="transcription">
+                        <label for="transcription" class="checkbox-label">Transcription</label>
+
+                        <input type="checkbox" name="website-localization" id="website-localization">
+                        <label for="website-localization" class="checkbox-label">Website Localization</label>
+                    </fieldset>
+
+                    <div class="form-row">
+                        <label for="sourcelanguage">Source language(s):</label>
+                        <textarea name="sourcelanguage" id="sourcelanguage"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="targetlanguage">Target language(s):</label>
+                        <textarea name="targetlanguage" id="targetlanguage"></textarea>
+                    </div>
+
+                    <div class="upload-file">
+                        <label for="file">Please select your document:</label>
+                        <input type="file" id="file" name="file">
+                    </div>
+
+                    <div class="form-row">
+                        <label for="message">Message:</label>
+                        <textarea name="message" id="message"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <button type="submit" id="submit-button">Submit</button>
+                    </div>
+
+                </form>
         </div>
     </section>
     <footer class="container">

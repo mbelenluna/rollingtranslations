@@ -306,6 +306,24 @@ form {
     flex-direction: column;
 }
 
+.form-row input {
+    margin-left: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    margin: 0.5rem 0;
+}
+
+#sourcelanguage {
+    height: 3rem;
+}
+
+#targetlanguage {
+    height: 3rem;
+}
+
 textarea {
     height: 10rem;
 }
@@ -314,6 +332,17 @@ textarea {
     background-color: #235789;
     color: white;
     font-size: 16px;
+}
+
+#submit-button:hover {
+    background-color: blue;
+}
+
+#submit-button {
+    width: 50%;
+    color: white;
+    background-color: #235789;
+    padding: 0.5rem;
 }
 
 .submit input:hover {
@@ -375,6 +404,19 @@ footer ul {
 
 ul {
     padding-left: 0;
+}
+
+/*Success page */
+
+.thankyou {
+    background-image: url(./images/pexels-shawn-stutzman-1010496.jpg);
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    flex-direction: column;
 }
 
 /* Services page */
