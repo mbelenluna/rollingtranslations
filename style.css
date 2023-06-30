@@ -149,6 +149,11 @@ body .fixed-header #menu-items .contact-menu-item a {
     clip-path: circle(180vh at 50% -80vh);
 }
 
+.logo {
+    width: 100px;
+    margin: 0.5rem;
+}
+
 #hero h1 {
     font-size: 75px;
 }
@@ -760,7 +765,7 @@ ul {
     margin-bottom: 3rem;
 }
 
- 
+
 .gaming-headline {
     text-align: left;
     margin: 1rem 0;
@@ -1017,6 +1022,10 @@ ul {
         margin: 1rem;
     }
 
+    .contact-form input {
+        max-width: 7rem;
+    }
+
     .list-of-languages {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1079,6 +1088,10 @@ ul {
 
     h2 {
         text-align: center;
+    }
+
+    .logo {
+        width: 80px;
     }
 
     .hero-video {
@@ -1203,5 +1216,17 @@ ul {
         top: 0;
         width: 100%;
         z-index: 9999;
+    }
+}
+
+@media (min-width: 769px) {
+    #cta {
+        padding: 5% 15%;
+    }
+}
+
+@media (min-width: 1448px) {
+    #cta {
+        padding: 5% 25%;
     }
 }
