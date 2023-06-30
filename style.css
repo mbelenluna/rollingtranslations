@@ -362,6 +362,10 @@ textarea {
     width: 30rem;
 }
 
+#modal {
+    display: none;
+}
+
 /* Footer */
 
 footer {

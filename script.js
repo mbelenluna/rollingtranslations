@@ -172,39 +172,28 @@ window.onload = function () {
 }
 emailjs.init('53Mb68rS7ENJ7t_lr');
 
+let modal = document.getElementById("modal");
 
-window.onload = function() {
-  document.getElementById('contact-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      // generate a five digit number for the contact_number variable
-      
-      // these IDs from the previous steps
-      emailjs.sendForm('service_4thavy7', 'template_bfqz58e', this)
-          .then(function() {
-              console.log('SUCCESS!');
-          }, function(error) {
-              console.log('FAILED...', error);
-          });
-  });
+const sendEmail = () => {
+  let data = {
+    from_name : document.getElementById("fullname").value,
+    email_id : document.getElementById("email").value,
+    phone_number : document.getElementById("phonenumber").value,
+    source_language : document.getElementById("sourcelanguage").value,
+    target_language : document.getElementById("targetlanguage").value,
+    file : document.getElementById("my_file").value,
+    message : document.getElementById("message").value,
 }
-
-//const sendEmail = () => {
-//   let data = {
-//     from_name : document.getElementById("name").value,
-//     email_id : document.getElementById("email").value,
-//     service_container : containerResults,
-//     file : input,
-// }
-// emailjs.send("service_byiyb7y", "template_r27difz", data).then(function (response) {
-//     modal.style.display = "block";
-//     modalBody.innerText = "Thank you for your inquiry! An agent will be in touch with you shortly.";
-//     finalResult.classList.add("hide");
-//     let startOver = document.createElement("button");
-//     startOver.classList.add("start-over");
-//     startOver.innerText = "START OVER";
-//     results.appendChild(startOver);
-//     startOver.onclick = () => {
-//         document.location.reload();
-//     }
-// });
-//}
+emailjs.send("service_4thavy7", "template_bfqz58e", data).then(function (response) {
+    modal.style.display = "block";
+    modalBody.innerText = "Thank you for your inquiry! An agent will be in touch with you shortly.";
+    finalResult.classList.add("hide");
+    let startOver = document.createElement("button");
+    startOver.classList.add("start-over");
+    startOver.innerText = "START OVER";
+    results.appendChild(startOver);
+    startOver.onclick = () => {
+        document.location.reload();
+    }
+});
+}

@@ -46,7 +46,7 @@
                 </ul>
                 <button class="hamburger">
                     <div class="bar">
-        
+
                     </div>
                 </button>
             </nav>
@@ -56,13 +56,13 @@
             <a class="items-mobile" href="index.html">Home</a>
             <a class="items-mobile" href="pages/document-translation.html">
                 Services</a>
-                <div id="dropdown-menu-mobile">
-                    <a class="items-mobile-dropdown" href="pages/document-translation.html">Document Translation</a>
-                    <a class="items-mobile-dropdown" href="pages/audiovisual-translation.html">Audiovisual Translation</a>
-                    <a class="items-mobile-dropdown" href="pages/localization.html">Localization</a>
-                    <a class="items-mobile-dropdown" href="pages/gaming.html">Gaming Localization</a>
-                </div>
-            
+            <div id="dropdown-menu-mobile">
+                <a class="items-mobile-dropdown" href="pages/document-translation.html">Document Translation</a>
+                <a class="items-mobile-dropdown" href="pages/audiovisual-translation.html">Audiovisual Translation</a>
+                <a class="items-mobile-dropdown" href="pages/localization.html">Localization</a>
+                <a class="items-mobile-dropdown" href="pages/gaming.html">Gaming Localization</a>
+            </div>
+
             <a class="items-mobile" href="pages/about.html">About</a>
             <a class="items-mobile" href="pages/document-translation.html#cta">Contact</a>
         </nav>
@@ -126,7 +126,8 @@
             <div id="s4" class="service-square animate__animated animate__zoomIn">
                 <div class="icon-title-container">
                     <img src="images/icons8-subtitles-50.png" alt="" class="icon">
-                    <h4 class="service-title"><a href="pages/audiovisual-translation.html">Audiovisual Translation</a></h4>
+                    <h4 class="service-title"><a href="pages/audiovisual-translation.html">Audiovisual Translation</a>
+                    </h4>
                 </div>
                 <p>From subtitles and dubbing to voiceovers and transcriptions, our audiovisual translation services
                     bring your multimedia content to life in multiple languages, making it accessible and engaging to
@@ -339,62 +340,66 @@
                 language(s) into which it/they need translation as well as your expected timeline, and we'll swiftly
                 craft a personalized quote just for you. Our
                 dedicated team will prioritize your request and respond within a matter of hours.</p>
-                <form action="form.php" method="POST" class="contact-form" id="contact-form">
-                    <div class="form-row">
-                        <label for="fullname">Full name:</label>
-                        <input type="text" id="fullname" placeholder="e.g., John Doe" name="fullname" required>
+            <form action="form.php" method="POST" class="contact-form" id="contact-form">
+                <div class="form-row">
+                    <label for="fullname">Full name:</label>
+                    <input type="text" id="fullname" placeholder="e.g., John Doe" name="fullname" required>
+                </div>
+                <div class="form-row">
+                    <label for="email">Email address:</label>
+                    <input type="text" id="email" placeholder="e.g., hello@live.com" name="email" required>
+                </div>
+                <div class="form-row">
+                    <label for="phonenumber">Phone number:</label>
+                    <input type="text" id="phonenumber" placeholder="+1 (111) 111-1111" name="phonenumber">
+                </div>
+                <div class="form-row">
+                    <label for="sourcelanguage">Source language(s):</label>
+                    <textarea name="sourcelanguage" id="sourcelanguage"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <label for="targetlanguage">Target language(s):</label>
+                    <textarea name="targetlanguage" id="targetlanguage"></textarea>
+                </div>
+
+                <div class="upload-file">
+                    <label for="file">Please select your document:</label>
+                    <input type="file" id="file" name="my_file">
+                </div>
+
+                <div class="form-row">
+                    <label for="message">Message:</label>
+                    <textarea name="message" id="message"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <button type="submit" id="submit-button">Submit</button>
+                </div>
+
+            </form>
+            <!-- MODAL -->
+            <div class="modal" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Error</h5>
+                            <button type="button" id="close-button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="modal-body">Error. Please ensure you have selected a file, source language, target
+                                language, turnaround and wordcount. If you have already selected a source and a target
+                                language, don't forget to click on the 'Add language pair' button.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="go-back-button" type="button" class="btn btn-primary">Go back</button>
+                        </div>
                     </div>
-                    <div class="form-row">
-                        <label for="email">Email address:</label>
-                        <input type="text" id="email" placeholder="e.g., hello@live.com" name="email" required>
-                    </div>
-                    <div class="form-row">
-                        <label for="phonenumber">Phone number:</label>
-                        <input type="text" id="phonenumber" placeholder="+1 (111) 111-1111" name="phonenumber">
-                    </div>
-                    <fieldset class="service-requested" for="servicerequested">
-                        <legend>Service(s) needed</legend>
-                        <input type="checkbox" name="translation" id="translation">
-                        <label for="translation" class="checkbox-label">Translation</label>
-
-                        <input type="checkbox" name="proofreading" id="proofreading">
-                        <label for="proofreading" class="checkbox-label">Proofreading</label>
-
-                        <input type="checkbox" name="subtitling" id="subtitling">
-                        <label for="subtitling" class="checkbox-label">Subtitling</label>
-
-                        <input type="checkbox" name="transcription" id="transcription">
-                        <label for="transcription" class="checkbox-label">Transcription</label>
-
-                        <input type="checkbox" name="website-localization" id="website-localization">
-                        <label for="website-localization" class="checkbox-label">Website Localization</label>
-                    </fieldset>
-
-                    <div class="form-row">
-                        <label for="sourcelanguage">Source language(s):</label>
-                        <textarea name="sourcelanguage" id="sourcelanguage"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="targetlanguage">Target language(s):</label>
-                        <textarea name="targetlanguage" id="targetlanguage"></textarea>
-                    </div>
-
-                    <div class="upload-file">
-                        <label for="file">Please select your document:</label>
-                        <input type="file" id="file" name="file">
-                    </div>
-
-                    <div class="form-row">
-                        <label for="message">Message:</label>
-                        <textarea name="message" id="message"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <button type="submit" id="submit-button">Submit</button>
-                    </div>
-
-                </form>
+                </div>
+            </div>
         </div>
     </section>
     <footer class="container">
@@ -435,7 +440,7 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
     </script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    
+
 
 </body>
 
