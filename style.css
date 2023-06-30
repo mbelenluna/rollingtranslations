@@ -409,7 +409,7 @@ ul {
 /*Success page */
 
 .thankyou {
-    background-image: url(./images/pexels-shawn-stutzman-1010496.jpg);
+    background-image: url(./images/pexels-shawn-stutzman-1010496.jpg); 
     height: 90vh;
     display: flex;
     justify-content: center;
@@ -716,22 +716,32 @@ ul {
 
 .gaming {
     display: grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-areas: "first image" "second image";
     justify-content: center;
     align-items: center;
 }
 
+.gaming-subsection {
+    grid-area: first;
+}
+
+.image-layout {
+    grid-area: image;
+}
+
+.gaming-subsection {
+    grid-area: second;
+}
+
+
+
 .joystick {
-    width: 70%;
+    width: 90%;
 }
 
 .gaming-second {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-}
-
-.arcade {
-    width: 70%;
 }
 
 .gaming-list li::before {content: counter(li); color: #235789;
@@ -753,7 +763,7 @@ ul {
 
 .gaming-headline {
     text-align: left;
-    margin: 3rem 0;
+    margin: 1rem 0;
 }
 
 .gaming-paragraph {
@@ -1049,6 +1059,22 @@ ul {
         padding-top: 1rem;
         padding-bottom: 1rem;
         row-gap: 1rem;
+    }
+
+    .arcade {
+        display: none;
+    }
+
+    .step-by-step {
+        width: 90%;
+    }
+
+    .gaming {
+        grid-template-columns: repeat(1,1fr);
+    }
+
+    .gaming-second {
+        grid-template-columns: repeat(1,1fr);
     }
 
     h2 {
