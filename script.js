@@ -100,8 +100,6 @@ btn.addEventListener("click", function(e) {
     });
 });
 
-window.onload = function () {
-
 
 
   let servicesMenuItem = document.querySelector(".item-dropdown");
@@ -166,7 +164,7 @@ window.onload = function () {
     myFunction();
   };
 
-};
+
 
 
 window.onload = function () {
