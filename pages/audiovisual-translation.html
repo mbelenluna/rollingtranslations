@@ -26,7 +26,7 @@
     <header>
         <div class="fixed-header">
         <div id="logo-header">
-            <img class="logo" src="../images/logo.png" alt="Logo">
+            <a href="../index.html"><img class="logo" src="../images/logo.png" alt="Logo"></a>
         </div>
         <nav>
             <ul id="menu-items">
@@ -106,37 +106,73 @@
         </main>
     </section>
 
-    <section id="cta">
+    <section id="cta" name="cta">
         <div class="cta container">
             <h2>Let's Connect!</h2>
-            <p class="cta-text">If you are interested in finding out our rates for these services, simply fill out the
-                form below with all
+            <p class="cta-text">Ready to embark on your translation journey? Simply fill out the form below with all
                 the
                 pertinent details about your project: attach the file(s) you would like to get a quote on, specify the
                 language(s) into which it/they need translation as well as your expected timeline, and we'll swiftly
                 craft a personalized quote just for you. Our
                 dedicated team will prioritize your request and respond within a matter of hours.</p>
-            <form method="post" action="form.php" enctype="multipart/form-data">
-                <div class="form-group">
-                    <input type="text" name="name" class="form-control" placeholder="Name" required="">
+            <form class="contact-form" id="contact-form">
+                <div class="form-row">
+                    <label for="fullname">Full name:</label>
+                    <input type="text" id="fullname" placeholder="e.g., John Doe" name="fullname" required>
                 </div>
-                <div class="form-group">
-                    <input type="email" name="email" class="form-control" placeholder="Email" required="">
+                <div class="form-row">
+                    <label for="email">Email address:</label>
+                    <input type="email" id="email" placeholder="e.g., hello@live.com" name="email" required>
                 </div>
-                <div class="form-group">
-                    <input type="text" name="subject" class="form-control" placeholder="Subject" required="">
+                <div class="form-row">
+                    <label for="phonenumber">Phone number:</label>
+                    <input type="text" id="phonenumber" placeholder="+1 (111) 111-1111" name="phonenumber">
                 </div>
-                <div class="form-group">
-                    <textarea name="message" class="form-control" placeholder="Write your message here" required=""
-                        style="resize: none;"></textarea>
+                <div class="form-row">
+                    <label for="sourcelanguage">Source language(s):</label>
+                    <textarea name="sourcelanguage" id="sourcelanguage"></textarea>
                 </div>
-                <div class="form-group">
-                    <input type="file" name="attachment" class="form-control attachment">
+
+                <div class="form-row">
+                    <label for="targetlanguage">Target language(s):</label>
+                    <textarea name="targetlanguage" id="targetlanguage"></textarea>
                 </div>
-                <div class="submit">
-                    <input type="submit" name="submit" class="btn" value="SUBMIT">
+
+                <div class="upload-file">
+                    <label for="file">Please select your document:</label>
+                    <input type="file" id="file" name="my_file">
+                </div>
+
+                <div class="form-row">
+                    <label for="message">Message:</label>
+                    <textarea name="message" id="message"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <button type="submit" id="submit-button">Submit</button>
                 </div>
             </form>
+
+            <!-- MODAL -->
+            <div class="modal" tabindex="-1" role="dialog" id="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Thank you!</h5>
+                            <button type="button" id="close-button" class="close" data-dismiss="modal"
+                                aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="modal-body">Thank you for your inquiry! An agent will be in touch with you in the next few hours.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="go-back-button" type="button" class="btn btn-primary">Go back</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 

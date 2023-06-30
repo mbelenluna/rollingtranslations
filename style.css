@@ -364,6 +364,11 @@ textarea {
 
 #modal {
     display: none;
+    color: black;
+}
+
+#modal-body {
+    color: black;
 }
 
 /* Footer */

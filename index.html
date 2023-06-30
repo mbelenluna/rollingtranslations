@@ -26,7 +26,7 @@
     <header>
         <div class="fixed-header">
             <div id="logo-header">
-                <img class="logo" src="images/logo.png" alt="Logo">
+                <a href="index.html"><img class="logo" src="images/logo.png" alt="Logo"></a>
             </div>
             <nav>
                 <ul id="menu-items">
@@ -347,7 +347,7 @@
                 </div>
                 <div class="form-row">
                     <label for="email">Email address:</label>
-                    <input type="text" id="email" placeholder="e.g., hello@live.com" name="email" required>
+                    <input type="email" id="email" placeholder="e.g., hello@live.com" name="email" required>
                 </div>
                 <div class="form-row">
                     <label for="phonenumber">Phone number:</label>
@@ -374,7 +374,7 @@
                 </div>
 
                 <div class="form-row">
-                    <button type="submit" id="send">Submit</button>
+                    <button type="submit" id="submit-button">Submit</button>
                 </div>
             </form>
 
@@ -383,16 +383,14 @@
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Error</h5>
+                            <h5 class="modal-title">Thank you!</h5>
                             <button type="button" id="close-button" class="close" data-dismiss="modal"
                                 aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            <p id="modal-body">Error. Please ensure you have selected a file, source language, target
-                                language, turnaround and wordcount. If you have already selected a source and a target
-                                language, don't forget to click on the 'Add language pair' button.</p>
+                            <p id="modal-body">Thank you for your inquiry! An agent will be in touch with you in the next few hours.</p>
                         </div>
                         <div class="modal-footer">
                             <button id="go-back-button" type="button" class="btn btn-primary">Go back</button>
@@ -426,7 +424,15 @@
             </ul>
         </div>
     </footer>
-    <script type="module" src="script.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
+    </script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("53Mb68rS7ENJ7t_lr");
+        })();
+    </script>
+
+    <script src="script.js"></script>
     <!-- MDB -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 
@@ -439,8 +445,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
     </script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
 
 </body>
 
