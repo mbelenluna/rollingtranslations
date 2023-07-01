@@ -873,6 +873,11 @@ ul {
         opacity: 0;
     }
 
+    .fixed-header {
+        padding: 0;
+    }
+    
+
     .mobile-nav {
         position: fixed;
         margin: 0;
