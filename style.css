@@ -311,10 +311,6 @@ form {
     flex-direction: column;
 }
 
-.form-row input {
-    margin-left: 2rem;
-}
-
 .form-row {
     display: grid;
     grid-template-columns: repeat(2,1fr);
@@ -1036,9 +1032,7 @@ ul {
         margin: 1rem;
     }
 
-    .contact-form input {
-        max-width: 7rem;
-    }
+
 
     .list-of-languages {
         grid-template-columns: repeat(2, 1fr);
@@ -1137,7 +1131,10 @@ ul {
         font-size: 18px!important;
     }
 
-
+    .form-row {
+        display: flex;
+        flex-direction: column;
+    }
 
     #hero-gaming p {
         font-size: 16px;
