@@ -229,7 +229,7 @@ body .fixed-header #menu-items .contact-menu-item a {
 
 .logos {
     display: grid;
-    grid-template-columns: repeat(4,1fr);
+    grid-template-columns: repeat(5,1fr);
     padding-bottom: 3rem;
 }
 
