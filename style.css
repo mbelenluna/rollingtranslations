@@ -214,6 +214,25 @@ body .fixed-header #menu-items .contact-menu-item a {
     margin: 0 0 0 3rem;
 }
 
+/* Our clients section */
+
+.our-clients-headline {
+    text-align: center;
+    padding-bottom: 3rem;
+}
+
+.logos img {
+    width: 40%;
+    text-align: center;
+    margin: auto;
+}
+
+.logos {
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    padding-bottom: 3rem;
+}
+
 /* Services section */
 
 .services {
@@ -956,6 +975,10 @@ ul {
         grid-template-areas: "s1 s2"
             "s3 s4""s5 s6";
         padding: 8rem 0 8rem 0;
+    }
+
+    .logos {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     #cta {
