@@ -170,7 +170,7 @@ body .fixed-header #menu-items .contact-menu-item a {
 .contact-button {
     background-color: #235789;
     padding: 0.5rem;
-    margin: 1rem;
+    margin: 1rem 1rem 0 1rem;
     border: #235789 solid;
     border-radius: 10px;
     color: white;
@@ -181,18 +181,28 @@ body .fixed-header #menu-items .contact-menu-item a {
 }
 
 .contact-button:hover {
-    transform: scale(125%);
-    transition-timing-function: ease;
+    background-color: blue;
+    border: blue solid;
 }
 
 /* Who Are We */
 
 #who-are-we {
-    height: 50vh;
     display: flex;
     justify-content: center;
     flex-direction: column;
     font-size: 17px;
+}
+
+.video-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.video {
+    width: 60%;
+    height: 60%;
 }
 
 .title-who-are-we {
@@ -951,6 +961,15 @@ ul {
 
     .image-who-are-we {
         height: 12rem;
+    }
+
+    .video {
+        width: 95%;
+        height: 95%;
+    }
+
+    .video-container {
+        margin-top: 2rem;
     }
 
     #hero {
