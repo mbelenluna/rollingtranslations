@@ -740,6 +740,14 @@ ul {
     margin-bottom: 3rem;
 }
 
+.accordion {
+    margin-bottom: 2rem;
+}
+
+.main-content {
+    padding-right: 10rem;
+}
+
 /* Gaming Localization */
 
 #hero-gaming {
@@ -1006,6 +1014,10 @@ ul {
 
     .attachment {
         width: 50%;
+    }
+
+    .main-content {
+        padding-right: 0;
     }
 
     .workflow-mobile {
@@ -1281,5 +1293,12 @@ ul {
 @media (min-width: 1448px) {
     #cta {
         padding: 5% 25%;
+    }
+}
+
+@media (min-width: 1483px) {
+    .main-content {
+        margin-right: 11rem;
+        margin-left: 5rem;
     }
 }
