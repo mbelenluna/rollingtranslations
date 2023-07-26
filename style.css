@@ -38,19 +38,6 @@ a:hover {
     color: #235789;
 }
 
-/* Construction */
-
-#under-construction {
-    background-image: url(images/pexels-fauxels-3184339.jpg);
-    background-size: cover;
-    height: 70vh;
-    color: white;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    align-items: center;
-}
-
 /* Header */
 
 .fixed-header {
@@ -394,6 +381,23 @@ textarea {
 
 #modal-body {
     color: black;
+}
+
+/* Success*/ 
+
+.return {
+    padding: 1rem 3rem;
+    border: 1px #235789 solid;
+    border-radius: 1rem;
+}
+
+.return a {
+    color: black;
+}
+
+.return:hover {
+    background-color: #235789;
+    color: white;
 }
 
 /* Footer */

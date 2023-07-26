@@ -71,6 +71,16 @@ let btn = document.getElementById("submit-button");
 btn.addEventListener("click", function(e) {
   e.preventDefault();
 
+  let fullnameInput = document.getElementById("fullname");
+  let emailInput = document.getElementById("email");
+  let messageInput = document.getElementById("message");
+
+  // Check if the required fields have been filled
+  if (fullnameInput.value.trim() === "" || emailInput.value.trim() === "" || messageInput.value.trim() === "") {
+    alert("Please fill in all required fields (Full name, Email, and Message) before submitting.");
+    return; // Exit the function if the required fields are not filled
+  }
+
   let data = {
     from_name: document.getElementById("fullname").value,
     email_id: document.getElementById("email").value,
@@ -85,15 +95,7 @@ btn.addEventListener("click", function(e) {
 
   emailjs.send("service_4thavy7", "template_bfqz58e", data)
     .then(function (response) {
-      modal.style.display = "block";
-      let goBackButton = document.getElementById("go-back-button");
-      goBackButton.addEventListener("click", function(e) {
-        modal.style.display = "none";
-      })
-      let crossButton = document.getElementById("close-button");
-      crossButton.addEventListener("click", function(e) {
-        modal.style.display = "none";
-      })
+      window.location.href = "success.html";
     })
     .catch(function (error) {
       console.error("Error:", error);
