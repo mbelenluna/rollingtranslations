@@ -641,6 +641,10 @@ ul {
 
 /* About us */
 
+.body-about {
+    overflow-x: hidden;
+}
+
 #hero-about {
     height: 60vh;
     display: flex;
@@ -1214,6 +1218,8 @@ ul {
     .list-of-values {
         grid-template-columns: repeat(1, 1fr);
     }
+
+
 }
 
 @media (max-width: 593px) {

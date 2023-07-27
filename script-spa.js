@@ -28,7 +28,7 @@ function functionOut3() {
 }
 
 function functionIn4() {
-    reach.innerHTML = "With an extensive network of professional translators and resources in multiple languages, we have the capability to provide translation services for a wide range of language pairs.";
+    reach.innerHTML = "Gracias a nuestra extensa red de traductores profesionales y recursos en múltiples idiomas, tenemos la capacidad para brindar servicios de traducción en un amplio rango de idiomas.";
 }
 
 function functionOut4() {
@@ -36,7 +36,7 @@ function functionOut4() {
 }
 
 function functionIn5() {
-    tech.innerHTML = "We embrace cutting-edge translation technologies, including advanced CAT (Computer-Assisted Translation) tools, to enhance our efficiency and accuracy.";
+    tech.innerHTML = "Utilizamos tecnologías innovadoras en nuestros procesos, como herramientas CAT (traducción asistida por computadora) para aumentar nuestra eficiencia y precisión.";
 }
 
 function functionOut5() {
@@ -44,7 +44,7 @@ function functionOut5() {
 }
 
 function functionIn6() {
-    imp.innerHTML = "By embracing innovation and continuously improving our processes, we strive to provide our clients with the most efficient and effective translation solutions available.";
+    imp.innerHTML = "Nos esforzamos por brindarles a nuestros clientes soluciones lingüísticas eficientes por medio de innovación y mejora continua de nuestros procesos.";
 }
 
 function functionOut6() {
@@ -124,7 +124,7 @@ menu_btn.addEventListener('click', function () {
 
 const values = document.querySelector(".hover");
 if (window.innerWidth < 768) {
-    values.innerHTML = "Click on each value to learn more.";
+    values.innerHTML = "Haga clic en cada valor para más información.";
 }
 
 let exp = document.querySelector(".exp");
@@ -168,6 +168,6 @@ window.onscroll = function () {
 window.onload = function () {
     const values = document.querySelector(".hover");
     if (window.innerWidth < 768) {
-        values.innerHTML = "Click on each value to learn more.";
+        values.innerHTML = "Haga clic en cada valor para más información.";
     }
 }
