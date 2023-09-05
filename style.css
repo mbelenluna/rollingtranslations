@@ -414,8 +414,16 @@ footer {
     grid-area: logo;
 }
 
+#logo-footer p {
+    margin-bottom: 0.5rem;
+}
+
 #logo-footer h4 {
     color: #235789;
+}
+
+.socialmedia {
+    width: 35px;
 }
 
 #info {
@@ -1220,6 +1228,27 @@ ul {
     }
 
 
+}
+
+@media (max-width:768px) {
+    .footer-navigation {
+        justify-content: start;
+    }
+
+    #logo-footer {
+        padding-bottom: 0.5rem;
+        border-bottom: #4F4F4F 0.5px solid;
+    }
+
+    #info {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: #4F4F4F 0.5px solid;
+    }
+
+    .footer-navigation {
+        padding-top: 0.5rem;
+    }
 }
 
 @media (max-width: 593px) {
