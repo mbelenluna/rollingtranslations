@@ -65,8 +65,13 @@ a:hover {
 
 #menu-items {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     list-style-type: none;
+}
+
+.whatsapp {
+    width: 30px;
+    padding-right: 10px;
 }
 
 #logo-header h4 {
@@ -76,6 +81,7 @@ a:hover {
 .active-menu-item {
     font-weight: 600;
     border-bottom: solid #235789 2px;
+    text-align: center;
 }
 
 .contact-menu-item {
@@ -83,6 +89,7 @@ a:hover {
     border-radius: 1rem;
     background-color: #235789;
     color: white;
+    text-align: center;
 }
 
 body .fixed-header #menu-items .contact-menu-item a {
@@ -94,7 +101,7 @@ body .fixed-header #menu-items .contact-menu-item a {
 }
 
 #menu-items li {
-    margin: 0 2rem 0 2rem;
+    margin: 0 1rem 0 1rem;
     padding: 1rem;
 }
 
@@ -104,6 +111,7 @@ body .fixed-header #menu-items .contact-menu-item a {
 
 .items {
     position: relative;
+    text-align: center;
 }
 
 #dropdown-menu {
@@ -171,6 +179,8 @@ body .fixed-header #menu-items .contact-menu-item a {
     background-color: blue;
     border: blue solid;
 }
+
+
 
 /* Who Are We */
 
