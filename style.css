@@ -857,6 +857,17 @@ ul {
     justify-content: center;
 }
 
+/* Privacy policy */
+
+.privpolicy {
+    padding: 5% 25%;
+}
+
+.headlinepp {
+    padding-bottom: 5rem;
+    text-align: center;
+}
+
 /* Responsiveness */
 
 /* Header */
@@ -1262,6 +1273,9 @@ ul {
 }
 
 @media (max-width: 593px) {
+    .privpolicy {
+        padding: 5% 5%;
+    }
     .services {
         grid-template-areas: "s1""s2""s3""s4""s5""s6";
         padding: 1rem;
