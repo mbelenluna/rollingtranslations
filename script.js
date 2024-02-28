@@ -104,20 +104,6 @@ btn.addEventListener("click", function(e) {
 
 
 
-  let servicesMenuItem = document.querySelector(".item-dropdown");
-  let dropdownMenu = document.getElementById("dropdown-menu");
-
-  servicesMenuItem.addEventListener("mouseover", showDropdownMenu);
-  servicesMenuItem.addEventListener("mouseout", hideDropdownMenu);
-
-  function showDropdownMenu() {
-    dropdownMenu.style.display = "block";
-  }
-
-  function hideDropdownMenu() {
-    dropdownMenu.style.display = "none";
-  }
-
   const menu_btn = document.querySelector(".hamburger");
   const mobile_menu = document.querySelector('.mobile-nav');
 
