@@ -1679,8 +1679,12 @@ ul {
         padding: 1rem;
     }
 
+    #hero {
+        height: 78vh;
+    }
+
     #hero h1 {
-        font-size: 50px;
+        font-size: 40px;
     }
 
     .footer-navigation {
