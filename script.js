@@ -161,4 +161,3 @@ window.onload = function () {
     values.innerHTML = "Click on each value to learn more.";
   }
 }
-
