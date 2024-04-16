@@ -1341,7 +1341,8 @@ ul {
     }
 
     .card {
-        width: calc(100% - 20px);
+        width: calc(100%);
+        margin-left: 0;
     }
 
     .blue-arrow {
