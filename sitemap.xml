@@ -8,28 +8,38 @@
 
 
 <url>
-  <loc>https://rolling-translations.com/</loc>
-  <lastmod>2024-02-29T16:44:34+00:00</lastmod>
+  <loc>https://rolling-translations.com/index.html</loc>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
-  <loc>https://rolling-translations.com/index.html</loc>
-  <lastmod>2024-02-29T16:44:34+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
   <loc>https://rolling-translations.com/pages/services.html</loc>
-  <lastmod>2024-02-29T16:44:34+00:00</lastmod>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://rolling-translations.com/pages/about.html</loc>
-  <lastmod>2024-02-29T16:44:34+00:00</lastmod>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://rolling-translations.com/pages/blog.html</loc>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://rolling-translations.com/pages/article.html?slug=how-can-i-translate-my-website-a-guide-to-website-localization</loc>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://rolling-translations.com/pages/article.html?slug=can-certified-translations-be-obtained-online</loc>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://rolling-translations.com/pages/privacypolicy.html</loc>
-  <lastmod>2024-02-29T16:44:33+00:00</lastmod>
+  <lastmod>2024-04-16T00:00:00+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 
