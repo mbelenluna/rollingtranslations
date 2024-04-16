@@ -1274,6 +1274,14 @@ ul {
     color: #000000;
 }
 
+.card h2 a {
+    color: #000000;
+}
+
+.card h2 a:hover {
+    color: #235789;
+}
+
 /*Article */
 
 #article-container {
