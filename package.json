@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@emailjs/browser": "^3.11.0",
+    "cookies-eu-banner": "^2.0.1",
     "emailjs": "^4.0.2",
     "headroom.js": "^0.12.0",
     "mdb-ui-kit": "^6.4.0"
