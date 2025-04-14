@@ -46,6 +46,10 @@ h2 {
     font-size: 40px;
 }
 
+.small-text {
+    font-size: xx-small;
+}
+
 body .fixed-header #menu-items a {
     text-decoration: none;
     color: #4F4F4F;
