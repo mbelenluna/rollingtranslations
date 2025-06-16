@@ -32,19 +32,7 @@
 
     <link rel="stylesheet" href="style.css">
     <title>Rolling Translations - Unlocking Languages, Connecting Cultures</title>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-11274838151">
-    </script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
 
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-
-        gtag('config', 'AW-11274838151');
-    </script>
     <style type="text/css">
         @import url("https://assets.mlcdn.com/fonts.css?version=1707735");
     </style>
@@ -510,32 +498,35 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
+
     <script>
-        function loadGoogleTagManager() {
-            (function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({
-                    'gtm.start': new Date().getTime(),
-                    event: 'gtm.js'
-                });
-                var f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s),
-                    dl = l != 'dataLayer' ? '&l=' + l : '';
-                j.async = true;
-                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
+        function loadGoogleTags() {
+            const gtagScript = document.createElement('script');
+            gtagScript.async = true;
+            gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-0XKN7D18DG';
+            document.head.appendChild(gtagScript);
+
+            const adsScript = document.createElement('script');
+            adsScript.async = true;
+            adsScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-11274838151';
+            document.head.appendChild(adsScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+
+            gtag('js', new Date());
+            gtag('config', 'G-0XKN7D18DG'); // Google Analytics
+            gtag('config', 'AW-11274838151'); // Google Ads
         }
 
         function loadTawkTo() {
-            var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-            var s1 = document.createElement("script"),
-                s0 = document.getElementsByTagName("script")[0];
+            const s1 = document.createElement("script");
             s1.async = true;
             s1.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
             s1.charset = 'UTF-8';
             s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
+            document.head.appendChild(s1);
         }
 
         glowCookies.start('en', {
@@ -548,15 +539,13 @@
 
         window.addEventListener('glowCookiesComplete', function () {
             const prefs = glowCookies.getPreferences();
-
             if (prefs.analytics === true) {
-                // ✅ Google Analytics
-                loadGoogleTagManager();
+                loadGoogleTags();
                 loadTawkTo();
             }
         });
     </script>
-    </script>
+
 
 
 </body>
