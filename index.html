@@ -87,13 +87,7 @@
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
-    <div id="cookies-eu-banner" style="display: none;">
-        By continuing your visit to this site, you accept the use of cookies by Google Analytics to make visits
-        statistics.
-        <a href="./read-more.html" id="cookies-eu-more">Read more</a>
-        <button id="cookies-eu-reject">Reject</button>
-        <button id="cookies-eu-accept">Accept</button>
-    </div>
+
 
     <header>
         <div class="fixed-header">
@@ -547,30 +541,40 @@
     <script>
         fetch("https://assets.mailerlite.com/jsonp/839100/forms/113900508456945365/takel")
     </script>
-    <!--Start of Tawk.to Script-->
-    <script type="text/javascript">
-        var Tawk_API = Tawk_API || {},
-            Tawk_LoadStart = new Date();
-        (function () {
-            var s1 = document.createElement("script"),
-                s0 = document.getElementsByTagName("script")[0];
-            s1.async = true;
-            s1.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
-            s1.charset = 'UTF-8';
-            s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
-        })();
-    </script>
-    <!--End of Tawk.to Script-->
+
+    <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
     <script>
         glowCookies.start('en', {
             style: 1,
-            analytics: 'G-FH87DE17XF',
-            facebookPixel: '990955817632355',
-            policyLink: 'https://rolling-translations.com/pages/privacypolicy.html'
+            policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
+            hideAfterClick: true,
+            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.'
         });
+
+        if (glowCookies.preferences.analytics === true) {
+            // Load Google Analytics
+            const gaScript = document.createElement('script');
+            gaScript.async = true;
+            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FH87DE17XF';
+            document.head.appendChild(gaScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-FH87DE17XF');
+
+            // Load Tawk.to
+            const tawkScript = document.createElement('script');
+            tawkScript.async = true;
+            tawkScript.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
+            tawkScript.charset = 'UTF-8';
+            tawkScript.setAttribute('crossorigin', '*');
+            document.head.appendChild(tawkScript);
+        }
     </script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("contact-form");
