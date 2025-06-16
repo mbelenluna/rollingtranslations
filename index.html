@@ -542,38 +542,44 @@
         fetch("https://assets.mailerlite.com/jsonp/839100/forms/113900508456945365/takel")
     </script>
 
-    <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
-
+    <!-- GlowCookies -->
     <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
     <script>
         glowCookies.start('en', {
             style: 1,
             policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
             hideAfterClick: true,
-            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.'
+            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
+            acceptBtnText: 'Accept',
+            rejectBtnText: 'Reject',
+            position: 'bottom-right'
         });
 
-        if (glowCookies.preferences.analytics === true) {
-            // Load Google Analytics
-            const gaScript = document.createElement('script');
-            gaScript.async = true;
-            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FH87DE17XF';
-            document.head.appendChild(gaScript);
+        window.addEventListener('glowCookiesComplete', function () {
+            const prefs = glowCookies.getPreferences();
+            if (prefs.analytics === true) {
+                // Google Analytics
+                const gaScript = document.createElement('script');
+                gaScript.async = true;
+                gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FH87DE17XF';
+                document.head.appendChild(gaScript);
 
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', 'G-FH87DE17XF');
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-FH87DE17XF');
 
-            // Load Tawk.to
-            const tawkScript = document.createElement('script');
-            tawkScript.async = true;
-            tawkScript.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
-            tawkScript.charset = 'UTF-8';
-            tawkScript.setAttribute('crossorigin', '*');
-            document.head.appendChild(tawkScript);
-        }
+                // Tawk.to
+                const tawkScript = document.createElement('script');
+                tawkScript.async = true;
+                tawkScript.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
+                tawkScript.charset = 'UTF-8';
+                tawkScript.setAttribute('crossorigin', '*');
+                document.head.appendChild(tawkScript);
+            }
+        });
     </script>
+
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
