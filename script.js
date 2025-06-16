@@ -112,30 +112,7 @@ btn.addEventListener("click", function(e) {
     mobile_menu.classList.toggle('is-active');
   });
 
-  const values = document.querySelector(".hover");
-  if (window.innerWidth < 768) {
-    values.innerHTML = "Click on each value to learn more.";
-  }
-
-  let exp = document.querySelector(".exp");
-  let qual = document.querySelector(".qual");
-  let clients = document.querySelector(".clients");
-  let reach = document.querySelector(".reach");
-  let tech = document.querySelector(".tech");
-  let imp = document.querySelector(".imp");
-
-  exp.addEventListener("mouseover", functionIn1);
-  exp.addEventListener("mouseout", functionOut1);
-  qual.addEventListener("mouseover", functionIn2);
-  qual.addEventListener("mouseout", functionOut2);
-  clients.addEventListener("mouseover", functionIn3);
-  clients.addEventListener("mouseout", functionOut3);
-  reach.addEventListener("mouseover", functionIn4);
-  reach.addEventListener("mouseout", functionOut4);
-  tech.addEventListener("mouseover", functionIn5);
-  tech.addEventListener("mouseout", functionOut5);
-  imp.addEventListener("mouseover", functionIn6);
-  imp.addEventListener("mouseout", functionOut6);
+  
 
   let navbar = document.querySelector('.mobile-nav');
   let sticky = navbar.offsetTop;
