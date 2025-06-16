@@ -3,37 +3,6 @@
 
 <head>
 
-    <!-- Google Tag Manager -->
-    <script>
-        (function (w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({
-                'gtm.start': new Date().getTime(),
-                event: 'gtm.js'
-            });
-            var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s),
-                dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src =
-                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
-    </script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0XKN7D18DG"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-        gtag('config', 'G-0XKN7D18DG');
-    </script>
-
     <meta charset="UTF-8">
     <meta name="description"
         content="Need accurate translations that resonate globally? Rolling Translations delivers culturally adapted solutions by expert linguists. Get your free quote today!">
@@ -86,8 +55,6 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TFB6RP7Z" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
-
 
     <header>
         <div class="fixed-header">
@@ -542,99 +509,54 @@
         fetch("https://assets.mailerlite.com/jsonp/839100/forms/113900508456945365/takel")
     </script>
 
-<!-- GlowCookies -->
-<script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
-
-<script>
-    window.addEventListener('load', function () {
-        try {
-            console.log('Trying to start glowCookies...');
-            if (typeof glowCookies !== 'undefined') {
-                glowCookies.start('en', {
-                    style: 1,
-                    policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
-                    hideAfterClick: true,
-                    bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
-                    acceptBtnText: 'Accept',
-                    rejectBtnText: 'Reject',
-                    position: 'bottom-right'
+    <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
+    <script>
+        function loadGoogleTagManager() {
+            (function (w, d, s, l, i) {
+                w[l] = w[l] || [];
+                w[l].push({
+                    'gtm.start': new Date().getTime(),
+                    event: 'gtm.js'
                 });
-                console.log('glowCookies started successfully!');
-            } else {
-                console.error('glowCookies is undefined.');
-            }
-        } catch (err) {
-            console.error('GlowCookies failed to start:', err);
+                var f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != 'dataLayer' ? '&l=' + l : '';
+                j.async = true;
+                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                f.parentNode.insertBefore(j, f);
+            })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
         }
-    });
 
-    window.addEventListener('glowCookiesComplete', function () {
-        try {
-            console.log('glowCookiesComplete triggered');
+        function loadTawkTo() {
+            var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+            var s1 = document.createElement("script"),
+                s0 = document.getElementsByTagName("script")[0];
+            s1.async = true;
+            s1.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
+            s1.charset = 'UTF-8';
+            s1.setAttribute('crossorigin', '*');
+            s0.parentNode.insertBefore(s1, s0);
+        }
+
+        glowCookies.start('en', {
+            style: 1,
+            policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
+            acceptBtnText: 'Accept',
+            rejectBtnText: 'Reject',
+            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
+        });
+
+        window.addEventListener('glowCookiesComplete', function () {
             const prefs = glowCookies.getPreferences();
-            console.log('User preferences:', prefs);
 
             if (prefs.analytics === true) {
-                console.log('Loading Google Analytics and Tawk.to...');
-                
-                const gaScript = document.createElement('script');
-                gaScript.async = true;
-                gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FH87DE17XF';
-                document.head.appendChild(gaScript);
-
-                window.dataLayer = window.dataLayer || [];
-                function gtag() { dataLayer.push(arguments); }
-                gtag('js', new Date());
-                gtag('config', 'G-FH87DE17XF');
-
-                const tawkScript = document.createElement('script');
-                tawkScript.async = true;
-                tawkScript.src = 'https://embed.tawk.to/64b618d394cf5d49dc643a99/1h5jl1v48';
-                tawkScript.charset = 'UTF-8';
-                tawkScript.setAttribute('crossorigin', '*');
-                document.head.appendChild(tawkScript);
+                // ✅ Google Analytics
+                loadGoogleTagManager();
+                loadTawkTo();
             }
-        } catch (err) {
-            console.error('Error in glowCookiesComplete handler:', err);
-        }
-    });
-</script>
-
-
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const form = document.getElementById("contact-form");
-
-            form.addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const data = {
-                    fullname: document.getElementById("fullname").value,
-                    email: document.getElementById("email").value,
-                    phonenumber: document.getElementById("phonenumber").value,
-                    sourcelanguage: document.getElementById("sourcelanguage").value,
-                    targetlanguage: document.getElementById("targetlanguage").value,
-                    message: document.getElementById("message").value
-                };
-
-                fetch("https://script.google.com/macros/s/AKfycbwO7a6pEoz02YsaFtEq4zZNLnuSmzt8DYc5KZWyAe4pG6TFBmOeJlXLd84xKIZRwoZtkA/exec", {
-                    method: "POST",
-                    body: JSON.stringify(data)
-                })
-                    .then(response => response.text())
-                    .then(text => {
-                        alert("Response: " + text);
-                    })
-                    .catch((error) => {
-                        console.error("Fetch error:", error);
-                        alert("Something went wrong.");
-                    });
-            });
         });
     </script>
-
+    </script>
 
 
 </body>
