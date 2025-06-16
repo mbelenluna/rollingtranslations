@@ -499,25 +499,47 @@
 
     <!-- GlowCookies -->
     <script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
-
     <script>
-        function loadGoogleTags() {
-            console.log("Loading Google Tags...");
-            // Google Analytics
-            (function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                var f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s),
-                    dl = l != 'dataLayer' ? '&l=' + l : '';
-                j.async = true;
-                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
-        }
+        glowCookies.start('en', {
+            style: 2,
+            analytics: 'G-0XKN7D18DG', // your GA4 tag
+            policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
+            acceptBtnText: 'Accept',
+            rejectBtnText: 'Reject',
+            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
+            customScript: [
+                {
+                    type: 'custom',
+                    position: 'body',
+                    content: `
+          // Google Tag Manager
+        (function(w,d,s,l,i){
+            w[l]=w[l]||[];
+            w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+            var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),
+                dl=l!='dataLayer'?'&l='+l:'';
+            j.async=true;
+            j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+            f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TFB6RP7Z');
 
-        function loadTawkTo() {
-            console.log("Loading Tawk...");
+          // Google Ads
+        (function(){
+            var ga = document.createElement('script');
+            ga.async = true;
+            ga.src = 'https://www.googletagmanager.com/gtag/js?id=AW-11274838151';
+            document.head.appendChild(ga);
+            ga.onload = function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-11274838151');
+            }
+        })();
+
+          // Tawk.to chat
+        (function(){
             var s1 = document.createElement("script"),
                 s0 = document.getElementsByTagName("script")[0];
             s1.async = true;
@@ -525,31 +547,13 @@
             s1.charset = 'UTF-8';
             s1.setAttribute('crossorigin', '*');
             s0.parentNode.insertBefore(s1, s0);
-        }
-
-        console.log("Trying to start GlowCookies...");
-        glowCookies.start('en', {
-            style: 1,
-            banner: true,
-            policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
-            acceptBtnText: 'Accept',
-            rejectBtnText: 'Reject',
-            bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
-        });
-
-        window.addEventListener('glowCookiesComplete', function () {
-            console.log("glowCookiesComplete fired!");
-            const prefs = glowCookies.getPreferences();
-            console.log("Cookie preferences:", prefs);
-
-            if (prefs.analytics === true) {
-                loadGoogleTags();
-                loadTawkTo();
-            } else {
-                console.log("Analytics not accepted.");
-            }
+        })();
+        `
+                }
+            ]
         });
     </script>
+
 
 
 
