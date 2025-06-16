@@ -529,8 +529,10 @@
             document.head.appendChild(s1);
         }
 
+        console.log("Trying to start GlowCookies...");
         glowCookies.start('en', {
             style: 1,
+            banner: true,
             policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
             acceptBtnText: 'Accept',
             rejectBtnText: 'Reject',
@@ -538,10 +540,17 @@
         });
 
         window.addEventListener('glowCookiesComplete', function () {
+            console.log("glowCookiesComplete fired!");
+
             const prefs = glowCookies.getPreferences();
+            console.log("Cookie preferences:", prefs);
+
             if (prefs.analytics === true) {
+                console.log("User accepted cookies. Loading scripts...");
                 loadGoogleTags();
                 loadTawkTo();
+            } else {
+                console.log("User rejected cookies or did not enable analytics.");
             }
         });
     </script>
