@@ -542,24 +542,41 @@
         fetch("https://assets.mailerlite.com/jsonp/839100/forms/113900508456945365/takel")
     </script>
 
-    <!-- GlowCookies -->
-    <script src="https://cdn.jsdelivr.net/npm/glowcookies@3.1.8/dist/glowCookies.min.js"></script>
-    <script>
-        window.addEventListener('load', function () {
-            glowCookies.start('en', {
-                style: 1,
-                policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
-                hideAfterClick: true,
-                bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
-                acceptBtnText: 'Accept',
-                rejectBtnText: 'Reject',
-                position: 'bottom-right'
-            });
-        });
+<!-- GlowCookies -->
+<script src="https://cdn.jsdelivr.net/gh/manucaralmo/GlowCookies@3.1.8/src/glowCookies.min.js"></script>
 
-        window.addEventListener('glowCookiesComplete', function () {
+<script>
+    window.addEventListener('load', function () {
+        try {
+            console.log('Trying to start glowCookies...');
+            if (typeof glowCookies !== 'undefined') {
+                glowCookies.start('en', {
+                    style: 1,
+                    policyLink: 'https://rolling-translations.com/pages/privacypolicy.html',
+                    hideAfterClick: true,
+                    bannerDescription: 'We use cookies to analyze traffic and offer live chat support. You can accept or reject these cookies. Click “Read more” for details.',
+                    acceptBtnText: 'Accept',
+                    rejectBtnText: 'Reject',
+                    position: 'bottom-right'
+                });
+                console.log('glowCookies started successfully!');
+            } else {
+                console.error('glowCookies is undefined.');
+            }
+        } catch (err) {
+            console.error('GlowCookies failed to start:', err);
+        }
+    });
+
+    window.addEventListener('glowCookiesComplete', function () {
+        try {
+            console.log('glowCookiesComplete triggered');
             const prefs = glowCookies.getPreferences();
+            console.log('User preferences:', prefs);
+
             if (prefs.analytics === true) {
+                console.log('Loading Google Analytics and Tawk.to...');
+                
                 const gaScript = document.createElement('script');
                 gaScript.async = true;
                 gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-FH87DE17XF';
@@ -577,8 +594,12 @@
                 tawkScript.setAttribute('crossorigin', '*');
                 document.head.appendChild(tawkScript);
             }
-        });
-    </script>
+        } catch (err) {
+            console.error('Error in glowCookiesComplete handler:', err);
+        }
+    });
+</script>
+
 
 
 
