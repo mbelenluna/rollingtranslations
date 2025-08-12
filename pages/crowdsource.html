@@ -76,22 +76,24 @@
         </div>
     </header>
 
-    <!-- Hero -->
+    <!-- Hero (FIXED: gradient moved behind content so it doesn't wash out the text) -->
     <section class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-b from-blue-50 to-transparent"></div>
-        <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
+        <!-- The gradient sits BEHIND everything -->
+        <div class="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 to-transparent pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
             <div>
                 <div class="inline-flex items-center gap-2 mb-4">
                     <span class="tag">Fast</span>
                     <span class="tag">Scalable</span>
-                    <span class="tag">Human‑Powerered</span>
+                    <span class="tag">Human‑Powered</span>
                     <span class="tag">Low‑Risk Content Only</span>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4">Human‑Powered Translations at <span
-                        class="text-blue-600">Half the Industry Cost</span>.</h1>
-                <p class="text-lg text-gray-700 mb-4">From quick 10‑word posts to 300,000‑word rollouts, our verified
+                <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-gray-900">Human‑Powered
+                    Translations at <span class="text-blue-600">Half the Industry Cost</span>.</h1>
+                <p class="text-lg text-gray-800 mb-4">From quick 10‑word posts to 300,000‑word rollouts, our verified
                     global community delivers quality at unmatched prices.</p>
-                <p class="text-gray-700">High‑volume projects (100,000+ words) start from <span
+                <p class="text-gray-800">High‑volume projects (100,000+ words) start from <span
                         class="font-semibold">$0.04–$0.05 per word</span>.</p>
                 <div class="mt-8 flex flex-wrap gap-4">
                     <a href="/crowd/request"
@@ -101,7 +103,7 @@
                         class="px-6 py-3 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 font-semibold shadow-sm">Become
                         a Translator</a>
                 </div>
-                <p class="mt-4 text-sm text-gray-500">Not for medical, legal, or other regulated content. For those, use
+                <p class="mt-4 text-sm text-gray-600">Not for medical, legal, or other regulated content. For those, use
                     our <a class="underline" href="/professional">Professional Services</a>.</p>
             </div>
             <div class="relative">
@@ -149,23 +151,23 @@
         <h2 class="text-3xl font-extrabold mb-6">Our Services</h2>
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="font-semibold text-lg">Text & Micro‑Translation</h3>
+                <h3 class="font-semibold text-lg">1) Text & Micro‑Translation</h3>
                 <p class="text-gray-700 mt-2">Quick turnaround for messages, captions, and product blips.</p>
                 <p class="text-gray-700">Starting from <span class="font-semibold">$1</span> per micro‑task.</p>
             </div>
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="font-semibold text-lg">Document & Bulk Translation</h3>
+                <h3 class="font-semibold text-lg">2) Document & Bulk Translation</h3>
                 <p class="text-gray-700 mt-2">Professional‑grade output for long‑form content via parallel workflows.
                 </p>
                 <p class="text-gray-700">300k+ words: <span class="font-semibold">$0.04–$0.05</span> per word.</p>
             </div>
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="font-semibold text-lg">Proofreading & QA</h3>
+                <h3 class="font-semibold text-lg">3) Proofreading & QA</h3>
                 <p class="text-gray-700 mt-2">Peer‑reviewed and rated translations; dedicated editors for high‑value
                     projects.</p>
             </div>
             <div class="bg-white rounded-2xl shadow p-6">
-                <h3 class="font-semibold text-lg">API & Enterprise</h3>
+                <h3 class="font-semibold text-lg">4) API & Enterprise</h3>
                 <p class="text-gray-700 mt-2">Integrate via API for real‑time crowdsourced translation (continuous
                     localization).</p>
             </div>
@@ -238,7 +240,7 @@
         </div>
     </section>
 
-    <!-- Translator community -->
+    <!-- Translator community & enterprise -->
     <section class="bg-white">
         <div class="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
             <div>
@@ -313,6 +315,70 @@
             </div>
         </div>
     </div>
+
+    <footer class="max-w-7xl mx-auto px-4 py-16 text-sm text-gray-500">
+        © <span id="y"></span> Rolling Translations. Crowdsourced Translation is a separate, opt‑in service. <a
+            class="underline" href="/professional">Professional Services</a> for regulated content.
+    </footer>
+
+    <script>
+        document.getElementById('y').textContent = new Date().getFullYear()
+    </script>
+</body>
+
+</html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Keep this page out of search results -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Rolling Translations — Crowdsourced Translation (Fast & Affordable)</title>
+    <meta name="description"
+        content="Fast, scalable, human-powered crowdsourced translation for low-risk, high-volume content. Not for medical/legal/regulated materials.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand: #0ea5e9;
+            --brand-dark: #0284c7;
+            --ink: #0f172a;
+        }
+
+        body {
+            font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            color: var(--ink)
+        }
+
+        .chip {
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: .25rem .75rem;
+            font-size: .8rem
+        }
+
+        .glass {
+            backdrop-filter: saturate(180%) blur(10px);
+            background: rgba(255, 255, 255, 0.7)
+        }
+
+        .tag {
+            font-size: .75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: .15rem .45rem
+        }
+    </style>
+</head>
+
+
+
+
 
     <footer class="max-w-7xl mx-auto px-4 py-16 text-sm text-gray-500">
         © <span id="y"></span> Rolling Translations. Crowdsourced Translation is a separate, opt‑in service. <a
