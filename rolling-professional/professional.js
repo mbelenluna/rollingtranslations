@@ -81,7 +81,7 @@ await signInAnonymously(auth);
 const uid = auth.currentUser?.uid;
 
 // ------- DOM helpers -------
-const $ = (id) => /** @type {HTMLInputElement} */ (document.getElementById(id));
+const $ = (id) => /** @type {HTMLInputElement} */(document.getElementById(id));
 const filesEl = $("files");
 const btnPreview = $("btnPreview");
 const btnPay = $("btnPay");
