@@ -18,7 +18,7 @@
 //   - createProCheckoutSession (POST payload below) → { url }
 //
 //
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
 
@@ -35,7 +35,7 @@ const firebaseConfig = {
 
 // TODO: Set your Cloud Functions base URL
 // Example Gen2/Gen1: https://us-central1-your-project-id.cloudfunctions.net
-const CF_BASE = "https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net";
+const CF_BASE = "https://us-central1-rolling-professional.cloudfunctions.net";
 
 // ------- Pricing (keep in sync with your backend) -------
 const PRICING = {
