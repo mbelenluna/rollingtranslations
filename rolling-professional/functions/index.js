@@ -134,7 +134,7 @@ exports.createProCheckoutSession = functions.region("us-central1").https.onReque
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    const origin = "https://mbelenluna.github.io/rolling-professional-widget/web"; // cambiá si lo publicás en otro path
+    const origin = "https://rolling-translations.com/rolling-professional"; // cambiá si lo publicás en otro path
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: email || undefined,
