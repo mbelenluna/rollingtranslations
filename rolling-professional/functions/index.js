@@ -1,8 +1,8 @@
+// functions/index.js — Gen2 (v2) listo para deploy
 const { onRequest } = require("firebase-functions/v2/https");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore"); // si lo usás
 const { setGlobalOptions } = require("firebase-functions/v2");
-setGlobalOptions({ region: "us-central1" });
-const functions = require("firebase-functions");
+setGlobalOptions({ region: "us-central1", timeoutSeconds: 120, memoryMiB: 512 });
+
 const admin = require("firebase-admin");
 const { Storage } = require("@google-cloud/storage");
 const mammoth = require("mammoth");
@@ -13,7 +13,7 @@ admin.initializeApp();
 const db = admin.firestore();
 const storage = new Storage();
 
-// CORS sencillo
+// CORS sencillo (no se usa en webhook)
 const ALLOWED_ORIGINS = [
   "https://mbelenluna.github.io",
   "https://rolling-translations.com",
@@ -65,7 +65,7 @@ function computeAmountCents({ words, pair, service, subject, rush, certified, fo
 
 // Helpers
 async function gcsFileBuffer(gsPath) {
-  let bucket = storage.bucket(); // default bucket
+  let bucket = storage.bucket(); // default bucket del proyecto
   let filePath = gsPath;
   // Si gsPath viniera como "bucket/..." (no es tu caso), separar bucket y ruta:
   if (gsPath.includes("/") && gsPath.split("/")[0].includes(".")) {
@@ -81,8 +81,8 @@ function naiveCount(str) {
   return (str || "").replace(/[\r\n]+/g, " ").trim().split(/\s+/).filter(Boolean).length;
 }
 
-// 1) Conteo de palabras
-exports.getQuoteForFile = functions.region("us-central1").https.onRequest(async (req, res) => {
+// 1) Conteo de palabras (DOCX/PDF/TXT)
+exports.getQuoteForFile = onRequest(async (req, res) => {
   setCors(req, res); if (req.method === "OPTIONS") return;
   try {
     if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
@@ -110,8 +110,8 @@ exports.getQuoteForFile = functions.region("us-central1").https.onRequest(async 
   }
 });
 
-// 2) Crear sesión de pago (Stripe)
-exports.createProCheckoutSession = functions.region("us-central1").https.onRequest(async (req, res) => {
+// 2) Crear sesión de pago (Stripe) — usa secret en env de Functions
+exports.createProCheckoutSession = onRequest({ secrets: ["STRIPE_SECRET_KEY"] }, async (req, res) => {
   setCors(req, res); if (req.method === "OPTIONS") return;
   try {
     if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
@@ -134,14 +134,17 @@ exports.createProCheckoutSession = functions.region("us-central1").https.onReque
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    const origin = "https://rolling-translations.com/rolling-professional"; // cambiá si lo publicás en otro path
+    const origin = "https://rolling-translations.com/rolling-professional"; // tu ruta pública
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: email || undefined,
       line_items: [{
         price_data: {
           currency: "usd",
-          product_data: { name: "Professional translation", description: `${sourceLang}→${targetLang} — ${subject}/${rush}` },
+          product_data: {
+            name: "Professional translation",
+            description: `${sourceLang}→${targetLang} — ${subject}/${rush}`
+          },
           unit_amount: cents
         },
         quantity: 1
@@ -163,15 +166,14 @@ exports.createProCheckoutSession = functions.region("us-central1").https.onReque
   }
 });
 
-// 3) Webhook de Stripe (usar req.rawBody)
-exports.stripeWebhook = functions.region("us-central1").https.onRequest(async (req, res) => {
+// 3) Webhook de Stripe (usa req.rawBody y secret)
+exports.stripeWebhook = onRequest({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] }, async (req, res) => {
+  // No CORS aquí; Stripe no lo necesita y a veces molesta.
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
   const sig = req.headers["stripe-signature"];
-  const whsec = process.env.STRIPE_WEBHOOK_SECRET;
-
   let event;
   try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, whsec);
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error("Webhook signature verification failed.", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
