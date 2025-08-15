@@ -1,4 +1,7 @@
-// ---- Firebase Functions v1 (Gen1) ----
+const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore"); // si lo usás
+const { setGlobalOptions } = require("firebase-functions/v2");
+setGlobalOptions({ region: "us-central1" });
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { Storage } = require("@google-cloud/storage");
