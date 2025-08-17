@@ -1,3 +1,4 @@
+// index.js (MODIFICADO)
 // ===== Cloud Functions for Firebase v2 (Node.js 22) =====
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
@@ -187,6 +188,8 @@ exports.getQuoteForFile = onRequest(
 
       const { gsPath, uid } = req.body || {};
       if (!gsPath) return res.status(400).send("Missing gsPath.");
+      
+      // CAMBIO IMPORTANTE: Validar la ruta de "pro-uploads"
       if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) {
         return res.status(403).send("Forbidden path.");
       }
@@ -354,7 +357,7 @@ exports.stripeWebhook = onRequest(
             } catch (_) { }
 
             const clientEmail = docData.email || session.customer_details?.email || "";
-            const clientName = docData.fullName || "Client";
+            const clientName = docData.fullName || docData.fullname || "Client";
             const sourceLang = docData.sourceLang || "—";
             const targetLang = docData.targetLang || "—";
             const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -460,7 +463,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
           <table style="border-collapse:collapse;width:100%;max-width:560px">
             <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Client</td><td style="padding:6px 0">${clientName} &lt;${clientEmail || "—"}&gt;</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
