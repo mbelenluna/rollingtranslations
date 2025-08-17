@@ -1,198 +1,229 @@
-// professional.js — Rolling Translations (Instant Quote + Checkout)
-// Usage: include in professional.html with
-//   <script type="module" src="./professional.js"></script>
+// professional.PRO-compat.js
+// Frontend for the "Professional" site wired to Cloud Functions:
+//   - POST /getQuoteForFile  { gsPath }
+//   - POST /createProCheckoutSession { mode, amount, currency, description, success_url, cancel_url, customer_email?, requestId }
 //
-// 1) Fill firebaseConfig with your project's web config.
-// 2) Set CF_BASE to your Cloud Functions base, e.g.:
-//    const CF_BASE = "https://us-central1-<PROJECT_ID>.cloudfunctions.net";
+// Drop-in replacement for your existing professional.js. IDs expected in the HTML:
+//   #fullName, #email, #source, #target, #subject, #rush, #certified, #files,
+//   #btnPreview, #btnPay, #quoteBox, #quoteDetails
 //
-// Expected HTML element IDs:
-//   fullName, email, org, phone
-//   source, target, subject, rush, certified
-//   files (type="file", multiple)
-//   btnPreview, btnPay
-//   quoteBox (container to show preview), quoteDetails (inner div/list)
+// IMPORTANT: Fill in FIREBASE_CONFIG below with your web app config from Firebase Console.
+// (Project: rolling-professional). At a minimum include apiKey, authDomain, projectId, appId, and storageBucket.
 //
-// Back-end Functions expected (Gen2 or Gen1):
-//   - getQuoteForFile  (POST { gsPath }) → { words: number }
-//   - createProCheckoutSession (POST payload below) → { url }
-//
-//
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
+// If you deploy the HTML under a different domain than rolling-translations.com,
+// add that domain to the ALLOWED_ORIGINS set in functions/index.js.
 
-// TODO: Paste your Firebase web config (project: rolling-professional)
-const firebaseConfig = {
-  apiKey: "AIzaSyDmmk2v-yOhvaqr6W7v3G5tFN71flWP34U",
-  authDomain: "rolling-professional.firebaseapp.com",
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+// ==================== CONFIG ====================
+const FIREBASE_CONFIG = {
+  // TODO: paste your config from Firebase Console > Project Settings > General > Your apps (Web app)
+  // Example:
+  // apiKey: "AIza...",
+  // authDomain: "rolling-professional.firebaseapp.com",
   projectId: "rolling-professional",
   storageBucket: "rolling-professional.firebasestorage.app",
-  messagingSenderId: "230433682337",
-  appId: "1:230433682337:web:cb710df001642d1bb511e0",
-  measurementId: "G-4K7GKKPMZW"
+  // appId: "1:230433682337:web:..."
 };
 
-// TODO: Set your Cloud Functions base URL
-// Example Gen2/Gen1: https://us-central1-your-project-id.cloudfunctions.net
+// Base URL for your deployed HTTP functions (region us-central1)
 const CF_BASE = "https://us-central1-rolling-professional.cloudfunctions.net";
 
-// ------- Pricing (keep in sync with your backend) -------
-const PRICING = {
-  base: {
-    "en>es": { translation: 0.16, certified: 0.20, min_fee: 50 },
-    "es>en": { translation: 0.18, certified: 0.22, min_fee: 55 },
-    "en>pt": { translation: 0.17, certified: 0.21, min_fee: 50 },
-    "pt>en": { translation: 0.18, certified: 0.22, min_fee: 55 }
-  },
-  multipliers: {
-    subject: { general: 1.0, legal: 1.15, medical: 1.25, technical: 1.2, marketing: 1.1 },
-    rush: { standard: 1.0, h48: 1.15, h24: 1.35, same_day: 1.6 }
-  },
-  fees: { cert_fee: 20, format_match_layout: 15 }
-};
+// Default currency for Stripe
+const CURRENCY = "usd";
 
-function pickBaseRate(pair, service = "translation") {
-  const p = PRICING.base[pair];
-  if (!p) return null;
-  return p[service] || p.translation || null;
-}
+// ==================== PRICING (EDIT TO TASTE) ====================
+// Tiered per-word base rates for Professional (in cents)
+// Example tiers: 0–500: $0.20, 501–2000: $0.16, 2001+: $0.12
+const PRO_TIERS_CENTS = [
+  { upTo: 500, rateCents: 20 },
+  { upTo: 2000, rateCents: 16 },
+  { upTo: Infinity, rateCents: 12 },
+];
+// Rush multiplier and certified fixed fee example
+const RUSH_MULTIPLIER = 1.4;         // 40% extra for rush
+const CERTIFIED_FEE_CENTS = 1500;    // +$15 for certified
 
-function computeProAmount({ words, pair, service, subject, rush, certified, formatTier }) {
-  const base = pickBaseRate(pair, service);
-  if (!base) throw new Error(`No base rate for ${pair}/${service}`);
-  const subjectMul = PRICING.multipliers.subject[subject] || 1.0;
-  const rushMul = PRICING.multipliers.rush[rush] || 1.0;
-  const effective = base * subjectMul * rushMul;
-  const textCost = Math.max(words * effective, (PRICING.base[pair]?.min_fee || 0));
-  const formatFee = (formatTier === "match_layout") ? PRICING.fees.format_match_layout : 0;
-  const certFee = certified ? PRICING.fees.cert_fee : 0;
-  const subtotal = textCost + formatFee + certFee;
-  return { textCost, formatFee, certFee, total: subtotal };
-}
+// ==================== DOM HOOKS ====================
+const el = (sel) => document.querySelector(sel);
+const $fullName    = el("#fullName");
+const $email       = el("#email");
+const $source      = el("#source");
+const $target      = el("#target");
+const $subject     = el("#subject");
+const $rush        = el("#rush");
+const $certified   = el("#certified");
+const $files       = el("#files");
+const $btnPreview  = el("#btnPreview");
+const $btnPay      = el("#btnPay");
+const $quoteBox    = el("#quoteBox");
+const $quoteDetails= el("#quoteDetails");
 
-// ------- Firebase init (anonymous auth + storage) -------
-const app = initializeApp(firebaseConfig);
+// State
+let uploaded = []; // [{ name, gsPath, words }]
+let totalWords = 0;
+let lastQuoteCents = 0;
+
+// ==================== INIT ====================
+const app  = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
-const storage = getStorage(app);
+signInAnonymously(auth).catch(console.error);
 
-// Ensure anonymous session
-await signInAnonymously(auth);
-const uid = auth.currentUser?.uid;
-
-// ------- DOM helpers -------
-const $ = (id) => /** @type {HTMLInputElement} */(document.getElementById(id));
-const filesEl = $("files");
-const btnPreview = $("btnPreview");
-const btnPay = $("btnPay");
-const quoteBox = document.getElementById("quoteBox");
-const quoteDetails = document.getElementById("quoteDetails");
-
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
-let uploaded = []; // { name, gsPath, words }
-
-// Upload file to Firebase Storage under pro/uploads/{uid}/FILENAME
-async function uploadFile(file) {
-  const safe = `${Date.now()}_${file.name.replace(/[^\w\-.]+/g, "_")}`;
-  const path = `pro/uploads/${uid}/${safe}`;
-  const fileRef = ref(storage, path);
-  await uploadBytes(fileRef, file, { contentType: file.type || "application/octet-stream" });
-  return path; // relative path inside your default bucket
+// ==================== HELPERS ====================
+function formatMoney(cents) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: CURRENCY.toUpperCase() }).format(cents / 100);
 }
 
-// Ask backend to count words for a file in GCS
-async function fetchWordCount(gsPath) {
+function calcProfessionalQuoteCents(words, opts) {
+  // words: integer, opts: { rush: bool, certified: bool }
+  let remaining = Math.max(0, words|0);
+  let totalCents = 0;
+  for (const tier of PRO_TIERS_CENTS) {
+    const chunk = Math.min(remaining, tier.upTo === Infinity ? remaining : (tier.upTo - (words - remaining)));
+    if (chunk <= 0) continue;
+    totalCents += Math.round(chunk * tier.rateCents);
+    remaining -= chunk;
+    if (remaining <= 0) break;
+  }
+  if (opts?.rush)      totalCents = Math.round(totalCents * RUSH_MULTIPLIER);
+  if (opts?.certified) totalCents += CERTIFIED_FEE_CENTS;
+  return totalCents;
+}
+
+function renderQuote() {
+  const rush = $rush?.checked || false;
+  const certified = $certified?.checked || false;
+  const cents = calcProfessionalQuoteCents(totalWords, { rush, certified });
+  lastQuoteCents = cents;
+
+  const parts = [
+    `<strong>Total words:</strong> ${totalWords}`,
+    `<strong>Languages:</strong> ${$source?.value || "-"} → ${$target?.value || "-"}`,
+    `<strong>Rush:</strong> ${rush ? "Yes" : "No"}`,
+    `<strong>Certified:</strong> ${certified ? "Yes" : "No"}`,
+    `<strong>Total:</strong> ${formatMoney(cents)}`,
+  ];
+  if ($quoteDetails) $quoteDetails.innerHTML = parts.join("<br>");
+  if ($quoteBox)     $quoteBox.style.display = "block";
+  if ($btnPay)       $btnPay.disabled = (cents <= 0 || uploaded.length === 0);
+}
+
+function requestId() {
+  return `PRO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function getQuoteForGsPath(gsPath) {
   const r = await fetch(`${CF_BASE}/getQuoteForFile`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ gsPath })
   });
-  if (!r.ok) throw new Error(`Word count failed (${r.status})`);
-  const j = await r.json();
-  if (typeof j.words !== "number") throw new Error("Invalid response from server");
-  return j.words;
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    throw new Error(`getQuoteForFile failed: ${r.status} ${t}`);
+  }
+  return r.json(); // { bucket, path, words, characters }
 }
 
-btnPreview?.addEventListener("click", async () => {
+async function uploadAndQuote(file) {
+  const uid = auth.currentUser?.uid || "anon";
+  const stamp = Date.now();
+  const path = `pro-uploads/${uid}/${stamp}-${file.name}`;
+  const sref = ref(getStorage(app), path);
+  await uploadBytes(sref, file);
+  const gsPath = `gs://${FIREBASE_CONFIG.storageBucket}/${path}`;
+  const quote = await getQuoteForGsPath(gsPath);
+  return { name: file.name, gsPath, words: quote.words|0 };
+}
+
+// ==================== EVENT WIRING ====================
+$files?.addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  $btnPreview?.setAttribute("disabled", "true");
+  $btnPay?.setAttribute("disabled", "true");
+  $quoteDetails.innerHTML = "Subiendo y analizando archivos...";
   try {
-    if (!filesEl?.files?.length) return alert("Please select at least one file.");
-    btnPreview.disabled = true;
-    btnPreview.textContent = "Processing…";
-    btnPay.disabled = true;
-
     uploaded = [];
-    for (const f of filesEl.files) {
-      if (f.size > MAX_FILE_SIZE) throw new Error(`${f.name} exceeds 25MB`);
-      const gsPath = await uploadFile(f);
-      const words = await fetchWordCount(gsPath);
-      uploaded.push({ name: f.name, gsPath, words });
+    totalWords = 0;
+    for (const f of files) {
+      const u = await uploadAndQuote(f);
+      uploaded.push(u);
+      totalWords += u.words;
     }
-
-    const totalWords = uploaded.reduce((a, b) => a + b.words, 0);
-    const sourceLang = $("source").value;
-    const targetLang = $("target").value;
-    const subject = $("subject").value;
-    const rush = $("rush").value;
-    const certified = ($("certified").value === "true");
-    const pair = `${sourceLang}>${targetLang}`;
-
-    const { textCost, certFee, formatFee, total } = computeProAmount({
-      words: totalWords, pair, service: "translation", subject, rush, certified, formatTier: "basic"
-    });
-
-    // Render quote
-    if (quoteDetails) {
-      quoteDetails.innerHTML = `
-        <div><b>Files:</b> ${uploaded.map(u => u.name).join(", ")}</div>
-        <div><b>Total words:</b> ${totalWords.toLocaleString()}</div>
-        <div><b>Pair:</b> ${pair} | <b>Subject:</b> ${subject} | <b>Turnaround:</b> ${rush.replace("_", " ")}</div>
-        <div><b>Text cost:</b> $${textCost.toFixed(2)}</div>
-        ${certFee ? `<div><b>Certification:</b> $${certFee.toFixed(2)}</div>` : ""}
-        ${formatFee ? `<div><b>Formatting:</b> $${formatFee.toFixed(2)}</div>` : ""}
-        <div class="border-t border-blue-200 pt-2"><b>Total (preview):</b> $${total.toFixed(2)}</div>
-      `;
-    }
-    quoteBox?.classList?.remove("hidden");
-    btnPay.disabled = false;
-    btnPreview.textContent = "Get quote";
-  } catch (e) {
-    alert(e.message || e);
-    btnPreview.disabled = false;
-    btnPreview.textContent = "Get quote";
+    renderQuote();
+    $quoteDetails.innerHTML += `<br><em>${uploaded.length} archivo(s) listos.</em>`;
+  } catch (err) {
+    console.error(err);
+    alert("Hubo un problema subiendo o analizando tus archivos. Mirá la consola para más detalles.");
+  } finally {
+    $btnPreview?.removeAttribute("disabled");
   }
 });
 
-btnPay?.addEventListener("click", async () => {
+$btnPreview?.addEventListener("click", (e) => {
+  e.preventDefault();
+  renderQuote();
+});
+
+$btnPay?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  if (!uploaded.length) return alert("Subí al menos un archivo.");
+  if (!lastQuoteCents)  return alert("Generá la cotización primero.");
+
+  const email = ($email?.value || "").trim();
+  if (!email) return alert("Necesitamos un email para enviar el recibo y el resultado.");
+
+  const desc = [
+    "Professional translation",
+    `${$source?.value || "-"}→${$target?.value || "-"}`,
+    `${totalWords} words`,
+    $rush?.checked ? "rush" : null,
+    $certified?.checked ? "certified" : null,
+  ].filter(Boolean).join(" · ");
+
+  const payload = {
+    mode: "payment",
+    amount: lastQuoteCents,
+    currency: CURRENCY,
+    description: desc,
+    success_url: `${location.origin}/professional/success.html`,
+    cancel_url: `${location.origin}/professional/?canceled=1`,
+    customer_email: email,
+    requestId: requestId(),
+
+    // OPTIONAL: anything else you want to pass for your own bookkeeping
+    // The server webhook will persist the Stripe session info to Firestore
+    // and attach metadata like requestId. You can also add client_reference_id
+    // on the server if you prefer.
+  };
+
+  $btnPay.disabled = true;
+  $btnPay.textContent = "Creando sesión de pago...";
+
   try {
-    btnPay.disabled = true;
-    btnPay.textContent = "Creating checkout…";
-
-    const payload = {
-      email: $("email").value,
-      fullName: $("fullName").value,
-      org: $("org").value,
-      phone: $("phone").value,
-      sourceLang: $("source").value,
-      targetLang: $("target").value,
-      subject: $("subject").value,
-      rush: $("rush").value,
-      certified: ($("certified").value === "true"),
-      totalWords: uploaded.reduce((a, b) => a + b.words, 0),
-      fileNames: uploaded.map(u => u.name),
-      gsPaths: uploaded.map(u => u.gsPath)
-    };
-
     const r = await fetch(`${CF_BASE}/createProCheckoutSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
-    const j = await r.json();
-    if (!r.ok || !j?.url) throw new Error(j?.error || "Checkout failed");
-    window.location.href = j.url;
-  } catch (e) {
-    alert(e.message || e);
-    btnPay.disabled = false;
-    btnPay.textContent = "Pay now";
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      throw new Error(`createProCheckoutSession failed: ${r.status} ${t}`);
+    }
+    const data = await r.json();
+    if (data?.url) {
+      location.href = data.url; // Redirect to Stripe Checkout
+    } else {
+      throw new Error("Respuesta inesperada del servidor (faltó la URL).");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("No pudimos iniciar el pago. Revisá la consola para detalles.");
+  } finally {
+    $btnPay.disabled = false;
+    $btnPay.textContent = "Pagar";
   }
 });

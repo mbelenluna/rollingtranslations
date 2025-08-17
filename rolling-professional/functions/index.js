@@ -1,269 +1,495 @@
-// functions/index.js — Gen2 (v2) con CORS estricto + invoker público + lazy requires
-
+// ===== Cloud Functions for Firebase v2 (Node.js 22) =====
 const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { defineSecret } = require("firebase-functions/params");
+const logger = require("firebase-functions/logger");
 
-setGlobalOptions({
-  region: "us-central1",
-  timeoutSeconds: 120,
-  memoryMiB: 512,
-});
-
+// Admin SDK
 const admin = require("firebase-admin");
-// ❌ (quitado del top-level) const { Storage } = require("@google-cloud/storage");
+const pdfParse = require("pdf-parse");
+const mammoth = require("mammoth");
+const xlsx = require("xlsx");
+const fileTypeLib = require("file-type");
 
-admin.initializeApp();
-const db = admin.firestore();
+// Stripe + SendGrid
+const Stripe = require("stripe");
+const sgMail = require("@sendgrid/mail");
 
-// ---- Secrets (configurados en Secret Manager) ----
+// ===== Global options & init =====
+setGlobalOptions({ region: "us-central1" });
+
+// Initialize Admin with your *new* GCS bucket (firebasestorage.app)
+if (!admin.apps.length) {
+  admin.initializeApp({
+    storageBucket: "rolling-crowdsourcing.firebasestorage.app",
+  });
+}
+const bucket = admin.storage().bucket();
+
+// ===== Parameters / Secrets =====
+// Secrets: set with `firebase functions:secrets:set NAME`
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
 
-// ---- CORS helper (permitimos tu sitio y localhost para dev) ----
-const ALLOWED_ORIGINS = new Set([
+const CHECKOUT_ORIGIN =
+  process.env.checkout_origin ||
+  process.env.CHECKOUT_ORIGIN ||
+  "https://mbelenluna.github.io/rolling-portal";
+
+// Allowed CORS origins for your frontend(s)
+const ALLOWED_ORIGINS = [
+  "https://mbelenluna.github.io",
+  "https://mbelenluna.github.io/rolling-portal",
   "https://rolling-translations.com",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-]);
+  "https://www.rolling-translations.com",
+];
 
-function applyCors(req, res) {
-  const origin = req.headers.origin;
-  const allow = ALLOWED_ORIGINS.has(origin)
-    ? origin
-    : "https://rolling-translations.com";
-  res.set("Access-Control-Allow-Origin", allow);
-  res.set("Vary", "Origin");
-  res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.set(
-    "Access-Control-Allow-Headers",
-    req.headers["access-control-request-headers"] ||
-      "Content-Type, Authorization, x-requested-with, stripe-signature"
-  );
-  if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return true;
-  }
-  return false;
+// ===== Helpers: quoting / parsing =====
+const MIN_TOTAL_USD = 1.0;
+
+function rateForWords(words) {
+  const w = Number(words || 0);
+  if (w >= 1_000_000) return 0.04;
+  if (w >= 500_000) return 0.05;
+  if (w >= 300_000) return 0.055;
+  if (w >= 100_000) return 0.06;
+  if (w >= 50_000) return 0.07;
+  if (w >= 10_000) return 0.08;
+  return 0.10;
 }
 
-function naiveWordCount(text) {
+function computeAmountCents(totalWords, rush, certified, subject) {
+  const w = Number(totalWords || 0);
+  let rate = rateForWords(w);
+  let totalUsd = w * rate;
+
+  // Apply subject-based multipliers
+  switch (subject) {
+    case 'technical':
+    case 'marketing':
+      totalUsd *= 1.20; // 20% extra
+      break;
+    case 'legal':
+    case 'medical':
+      totalUsd *= 1.25; // 25% extra
+      break;
+    default:
+      // No change for 'general' or other subjects
+      break;
+  }
+  
+  // Apply rush multipliers
+  switch (rush) {
+    case '2bd':
+      totalUsd *= 1.20; // 20% extra for 2 business days
+      break;
+    case 'h24':
+      totalUsd *= 1.40; // 40% extra for 24 hours
+      break;
+    default:
+      // No change for 'standard'
+      break;
+  }
+  
+  // Apply certified fee
+  if (certified === 'true') {
+    totalUsd *= 1.10; // 10% extra
+  }
+
+  totalUsd = Math.max(totalUsd, MIN_TOTAL_USD);
+  return {
+    rate,
+    amountUsd: totalUsd,
+    amountCents: Math.round(totalUsd * 100),
+  };
+}
+
+// Simple word counter (safe without unicode props)
+function countWordsGeneric(text) {
   if (!text) return 0;
-  // Unicode-aware: cuenta palabras con letras/números/apóstrofe/guion
-  const matches = text.match(/\b[\p{L}\p{N}'-]+\b/gu);
-  return matches ? matches.length : 0;
+  const cleaned = String(text).replace(/[^A-Za-z0-9’'-]+/g, " ");
+  const parts = cleaned.trim().split(/\s+/);
+  return parts[0] === "" ? 0 : parts.length;
 }
 
-// ===================================================================
-// 1) getQuoteForFile — Lee de GCS y cuenta palabras (lazy require mammoth/pdf-parse + Storage)
-// ===================================================================
-exports.getQuoteForFile = onRequest({ invoker: "public" }, async (req, res) => {
-  if (applyCors(req, res)) return;
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+async function fileTypeFromBufferSafe(buf) {
+  try { return await fileTypeLib.fileTypeFromBuffer(buf); }
+  catch { return null; }
+}
+
+async function extractTextFromBuffer(buf, filename) {
+  const ft = await fileTypeFromBufferSafe(buf);
+  const mime = ft && ft.mime ? ft.mime : "";
+  const ext = (filename.split(".").pop() || "").toLowerCase();
+
+  // Text-like
+  if (mime.startsWith("text/") || ["txt", "csv", "srt", "vtt", "md", "html", "json"].includes(ext)) {
+    let text = buf.toString("utf8");
+    if (ext === "json") {
+      try { text = JSON.stringify(JSON.parse(text)); } catch { }
+    }
+    if (ext === "srt" || ext === "vtt") {
+      text = text.replace(/\d{2}:\d{2}:\d{2}[,\.]\d{3} --> .+\n/g, " ");
+    }
+    return text;
   }
 
-  try {
-    // ⬇️ Lazy import aquí (evita que el módulo falte durante el build de Stripe)
-    const { Storage } = require("@google-cloud/storage");
-    const storage = new Storage();
+  // PDF
+  if (mime === "application/pdf" || ext === "pdf") {
+    const data = await pdfParse(buf);
+    return data.text || "";
+  }
 
-    const { gsPath, bucket, name } = req.body || {};
-    let bucketName, filePath;
+  // DOCX
+  if (ext === "docx" || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    const res = await mammoth.extractRawText({ buffer: buf });
+    return (res && res.value) || "";
+  }
 
-    if (gsPath && typeof gsPath === "string" && gsPath.startsWith("gs://")) {
-      const noScheme = gsPath.slice(5);
-      const slash = noScheme.indexOf("/");
-      if (slash < 0) {
-        return res.status(400).json({ error: "Invalid gsPath" });
-      }
-      bucketName = noScheme.slice(0, slash);
-      filePath = noScheme.slice(slash + 1);
-    } else if (bucket && name) {
-      bucketName = bucket;
-      filePath = name;
-    } else {
-      return res.status(400).json({ error: "Missing gsPath or bucket/name" });
-    }
-
-    const [buf] = await storage.bucket(bucketName).file(filePath).download();
-    const lower = filePath.toLowerCase();
+  // XLS/XLSX
+  if (
+    ["xlsx", "xls"].includes(ext) ||
+    (mime && (mime.includes("spreadsheetml") || mime.includes("ms-excel")))
+  ) {
+    const wb = xlsx.read(buf, { type: "buffer" });
     let text = "";
-
-    if (lower.endsWith(".docx")) {
-      // Carga perezosa de mammoth
-      const mammoth = require("mammoth");
-      const result = await mammoth.extractRawText({ buffer: buf });
-      text = result.value || "";
-    } else if (lower.endsWith(".pdf")) {
-      // Carga perezosa de pdf-parse
-      const pdfParse = require("pdf-parse");
-      const result = await pdfParse(buf);
-      text = result.text || "";
-    } else {
-      // .txt u otros: tratamos como texto plano
-      text = buf.toString("utf8");
+    for (const name of wb.SheetNames) {
+      const sheet = wb.Sheets[name];
+      const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
+      for (const row of rows) {
+        const line = (row || []).filter(Boolean).join(" ");
+        if (line) text += " " + line;
+      }
     }
-
-    const words = naiveWordCount(text);
-    res.json({
-      bucket: bucketName,
-      path: filePath,
-      words,
-      characters: text.length,
-    });
-  } catch (err) {
-    console.error("getQuoteForFile error:", err);
-    res
-      .status(500)
-      .json({ error: "Internal error", details: String(err && err.message) });
+    return text;
   }
-});
 
-// ===================================================================
-// 2) createProCheckoutSessionV2 — Crea una sesión de Stripe Checkout
-// ===================================================================
-exports.createProCheckoutSessionV2 = onRequest(
-  { secrets: [STRIPE_SECRET_KEY], invoker: "public" },
+  // Legacy .doc → ignore text
+  if (ext === "doc") return "";
+
+  // Fallback
+  return buf.toString("utf8");
+}
+
+// ===== 1) Auto-quote HTTP (CORS) =====
+exports.getQuoteForFile = onRequest(
+  {
+    cors: ALLOWED_ORIGINS,
+    region: "us-central1",
+  },
   async (req, res) => {
-    if (applyCors(req, res)) return;
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
     try {
-      // Carga perezosa de Stripe
-      const Stripe = require("stripe");
-      const stripe = new Stripe(STRIPE_SECRET_KEY.value(), {
-        apiVersion: "2024-06-20",
-      });
-
-      const {
-        amount, // entero en centavos (p.ej. 12345)
-        currency = "usd",
-        requestId, // id del doc en Firestore para marcar pago en el webhook
-        customer_email,
-        success_url,
-        cancel_url,
-        description = "Professional Translation Service",
-        mode = "payment", // o "subscription" si usás priceId
-        priceId, // si viene, ignoramos amount
-        quantity = 1,
-      } = req.body || {};
-
-      if (!success_url || !cancel_url) {
-        return res
-          .status(400)
-          .json({ error: "Missing success_url or cancel_url" });
+      if (req.method !== "POST") {
+        return res.status(405).send("Method Not Allowed");
       }
 
-      const sessionParams = {
-        mode,
-        success_url,
-        cancel_url,
-        metadata: { requestId: requestId || "" },
-      };
-
-      if (customer_email) sessionParams.customer_email = customer_email;
-
-      if (priceId) {
-        sessionParams.line_items = [{ price: priceId, quantity }];
-      } else {
-        if (!(Number.isInteger(amount) && amount > 0)) {
-          return res
-            .status(400)
-            .json({ error: "Missing/invalid amount (integer cents)" });
-        }
-        sessionParams.line_items = [
-          {
-            price_data: {
-              currency,
-              product_data: {
-                name: "Translation / Professional Service",
-                description,
-              },
-              unit_amount: amount,
-            },
-            quantity: 1,
-          },
-        ];
+      const { gsPath, uid } = req.body || {};
+      if (!gsPath) return res.status(400).send("Missing gsPath.");
+      if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) {
+        return res.status(403).send("Forbidden path.");
       }
 
-      const session = await stripe.checkout.sessions.create(sessionParams);
-      res.json({ id: session.id, url: session.url });
+      const file = bucket.file(gsPath);
+      const [buf] = await file.download();
+
+      const text = await extractTextFromBuffer(buf, gsPath);
+      let words = countWordsGeneric(text);
+
+      // Heuristic: scanned PDF (no visible text)
+      const scanned = words < 10 && gsPath.toLowerCase().endsWith(".pdf");
+      if (scanned) {
+        return res.json({
+          words: 0,
+          scanned: true,
+          rate: null,
+          total: null,
+          note: "Likely scanned PDF (requires OCR)."
+        });
+      }
+
+      const rate = rateForWords(words);
+      const total = Math.round(Math.max(words * rate, MIN_TOTAL_USD) * 100) / 100;
+
+      return res.json({ words, rate, total, currency: "USD" });
     } catch (err) {
-      console.error("createProCheckoutSessionV2 error:", err);
-      res
-        .status(500)
-        .json({ error: "Internal error", details: String(err && err.message) });
+      logger.error("getQuoteForFile error", err);
+      return res.status(500).send(err.message || "Internal Server Error");
     }
   }
 );
 
-// ===================================================================
-// 3) stripeWebhookV2 — Webhook de Stripe (¡sin CORS! Stripe no hace preflight)
-// ===================================================================
-exports.stripeWebhookV2 = onRequest(
-  { secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET], invoker: "public" },
+// ===== 2) Stripe Checkout session creator =====
+exports.createCheckoutSession = onRequest(
+  {
+    cors: ALLOWED_ORIGINS,
+    region: "us-central1",
+    secrets: [STRIPE_SECRET_KEY],
+  },
   async (req, res) => {
-    if (req.method !== "POST") {
-      return res.status(405).send("Method not allowed");
-    }
-
     try {
-      const sig = req.headers["stripe-signature"];
-      if (!sig) return res.status(400).send("Missing stripe-signature header");
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
-      const Stripe = require("stripe");
-      const stripe = new Stripe(STRIPE_SECRET_KEY.value(), {
-        apiVersion: "2024-06-20",
+      const stripeSecret = STRIPE_SECRET_KEY.value();
+      if (!stripeSecret) {
+        return res.status(500).json({ error: "Stripe secret key not configured" });
+      }
+      const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
+
+      const { requestId, totalWords = 0, email, description, rush, certified, subject } = req.body || {};
+      if (!requestId) return res.status(400).json({ error: "Missing requestId" });
+
+      // Optionally, fetch Firestore doc to cross-check
+      let wordsServer = Number(totalWords || 0);
+      try {
+        const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
+        if (snap.exists) {
+          const d = snap.data() || {};
+          if (Number(d.totalWords) > 0) wordsServer = Number(d.totalWords);
+          else if (Number(d.estWords) > 0) wordsServer = Number(d.estWords);
+        }
+      } catch (_) { }
+
+      const { rate, amountCents } = computeAmountCents(wordsServer, rush, certified, subject);
+
+      const origin = CHECKOUT_ORIGIN;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer_email: email || undefined,
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Crowdsourced translation",
+              description: description || `Total words: ${wordsServer}`
+            },
+            unit_amount: amountCents,
+          },
+          quantity: 1,
+        }],
+        success_url: `${origin.replace(/\/+$/, '')}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`,
+        cancel_url: `${origin.replace(/\/+$/, '')}/cancel.html?requestId=${encodeURIComponent(requestId)}`,
+        payment_intent_data: {
+          description: `Crowdsourced translation — ${wordsServer} words @ ${rate.toFixed(2)}/word`,
+          metadata: { requestId, totalWords: String(wordsServer) }
+        },
+        metadata: { requestId, totalWords: String(wordsServer) }
       });
 
+      await admin.firestore().collection("crowdRequests").doc(requestId).set({
+        stripeSessionId: session.id,
+        stripeMode: "payment",
+        checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: "pending_payment",
+      }, { merge: true });
+
+      return res.json({ url: session.url });
+    } catch (err) {
+      logger.error("createCheckoutSession error", err);
+      return res.status(500).json({ error: err?.message || "Server error" });
+    }
+  }
+);
+
+// ===== 3) Stripe Webhook (verifies signature) =====
+exports.stripeWebhook = onRequest(
+  {
+    region: "us-central1",
+    // Stripe (server-to-server) doesn't need CORS
+    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY],
+  },
+  async (req, res) => {
+    try {
+      const stripeSecret = STRIPE_SECRET_KEY.value();
+      const webhookSecret = STRIPE_WEBHOOK_SECRET.value();
+      if (!stripeSecret || !webhookSecret) {
+        logger.error("Missing Stripe secrets");
+        return res.status(500).send("Secrets not configured");
+      }
+      const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
+
+      const sig = req.headers["stripe-signature"];
       let event;
+
       try {
-        event = stripe.webhooks.constructEvent(
-          req.rawBody,
-          sig,
-          STRIPE_WEBHOOK_SECRET.value()
-        );
+        // IMPORTANT: use the raw body for verification
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
       } catch (err) {
-        console.error("Webhook signature verification failed:", err);
+        logger.error("Webhook signature verification failed", err);
         return res.status(400).send(`Webhook Error: ${err.message}`);
       }
 
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
+        const paymentIntentId = session.payment_intent;
+        const requestId = session.metadata && session.metadata.requestId;
+        const totalWords = session.metadata && Number(session.metadata.totalWords || 0);
+        const amountTotal = typeof session.amount_total === "number" ? session.amount_total : null;
 
-        const requestId =
-          (session.metadata && session.metadata.requestId) ||
-          (session.metadata && session.metadata.request_id) ||
-          null;
+        if (!requestId) {
+          logger.warn("checkout.session.completed without requestId in metadata");
+        } else {
+          try {
+            await admin.firestore().collection("crowdRequests").doc(requestId).set({
+              status: "paid",
+              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              paymentIntentId: paymentIntentId || null,
+              amountPaid: amountTotal != null ? amountTotal / 100 : null,
+            }, { merge: true });
+          } catch (e) {
+            logger.error("Failed to update Firestore on payment", e);
+          }
 
-        if (requestId) {
-          await db
-            .collection("proRequests")
-            .doc(requestId)
-            .set(
-              {
-                status: "paid",
-                paidAt: admin.firestore.FieldValue.serverTimestamp(),
-                amount_total: session.amount_total || null,
-                currency: session.currency || null,
-                customer_email: session.customer_email || null,
-                session_id: session.id,
-              },
-              { merge: true }
-            );
+          // ==== Send emails with SendGrid ====
+          try {
+            sgMail.setApiKey(SENDGRID_API_KEY.value());
+
+            // Retrieve doc for more details
+            let docData = {};
+            try {
+              const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
+              if (snap.exists) docData = snap.data() || {};
+            } catch (_) { }
+
+            const clientEmail = docData.email || session.customer_details?.email || "";
+            const clientName = docData.fullName || "Client";
+            const sourceLang = docData.sourceLang || "—";
+            const targetLang = docData.targetLang || "—";
+            const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+            const amountStr = amountTotal != null ? nf.format(amountTotal / 100) : "—";
+
+            const html = `
+              <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
+                <h2 style="margin:0 0 8px 0;">Your order is confirmed ✅</h2>
+                <p style="margin:0 0 14px 0;">Thank you for choosing <b>Rolling Translations</b>!</p>
+                <table style="border-collapse:collapse;width:100%;max-width:560px">
+                  <tr><td style="padding:8px 0;color:#64748b">Order ID</td><td style="padding:8px 0"><b>${requestId}</b></td></tr>
+                  <tr><td style="padding:8px 0;color:#64748b">Languages</td><td style="padding:8px 0">${sourceLang} → ${targetLang}</td></tr>
+                  <tr><td style="padding:8px 0;color:#64748b">Total words</td><td style="padding:8px 0">${Number.isFinite(totalWords) ? totalWords : (docData.totalWords ?? docData.estWords ?? "—")}</td></tr>
+                  <tr><td style="padding:8px 0;color:#64748b">Amount paid</td><td style="padding:8px 0"><b>${amountStr}</b></td></tr>
+                </table>
+                <p style="margin:16px 0 8px 0;">
+                  We’ll start processing your request and email you with updates shortly.
+                </p>
+                <p style="margin:0 0 14px 0;">
+                  Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.
+                </p>
+                <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
+              </div>
+            `;
+
+            const msgs = [];
+            if (clientEmail) {
+              msgs.push({
+                to: clientEmail,
+                from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+                subject: `Order ${requestId} confirmed — Rolling Translations`,
+                html,
+              });
+            }
+            // Internal copy
+            msgs.push({
+              to: "info@rolling-translations.com",
+              from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+              subject: `New paid order — ${requestId}`,
+              html,
+            });
+
+            if (msgs.length) await sgMail.send(msgs);
+          } catch (mailErr) {
+            logger.error("SendGrid send failed", mailErr?.response?.body || mailErr?.message || mailErr);
+          }
         }
       }
 
-      // Manejá otros event types si necesitás.
+      // Must return 200 to Stripe quickly
       res.json({ received: true });
     } catch (err) {
-      console.error("stripeWebhookV2 error:", err);
-      res.status(500).send("Internal error");
+      logger.error("stripeWebhook error", err);
+      return res.status(500).send("Webhook handler error");
+    }
+  }
+);
+
+// ===== 4) Firestore trigger: email on new request (pre-payment receipt) =====
+exports.emailOnRequestCreated = onDocumentCreated(
+  {
+    document: "crowdRequests/{requestId}",
+    region: "us-central1",
+    secrets: [SENDGRID_API_KEY],
+  },
+  async (event) => {
+    const data = event.data?.data() || {};
+    const requestId = event.params.requestId;
+
+    try {
+      const clientEmail = data.email || data.clientEmail || "";
+      const clientName = data.fullName || data.fullname || "Client";
+      const sourceLang = data.sourceLang || "—";
+      const targetLang = data.targetLang || "—";
+      const totalWords = Number(data.totalWords ?? data.estWords ?? data.words ?? 0);
+      const rate = Number(data.rate ?? 0);
+      const estTotal = typeof data.estimatedTotal === "number" ? Number(data.estimatedTotal) : null;
+
+      const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+      const amountStr = estTotal != null ? nf.format(estTotal) : "—";
+      const rateStr = rate ? `$${rate.toFixed(2)}/word` : "—";
+
+      const htmlClient = `
+        <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
+          <h2 style="margin:0 0 10px 0;">We received your request ✅</h2>
+          <p style="margin:0 0 12px 0;">Hi ${clientName}, thanks for choosing <b>Rolling Translations</b>!</p>
+          <table style="border-collapse:collapse;width:100%;max-width:560px">
+            <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Total words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
+          </table>
+          <p style="margin:14px 0 0 0;">To complete your order, please finish the payment you just started. We'll email you once it's confirmed.</p>
+          <p style="margin:14px 0 0 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
+          <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
+        </div>
+      `;
+
+      const htmlInternal = `
+        <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
+          <h3 style="margin:0 0 10px 0;">New crowdsourcing request</h3>
+          <table style="border-collapse:collapse;width:100%;max-width:560px">
+            <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Client</td><td style="padding:6px 0">${clientName} &lt;${clientEmail || "—"}&gt;</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
+          </table>
+        </div>
+      `;
+
+      sgMail.setApiKey(SENDGRID_API_KEY.value());
+
+      const messages = [];
+      if (clientEmail) {
+        messages.push({
+          to: clientEmail,
+          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+          subject: `We received your request — ${requestId}`,
+          html: htmlClient,
+        });
+      }
+      messages.push({
+        to: "info@rolling-translations.com",
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: `New crowdsourcing request — ${requestId}`,
+        html: htmlInternal,
+      });
+
+      if (messages.length) await sgMail.send(messages);
+      logger.info("Emails sent for new request", { requestId });
+    } catch (err) {
+      logger.error("emailOnRequestCreated error", err?.response?.body || err?.message || err);
     }
   }
 );
