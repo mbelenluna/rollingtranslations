@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crowdsourcing Portal — Register | Rolling Translations</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="ribbon">
+    Crowdsourced Translation — separate, opt‑in service for <b>non‑regulated, low‑risk content</b>.
+    <a href="/professional" class="link">Need medical/legal? Professional Services →</a>
+  </div>
+  <div class="container">
+    <img src="images/logo.png" alt="Rolling Translations Logo" class="logo" />
+    <h1 class="title">Create your account</h1>
+    <p class="subtitle">Use this portal only for non‑regulated content.</p>
+
+    <form id="registerForm" class="card">
+      <label for="fullName">Full Name</label>
+      <input type="text" id="fullName" required />
+
+      <label for="org">Organization</label>
+      <input type="text" id="org" />
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required />
+
+      <button type="submit" class="btn primary">Register</button>
+    </form>
+
+    <p id="successMessage" class="success" style="display:none;">✅ Account created! Check your email to verify.</p>
+    <p class="muted"><a href="index.html">Already have an account?</a></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCRrDn3p9alXlLjZN7SoBkJSodcSk2uZs8",
+      authDomain: "rolling-crowdsourcing.firebaseapp.com",
+      projectId: "rolling-crowdsourcing",
+      storageBucket: "rolling-crowdsourcing.firebasestorage.app",
+      messagingSenderId: "831997390366",
+      appId: "1:831997390366:web:a86f5223fa22cc250b480f",
+      measurementId: "G-77E7560XRX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("registerForm");
+    const successMessage = document.getElementById("successMessage");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fullName = form.fullName.value;
+      const org = form.org.value;
+      const phone = form.phone.value;
+      const email = form.email.value;
+      const password = form.password.value;
+
+      try {
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", user.uid), { fullName, org, phone, email });
+        await sendEmailVerification(user);
+        form.style.display = "none";
+        successMessage.style.display = "block";
+      } catch (err) {
+        alert("⚠️ " + err.message);
+      }
+    });
+  </script>
+
+</body>
+
+</html>
