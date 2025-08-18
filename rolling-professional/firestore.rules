@@ -1,19 +1,31 @@
 rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+service firebase.storage {
+  match /b/{bucket}/o {
 
-    match /crowdRequests/{id} {
-      // Crear: sólo usuarios logueados y dueño del request
-      allow create: if request.auth != null
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.status == 'pending_payment';
-
-      // Leer: sólo el dueño
-      allow get, list: if request.auth != null
-        && resource.data.ownerUid == request.auth.uid;
-
-      // Nada de updates/deletes desde el cliente
-      allow update, delete: if false;
+    // Allow uploads under crowd/uploads/<uid>/...
+    match /crowd/uploads/{uid}/{allPaths=**} {
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 20 * 1024 * 1024
+                   && request.resource.contentType.matches(
+                     'text/.*|application/pdf|application/msword|application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document|application/vnd\\.openxmlformats-officedocument\\.spreadsheetml\\.sheet|application/vnd\\.ms-excel|text/csv|application/json'
+                   );
+      // Optional: restrict reads to the owner
+      allow read: if request.auth != null && request.auth.uid == uid;
     }
+
+    // (Optional) If you also want to accept crowd/<uid>/... paths, keep this:
+    match /crowd/{uid}/{allPaths=**} {
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 20 * 1024 * 1024
+                   && request.resource.contentType.matches(
+                     'text/.*|application/pdf|application/msword|application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document|application/vnd\\.openxmlformats-officedocument\\.spreadsheetml\\.sheet|application/vnd\\.ms-excel|text/csv|application/json'
+                   );
+      allow read: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Deny everything else
+    match /{all=**} { allow read, write: if false; }
   }
 }
