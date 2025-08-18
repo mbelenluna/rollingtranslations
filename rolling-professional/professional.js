@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
   getAuth,
@@ -48,18 +47,18 @@ const CERTIFIED_FEE_CENTS = 1500;
 
 // ==================== DOM HOOKS ====================
 const $ = (s) => document.querySelector(s);
-const $fullName     = document.querySelector("#fullName");
-const $email        = document.querySelector("#email");
-const $password     = document.querySelector("#password");
-const $source       = document.querySelector("#source");
-const $target       = document.querySelector("#target");
-const $subject      = document.querySelector("#subject");
-const $rush         = document.querySelector("#rush");
-const $certified    = document.querySelector("#certified");
-const $files        = document.querySelector("#files");
-const $btnPreview   = document.querySelector("#btnPreview");
-const $btnPay       = document.querySelector("#btnPay");
-const $quoteBox     = document.querySelector("#quoteBox");
+const $fullName = document.querySelector("#fullName");
+const $email = document.querySelector("#email");
+const $password = document.querySelector("#password");
+const $source = document.querySelector("#sourceLang");
+const $target = document.querySelector("#targetLang");
+const $subject = document.querySelector("#subject");
+const $rush = document.querySelector("#rush");
+const $certified = document.querySelector("#certified");
+const $files = document.querySelector("#files");
+const $btnPreview = document.querySelector("#btnPreview");
+const $btnPay = document.querySelector("#btnPay");
+const $quoteBox = document.querySelector("#quoteBox");
 const $quoteDetails = document.querySelector("#quoteDetails");
 
 // ==================== STATE ====================
@@ -74,11 +73,11 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // ==================== HELPERS ====================
-const fmtMoney = (cents) => new Intl.NumberFormat(undefined, { style: "currency", currency: CURRENCY.toUpperCase() }).format((cents|0) / 100);
+const fmtMoney = (cents) => new Intl.NumberFormat(undefined, { style: "currency", currency: CURRENCY.toUpperCase() }).format((cents | 0) / 100);
 function requestId() { return `PRO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
 
 function calcProfessionalQuoteCents(words, opts) {
-  let remaining = Math.max(0, words|0);
+  let remaining = Math.max(0, words | 0);
   let total = 0;
   let consumed = 0;
   for (const tier of PRO_TIERS_CENTS) {
@@ -145,12 +144,12 @@ async function uploadAndQuote(file, uid) {
   const gsFull = `gs://${firebaseConfig.storageBucket}/${relPath}`;
   try {
     const quote = await getQuoteForGsPath(gsFull, uid);
-    return { name: file.name, gsPath: gsFull, words: quote.words|0 };
+    return { name: file.name, gsPath: gsFull, words: quote.words | 0 };
   } catch (e) {
     console.warn("⚠️ getQuote with gs:// failed, trying relative path…", e?.message || e);
     // Attempt 2 (fallback): send the relative path some backends expect
     const quote2 = await getQuoteForGsPath(relPath, uid);
-    return { name: file.name, gsPath: relPath, words: quote2.words|0 };
+    return { name: file.name, gsPath: relPath, words: quote2.words | 0 };
   }
 }
 
@@ -207,6 +206,10 @@ async function handleAuthAndQuote() {
 // ==================== PAYMENT (Stripe Checkout via CF) ====================
 $btnPay?.addEventListener("click", async (e) => {
   e.preventDefault();
+
+  // Re-run the quote calculation before attempting to pay
+  await handleAuthAndQuote();
+
   if (!currentUser) return alert("Upload a file first to authenticate and generate the quote.");
   if (!uploaded.length) return alert("Upload at least one file.");
   if (!lastQuoteCents) return alert("Generate the quote first.");
@@ -223,14 +226,15 @@ $btnPay?.addEventListener("click", async (e) => {
   ].filter(Boolean).join(" · ");
 
   const payload = {
-    mode: "payment",
-    amount: lastQuoteCents,
-    currency: CURRENCY,
-    description: desc,
-    success_url: `${location.origin}/success.html`,
-    cancel_url: `${location.origin}/?canceled=1`,
-    customer_email: email,
     requestId: requestId(),
+    email,                         // used as customer_email in server
+    description: desc,
+    totalWords,                     // <-- REQUIRED so server can price correctly
+    subject: $subject.value,        // "general" | "technical" | "marketing" | "legal" | "medical"
+    certified: String(readBoolFlexible($certified)), // "true"/"false"
+    rush: ($rush.value === 'urgent') ? 'h24'
+      : ($rush.value === 'rush') ? '2bd'
+        : 'standard'
   };
 
   $btnPay.disabled = true;
@@ -243,7 +247,7 @@ $btnPay?.addEventListener("click", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) throw new Error(`createCheckoutSession failed: ${r.status} ${await r.text().catch(()=>"")}`);
+    if (!r.ok) throw new Error(`createCheckoutSession failed: ${r.status} ${await r.text().catch(() => "")}`);
     const data = await r.json();
     if (data?.url) location.href = data.url; else throw new Error("Server response missing URL");
   } catch (err) {

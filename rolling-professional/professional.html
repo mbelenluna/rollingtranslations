@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Rolling Translations — Professional Services (Instant Quote)</title>
-  <meta name="description" content="Instant quote & checkout for professional translations. Upload files, choose language pair, subject, and turnaround — pay securely.">
+  <meta name="description" content="Instant quote & checkout — choose language pair, subject, turnaround and pay securely." />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,9 +13,6 @@
   <style>
     :root { --brand:#0ea5e9; --brand-dark:#0284c7; --ink:#0f172a; }
     body { font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--ink) }
-    .chip { border:1px solid #e2e8f0; border-radius:9999px; padding:.25rem .75rem; font-size:.8rem }
-    .glass { backdrop-filter:saturate(180%) blur(10px); background:rgba(255,255,255,.7) }
-    .tag { font-size:.75rem; border:1px solid #cbd5e1; border-radius:6px; padding:.15rem .45rem }
     .field label { font-weight:600; font-size:.9rem }
     .field input, .field select, .field textarea {
       width: 100%;
@@ -26,166 +23,96 @@
   </style>
 </head>
 <body class="bg-gray-50">
-  <!-- Header / Nav -->
-  <header class="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
+  <header class="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
     <a href="/" class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-xl bg-blue-500"></div>
       <span class="text-xl font-extrabold tracking-tight">Rolling Translations</span>
-      <span class="hidden md:inline text-sm text-gray-500">Professional</span>
     </a>
-    <div class="flex items-center gap-3">
-      <a href="#how" class="chip">How it works</a>
-      <a href="#faq" class="chip">FAQ</a>
-      <a href="/crowd" class="chip">Crowd</a>
-    </div>
   </header>
 
-  <!-- Hero -->
-  <section class="relative overflow-hidden">
-    <div class="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 to-transparent pointer-events-none"></div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 md:py-16 grid lg:grid-cols-2 gap-8 items-start">
-      <div>
-        <div class="inline-flex items-center gap-2 mb-4">
-          <span class="tag">Instant Quote</span>
-          <span class="tag">Secure Checkout</span>
-          <span class="tag">Human Experts</span>
-        </div>
-        <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-gray-900">
-          Professional Translations — fast, accurate, and secure.
-        </h1>
-        <p class="text-lg text-gray-800 mb-4">
-          Upload your files, select language pair, subject, and turnaround. Get an itemized quote and pay instantly.
-        </p>
-        <p class="muted">No account required. We only ask for your contact details to manage your project.</p>
+  <main class="max-w-5xl mx-auto px-4 pb-24">
+    <h1 class="text-3xl font-extrabold tracking-tight">Professional Services — Instant Quote</h1>
+    <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay securely.</p>
+
+    <form id="quoteForm" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+      <div class="field">
+        <label for="fullName">Full name</label>
+        <input id="fullName" type="text" placeholder="Jane Doe" required />
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" required />
       </div>
 
-      <!-- Quote Card -->
-      <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-        <h3 class="text-lg font-semibold mb-4">Instant Quote</h3>
-        <form id="quoteForm" class="grid gap-4">
-          <div class="grid md:grid-cols-2 gap-4">
-            <div class="field">
-              <label for="fullName">Full name *</label>
-              <input id="fullName" required placeholder="Your name">
-            </div>
-            <div class="field">
-              <label for="email">Email *</label>
-              <input id="email" type="email" required placeholder="you@example.com">
-            </div>
-            <div class="field">
-              <label for="org">Organization</label>
-              <input id="org" placeholder="Company / Department">
-            </div>
-            <div class="field">
-              <label for="phone">Phone</label>
-              <input id="phone" placeholder="+1 ...">
-            </div>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-4">
-            <div class="field">
-              <label for="source">Source language *</label>
-              <select id="source" required>
-                <option value="" disabled selected>Select</option>
-                <option>en</option>
-                <option>es</option>
-                <option>pt</option>
-                <option>fr</option>
-                <option>de</option>
-                <option>it</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="target">Target language *</label>
-              <select id="target" required>
-                <option value="" disabled selected>Select</option>
-                <option>es</option>
-                <option>en</option>
-                <option>pt</option>
-                <option>fr</option>
-                <option>de</option>
-                <option>it</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid md:grid-cols-3 gap-4">
-            <div class="field">
-              <label for="subject">Subject *</label>
-              <select id="subject" required>
-                <option value="general" selected>General</option>
-                <option value="legal">Legal</option>
-                <option value="medical">Medical</option>
-                <option value="technical">Technical</option>
-                <option value="marketing">Marketing</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="rush">Turnaround *</label>
-              <select id="rush" required>
-                <option value="standard" selected>Standard (no rush)</option>
-                <option value="2bd">2 business days</option>
-                <option value="h24">24 hours (including holidays and weekends)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="certified">Certification</label>
-              <select id="certified">
-                <option value="false" selected>No</option>
-                <option value="true">Yes, certified</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Files *</label>
-            <input id="files" type="file" multiple required />
-            <div class="muted">DOCX, PPTX, XLSX, PDF, TXT. Max 25MB per file.</div>
-          </div>
-
-          <div id="quoteBox" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
-            <div class="font-semibold mb-1">Quote (preview)</div>
-            <div id="quoteDetails" class="space-y-1"></div>
-          </div>
-
-          <div class="flex flex-wrap gap-3 pt-2">
-            <button id="btnPreview" class="px-5 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 font-semibold" type="button">Get quote</button>
-            <button id="btnPay" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold" type="button" disabled>Pay now</button>
-          </div>
-
-          <div class="muted">
-            By continuing you agree to our terms and privacy. If the subject selection is incorrect, we may reconfirm pricing before starting.
-          </div>
-        </form>
+      <div class="field">
+        <label for="sourceLang">Source language</label>
+        <select id="sourceLang">
+          <option value="en">English</option>
+          <option value="es">Spanish</option>
+          <option value="pt">Portuguese</option>
+          <option value="fr">French</option>
+        </select>
       </div>
-    </div>
-  </section>
-
-  <section id="how" class="max-w-7xl mx-auto px-4 py-12">
-    <h2 class="text-3xl font-extrabold mb-4">How it works</h2>
-    <ol class="list-decimal list-inside text-gray-700 space-y-1">
-      <li>Upload files and fill your details.</li>
-      <li>We count words and calculate price (subject & turnaround included).</li>
-      <li>Pay securely via Stripe.</li>
-      <li>We kick off the project and keep you posted.</li>
-    </ol>
-  </section>
-
-  <section id="faq" class="max-w-7xl mx-auto px-4 py-12">
-    <h2 class="text-3xl font-extrabold mb-6">FAQ</h2>
-    <div class="grid md:grid-cols-2 gap-6">
-      <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="font-semibold">Do I need an account?</h3>
-        <p class="text-gray-700 mt-2">No. We identify your request with your name, email, organization, and phone.</p>
+      <div class="field">
+        <label for="targetLang">Target language</label>
+        <select id="targetLang">
+          <option value="es">Spanish</option>
+          <option value="en">English</option>
+          <option value="pt">Portuguese</option>
+          <option value="fr">French</option>
+        </select>
       </div>
-      <div class="bg-white rounded-2xl shadow p-6">
-        <h3 class="font-semibold">What if the subject is wrong?</h3>
-        <p class="text-gray-700 mt-2">If the chosen subject looks mismatched, we’ll reconfirm pricing before starting.</p>
-      </div>
-    </div>
-  </section>
 
-  <footer class="max-w-7xl mx-auto px-4 py-16 text-sm text-gray-500">
+      <div class="field">
+        <label for="subject">Subject</label>
+        <select id="subject">
+          <option value="general">General</option>
+          <option value="technical">Technical</option>
+          <option value="marketing">Marketing</option>
+          <option value="legal">Legal</option>
+          <option value="medical">Medical</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rush">Turnaround</label>
+        <select id="rush">
+          <option value="standard">Standard</option>
+          <option value="rush">Rush</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="certified">Certification</label>
+        <select id="certified">
+          <option value="false">No</option>
+          <option value="true">Yes — certified translation</option>
+        </select>
+      </div>
+      <div class="field md:col-span-2">
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" rows="3" placeholder="Tell us anything important about your request…"></textarea>
+      </div>
+
+      <div class="field md:col-span-2">
+        <label for="files">Upload files</label>
+        <input id="files" type="file" multiple />
+        <p class="muted mt-2">We support PDF, DOCX, XLSX, TXT and more.</p>
+      </div>
+
+      <div class="md:col-span-2 flex gap-3">
+        <button id="btnPreview" class="px-4 py-2 rounded-lg bg-gray-200">Preview quote</button>
+        <button id="btnPay" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Pay now</button>
+      </div>
+    </form>
+
+    <section id="quoteBox" class="hidden mt-10 border border-gray-200 rounded-xl p-5 bg-white">
+      <h2 class="text-xl font-bold">Quote</h2>
+      <div id="quoteDetails" class="mt-3 text-sm"></div>
+    </section>
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-4 py-16 text-sm text-gray-500">
     © <span id="y"></span> Rolling Translations. Professional Services.
   </footer>
 
