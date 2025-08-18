@@ -1,38 +1,20 @@
 
-/* professional.patched.js
- * Rolling Translations — Professional Services (Instant Quote)
- * Changes vs. original:
- * - Persistent file queue with removable items (X) rendered in #fileList
- * - Selecting more files appends; previous ones remain
- * - Quote appears on a separate "preview" step (#quoteBox) with a loading message
- * - "Pay Now" button only appears after the quote is ready (and uses Stripe as before)
- * - Word count reflects current selection (adds/removes across multiple picks)
- *
- * Drop-in replacement for ./professional.js referenced by professional.html.
- * If you prefer, rename this file to professional.js.
+/* professional.patched.v3.js
+ * Pair-based pricing (English <-> Other). Reverse (X→English) adds $0.02/word.
+ * Still applies rush/certified/subject multipliers (same as backend).
  */
 
 const DEBUG = false;
-
-// ===== Logging helpers =====
-function ts() { const d = new Date(); return d.toISOString().replace('T',' ').replace('Z',''); }
-function log(...args){ if(DEBUG) console.log('[RT '+ts()+']', ...args); }
-function info(...args){ if(DEBUG) console.info('[RT '+ts()+']', ...args); }
-function warn(...args){ if(DEBUG) console.warn('[RT '+ts()+']', ...args); }
-function err(...args){ if(DEBUG) console.error('[RT '+ts()+']', ...args); }
+function ts(){const d=new Date();return d.toISOString().replace('T',' ').replace('Z','');}
+function log(...a){ if(DEBUG) console.log('[RT '+ts()+']',...a); }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInAnonymously,
-  onAuthStateChanged
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
 
-// ==================== CONFIG ====================
 const firebaseConfig = {
   apiKey: "AIzaSyCRrDn3p9alXlLjZN7SoBkJSodcSk2uZs8",
   authDomain: "rolling-crowdsourcing.firebaseapp.com",
@@ -43,28 +25,17 @@ const firebaseConfig = {
   measurementId: "G-77E7560XRX"
 };
 
-// ==================== INIT ====================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // kept for parity with original
+const db = getFirestore(app);
 const storage = getStorage(app);
 let currentUser = null;
-onAuthStateChanged(auth, (user) => { currentUser = user || null; });
+onAuthStateChanged(auth, (u)=> currentUser = u || null);
 
-// ==================== CONSTANTS ====================
 const CF_BASE = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net";
 const CURRENCY = "usd";
-const PRO_TIERS_CENTS = [
-  { upTo: 500, rateCents: 20 },
-  { upTo: 2000, rateCents: 16 },
-  { upTo: Infinity, rateCents: 12 },
-];
-const RUSH_MULTIPLIER = 1.4;
-const CERTIFIED_FEE_CENTS = 1500;
 
-// ==================== DOM HOOKS ====================
-const $ = (s) => document.querySelector(s);
-const $fullName = $("#fullName");
+const $ = (s)=>document.querySelector(s);
 const $email = $("#email");
 const $source = $("#sourceLang");
 const $target = $("#targetLang");
@@ -74,306 +45,279 @@ const $certified = $("#certified");
 const $files = $("#files");
 const $fileList = $("#fileList");
 const $btnPreview = $("#btnPreview");
-const $btnPay = $("#btnPay"); // will be hidden; we will create a Pay button inside #quoteBox
+const $btnPay = $("#btnPay");
 const $quoteBox = $("#quoteBox");
 const $quoteDetails = $("#quoteDetails");
+if ($btnPay) $btnPay.style.display="none";
 
-// Hide the in-form Pay button entirely; we'll show one in the quote view
-if ($btnPay) $btnPay.style.display = "none";
-
-// ==================== STATE ====================
-// Map key: name::size::lastModified  →  { file, uploaded?: { name, gsPath, words } }
 const selected = new Map();
 let lastQuoteCents = 0;
 
-// ==================== HELPERS ====================
-const fmtMoney = (cents) => new Intl.NumberFormat(undefined, { style: "currency", currency: CURRENCY.toUpperCase() }).format((cents | 0) / 100);
-function readBoolFlexible(el) {
+const fmtMoney = (c)=> new Intl.NumberFormat(undefined,{style:"currency",currency:CURRENCY.toUpperCase()}).format((c|0)/100);
+function readBoolFlexible(el){
   if (!el) return false;
   if (el.type === "checkbox") return !!el.checked;
-  const v = String(el.value || "").toLowerCase();
-  if (v === "true" || v === "yes" || v === "1") return true;
-  if (v === "false" || v === "no" || v === "0" || v === "standard") return false;
+  const v = String(el.value||"").toLowerCase();
+  if (["true","yes","1"].includes(v)) return true;
+  if (["false","no","0","standard"].includes(v)) return false;
   return !!v;
 }
-function requestId() { return `PRO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
-function fileKey(f) { return `${f.name}::${f.size}::${f.lastModified||0}`; }
+function fileKey(f){ return `${f.name}::${f.size}::${f.lastModified||0}`; }
+function requestId(){ return `PRO-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 
-function calcProfessionalQuoteCents(words, opts) {
-  let remaining = Math.max(0, words | 0);
-  let total = 0;
-  let consumed = 0;
-  for (const tier of PRO_TIERS_CENTS) {
-    const upTo = tier.upTo === Infinity ? Infinity : tier.upTo;
-    const maxThisTier = upTo === Infinity ? remaining : Math.max(0, upTo - consumed);
-    const chunk = Math.min(remaining, maxThisTier);
-    if (chunk <= 0) break;
-    total += Math.round(chunk * tier.rateCents);
-    remaining -= chunk;
-    consumed += chunk;
+// Pair table
+const PAIR_BASE_USD = {
+  "english->afrikaans": 0.16,
+  "english->albanian": 0.21,
+  "english->amharic": 0.19,
+  "english->arabic": 0.15,
+  "english->armenian": 0.15,
+  "english->bengali": 0.19,
+  "english->bosnian": 0.3,
+  "english->bulgarian": 0.21,
+  "english->chinese (simplified)": 0.14,
+  "english->chinese (traditional)": 0.14,
+  "english->czech": 0.21,
+  "english->danish": 0.21,
+  "english->dari": 0.16,
+  "english->dutch": 0.19,
+  "english->estonian": 0.21,
+  "english->farsi": 0.15,
+  "english->finnish": 0.21,
+  "english->french": 0.15,
+  "english->french creole": 0.16,
+  "english->greek": 0.21,
+  "english->gujarati": 0.19,
+  "english->hebrew": 0.19,
+  "english->hindi": 0.15,
+  "english->hmong": 0.3,
+  "english->hokkien": 0.21,
+  "english->indonesian": 0.15,
+  "english->italian": 0.15,
+  "english->japanese": 0.16,
+  "english->korean": 0.15,
+  "english->lao": 0.19,
+  "english->latvian": 0.3,
+  "english->lithuanian": 0.21,
+  "english->malay": 0.19,
+  "english->mongolian": 0.21,
+  "english->nepali": 0.21,
+  "english->norwegian": 0.19,
+  "english->pashto": 0.15,
+  "english->polish": 0.14,
+  "english->portuguese (brazil)": 0.12,
+  "english->portuguese (portugal)": 0.12,
+  "english->punjabi": 0.16,
+  "english->romanian": 0.22,
+  "english->russian": 0.15,
+  "english->slovak": 0.19,
+  "english->slovene": 0.19,
+  "english->somali": 0.19,
+  "english->spanish (latam)": 0.12,
+  "english->spanish (spain)": 0.12,
+  "english->swahili": 0.19,
+  "english->swedish": 0.19,
+  "english->tagalog": 0.14,
+  "english->telugu": 0.19,
+  "english->thai": 0.15,
+  "english->turkish": 0.19,
+  "english->ukrainian": 0.16,
+  "english->urdu": 0.16,
+  "english->vietnamese": 0.15,
+  "english->zomi": 0.3,
+  "english->zulu": 0.3
+};
+function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
+function normalizeLangName(s){
+  s = norm(s);
+  const aliases = {
+    'eenglish':'english','englisn':'english',
+    'gurajati':'gujarati','gebrew':'hebrew','noewegian':'norwegian',
+    'malaysian':'malay','farsi':'farsi','persian':'farsi',
+    'simplified chinese':'chinese (simplified)',
+    'traditional chinese':'chinese (traditional)',
+    'haitian creole':'french creole'
+  };
+  return aliases[s] || s;
+}
+function pairBaseRateUSD(sourceLang, targetLang){
+  const src = normalizeLangName(sourceLang);
+  const tgt = normalizeLangName(targetLang);
+  if (src === 'english' && tgt !== 'english'){
+    return PAIR_BASE_USD[`english->${tgt}`] ?? null;
+  } else if (tgt === 'english' && src !== 'english'){
+    const base = PAIR_BASE_USD[`english->${src}`];
+    return base != null ? (Number(base)+0.02) : null;
   }
-  if (opts?.rush) total = Math.round(total * RUSH_MULTIPLIER);
-  if (opts?.certified) total += CERTIFIED_FEE_CENTS;
-  return total;
+  return null;
 }
 
-function sumSelectedWords() {
-  let words = 0;
-  for (const ent of selected.values()) {
-    if (ent.uploaded && Number.isFinite(ent.uploaded.words)) words += ent.uploaded.words | 0;
+function computeAmountCentsFE(words){
+  const src = $source?.value || "";
+  const tgt = $target?.value || "";
+  const subject = ($subject?.value || "").toLowerCase();
+  const rush = (function(){const v=($rush?.value||"").toLowerCase(); if(v==='urgent')return'h24'; if(v==='rush')return'2bd'; return 'standard';})();
+  const certified = readBoolFlexible($certified);
+  let rate = pairBaseRateUSD(src, tgt);
+  if (rate == null) return 0;
+  let totalUsd = words * Number(rate);
+
+  switch (subject){
+    case 'technical':
+    case 'marketing': totalUsd *= 1.20; break;
+    case 'legal':
+    case 'medical': totalUsd *= 1.25; break;
   }
-  return words;
+  switch (rush){
+    case '2bd': totalUsd *= 1.20; break;
+    case 'h24': totalUsd *= 1.40; break;
+  }
+  if (certified) totalUsd *= 1.10;
+
+  const MIN_TOTAL_USD = 1.0;
+  return Math.round(Math.max(totalUsd, MIN_TOTAL_USD) * 100);
 }
 
-function ensureQuotePayButton() {
+function ensureQuotePayButton(){
   let $btn = document.querySelector("#btnPayQuote");
   if ($btn) return $btn;
   $btn = document.createElement("button");
   $btn.id = "btnPayQuote";
   $btn.className = "mt-4 px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50";
   $btn.textContent = "Pay now";
-  $btn.addEventListener("click", (e) => { e.preventDefault(); startPayment(); });
+  $btn.addEventListener("click", (e)=>{ e.preventDefault(); startPayment(); });
   $quoteBox?.appendChild($btn);
   return $btn;
 }
 
-function renderQuote() {
-  if (!$quoteBox || !$quoteDetails) return;
-  const rush = readBoolFlexible($rush);
-  const certified = readBoolFlexible($certified);
-  const totalWords = sumSelectedWords();
-  lastQuoteCents = calcProfessionalQuoteCents(totalWords, { rush, certified });
+function sumWords(){
+  let w=0; for (const v of selected.values()) if (v.uploaded && Number.isFinite(v.uploaded.words)) w+= v.uploaded.words|0; return w;
+}
 
+function renderQuote(){
+  if (!$quoteBox || !$quoteDetails) return;
+  const words = sumWords();
+  lastQuoteCents = computeAmountCentsFE(words);
   const parts = [
-    `<strong>Total words:</strong> ${totalWords}`,
+    `<strong>Total words:</strong> ${words}`,
     `<strong>Languages:</strong> ${$source?.value || "-"} → ${$target?.value || "-"}`,
-    `<strong>Rush:</strong> ${rush ? "Yes" : "No"}`,
-    `<strong>Certified:</strong> ${certified ? "Yes" : "No"}`,
     `<strong>Total:</strong> ${fmtMoney(lastQuoteCents)}`,
   ];
   $quoteDetails.innerHTML = parts.join("<br>");
-  $quoteBox.style.display = "block";
-
-  // Reveal Pay button only if there are analyzed files and a positive quote
+  $quoteBox.style.display="block";
   const $btn = ensureQuotePayButton();
-  $btn.disabled = !(lastQuoteCents > 0 && sumSelectedWords() > 0);
+  $btn.disabled = !(lastQuoteCents > 0 && words > 0);
 }
 
-async function getQuoteForGsPath(gsPath, uid) {
-  const r = await fetch(`${CF_BASE}/getQuoteForFile`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+// Upload/analyze
+async function getQuoteForGsPath(gsPath, uid){
+  const r = await fetch(`${CF_BASE}/getQuoteForFile`,{
+    method:"POST", headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ gsPath, uid })
   });
-  const raw = await r.text().catch(() => "");
-  if (!r.ok) throw new Error(`getQuoteForFile failed: ${r.status} ${raw.slice(0,300)}`);
-  let json;
-  try { json = JSON.parse(raw); } catch { throw new Error("getQuoteForFile returned non-JSON"); }
-  return json;
+  const raw = await r.text().catch(()=> "");
+  if (!r.ok) throw new Error(`getQuoteForFile failed: ${r.status} ${raw.slice(0,200)}`);
+  return JSON.parse(raw);
 }
+import { ref as sRef } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js"; // alias not used here
 
-async function uploadAndQuote(file, uid) {
+async function uploadAndQuote(file, uid){
   const stamp = Date.now();
   const relPath = `crowd/uploads/${uid}/${stamp}-${file.name}`;
   const sref = ref(storage, relPath);
   await uploadBytes(sref, file);
-
-  const gsFull = `gs://${firebaseConfig.storageBucket}/${relPath}`;
-  try {
-    const quote = await getQuoteForGsPath(gsFull, uid);
-    return { name: file.name, gsPath: gsFull, words: quote.words | 0 };
-  } catch (e) {
-    // fallback to relative path
-    const quote2 = await getQuoteForGsPath(relPath, uid);
-    return { name: file.name, gsPath: relPath, words: quote2.words | 0 };
-  }
+  const q = await getQuoteForGsPath(relPath, uid);
+  return { name:file.name, gsPath: relPath, words: q.words|0 };
 }
 
-async function ensureAuth(email) {
+async function ensureAuth(email){
   if (currentUser) return currentUser;
-  const e = (email || "").trim();
-  try {
-    if (e) {
-      try {
-        const cred = await signInWithEmailAndPassword(auth, e, "placeholder-password");
-        return cred.user;
-      } catch (err1) {
-        if (err1?.code === 'auth/user-not-found' || err1?.code === 'auth/wrong-password') {
-          const cred2 = await createUserWithEmailAndPassword(auth, e, "placeholder-password");
-          return cred2.user;
-        }
-        throw err1;
+  const e = String(email||"").trim();
+  if (e){
+    try {
+      const cred = await signInWithEmailAndPassword(auth, e, "placeholder-password"); return cred.user;
+    } catch (err1){
+      if (err1?.code === 'auth/user-not-found' || err1?.code === 'auth/wrong-password'){
+        const cred2 = await createUserWithEmailAndPassword(auth, e, "placeholder-password"); return cred2.user;
       }
-    } else {
-      const anon = await signInAnonymously(auth);
-      return anon.user;
+      throw err1;
     }
-  } catch (e2) {
-    err("Auth error:", e2);
-    throw e2;
+  } else {
+    const anon = await signInAnonymously(auth); return anon.user;
   }
 }
 
-// =============== FILE LIST UI ==================
-function renderFileList() {
-  if (!$fileList) return;
-  $fileList.innerHTML = "";
-
-  if (selected.size === 0) {
-    const p = document.createElement("p");
-    p.className = "muted mt-2";
-    p.textContent = "No files selected yet.";
-    $fileList.appendChild(p);
-    return;
-  }
-
-  const ul = document.createElement("ul");
-  ul.className = "mt-2 space-y-2";
-  for (const [key, ent] of selected.entries()) {
-    const li = document.createElement("li");
-    li.className = "flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2";
-    const left = document.createElement("div");
-    left.className = "truncate";
-    left.innerHTML = `<span class="font-medium">${ent.file.name}</span>` +
-                     (ent.uploaded ? ` <span class="text-xs text-gray-600">· ${ent.uploaded.words} words</span>`
-                                   : ` <span class="text-xs text-gray-500">· pending</span>`);
-    const btn = document.createElement("button");
-    btn.className = "ml-3 text-gray-500 hover:text-red-600 text-xl leading-none";
-    btn.setAttribute("aria-label", "Remove file");
-    btn.textContent = "×";
-    btn.addEventListener("click", () => {
-      selected.delete(key);
-      renderFileList();
-      if ($quoteBox && $quoteBox.style.display === "block") {
-        // If we're on the quote step, update totals immediately
-        if (sumSelectedWords() > 0) renderQuote();
-        else {
-          $quoteDetails.textContent = "No files selected.";
-          const $pay = document.querySelector("#btnPayQuote");
-          if ($pay) $pay.disabled = true;
-        }
-      }
-    });
-    li.appendChild(left);
-    li.appendChild(btn);
-    ul.appendChild(li);
-  }
-  $fileList.appendChild(ul);
-}
-
-function addFilesFromInput(fileList) {
-  const arr = Array.from(fileList || []);
-  for (const f of arr) {
-    const key = fileKey(f);
-    if (!selected.has(key)) selected.set(key, { file: f });
-  }
-  // Clear the native input so user can re-open the picker and add the same file if removed, etc.
-  if ($files) $files.value = "";
-  renderFileList();
-}
-
-// =============== QUOTE PREVIEW FLOW ==================
-async function previewQuote() {
-  if (selected.size === 0) {
-    alert("Upload at least one file.");
-    return;
-  }
-  $quoteBox.style.display = "block";
-  $quoteDetails.textContent = "Loading / processing your files…";
-
-  $btnPreview?.setAttribute("disabled", "true");
+async function previewQuote(){
+  if (selected.size===0){ alert("Upload at least one file."); return; }
+  $quoteBox.style.display="block"; $quoteDetails.textContent="Loading / processing your files…";
+  $btnPreview?.setAttribute("disabled","true");
   try {
     const user = await ensureAuth($email?.value || "");
-    // Upload/analyze only entries that aren't analyzed yet
-    for (const ent of selected.values()) {
-      if (!ent.uploaded) {
-        try {
-          const u = await uploadAndQuote(ent.file, user.uid);
-          ent.uploaded = u;
-          renderFileList(); // update "pending" → words
-        } catch (e) {
-          warn("Failed to analyze", ent.file?.name, e);
-        }
+    for (const ent of selected.values()){
+      if (!ent.uploaded){
+        try { ent.uploaded = await uploadAndQuote(ent.file, user.uid); renderFileList(); } catch {}
       }
     }
     renderQuote();
-  } catch (e) {
-    alert("Something went wrong while preparing your quote. Please try again.");
-  } finally {
-    $btnPreview?.removeAttribute("disabled");
-  }
+  } finally { $btnPreview?.removeAttribute("disabled"); }
 }
 
-// =============== PAYMENT ==================
-async function startPayment() {
-  // Ensure quote is ready
-  const totalWords = sumSelectedWords();
-  if (!totalWords || !lastQuoteCents) {
-    alert("Generate your quote first.");
-    return;
-  }
-  const email = ($email?.value || "").trim();
-  if (!email) {
-    alert("We need an email for the receipt.");
-    return;
-  }
-  if (!currentUser) {
-    try { await ensureAuth(email); } catch { alert("Authentication failed."); return; }
-  }
+async function startPayment(){
+  const words = sumWords();
+  if (!(words>0)) { alert("Generate your quote first."); return; }
+  const email = ($email?.value || "").trim(); if (!email){ alert("We need an email for the receipt."); return; }
+
+  const rush = (function(){const v=($rush?.value||"").toLowerCase(); if(v==='urgent')return'h24'; if(v==='rush')return'2bd'; return 'standard';})();
+  const certified = readBoolFlexible($certified);
+  const subject = ($subject?.value || "").toLowerCase();
+  const sourceLang = $source?.value || "";
+  const targetLang = $target?.value || "";
+
   const desc = [
     "Professional translation",
-    `${$source?.value || "-"}→${$target?.value || "-"}`,
-    `${totalWords} words`,
-    readBoolFlexible($rush) ? "rush" : null,
-    readBoolFlexible($certified) ? "certified" : null,
+    `${sourceLang||"-"}→${targetLang||"-"}`,
+    `${words} words`,
+    rush!=='standard' ? rush : null,
+    certified ? "certified" : null,
+    subject && subject!=='general' ? subject : null,
   ].filter(Boolean).join(" · ");
 
-  const mappedRush = ($rush?.value === 'urgent') ? 'h24'
-                    : ($rush?.value === 'rush') ? '2bd'
-                    : 'standard';
-
-  const payload = {
-    requestId: requestId(),
-    email,
-    description: desc,
-    totalWords,
-    subject: $subject?.value,
-    certified: String(readBoolFlexible($certified)),
-    rush: mappedRush
-  };
-
-  const $btn = ensureQuotePayButton();
-  $btn.disabled = true;
-  const original = $btn.textContent;
-  $btn.textContent = "Creating payment session…";
+  const $pay = document.querySelector("#btnPayQuote") || ensureQuotePayButton();
+  $pay.disabled = true; const prev = $pay.textContent; $pay.textContent = "Creating payment session…";
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        requestId: requestId(), email, description: desc, totalWords: words,
+        rush, certified: String(certified), subject, sourceLang, targetLang
+      })
     });
-    const raw = await r.text().catch(() => "");
-    if (!r.ok) throw new Error(`createCheckoutSession failed: ${r.status} ${raw.slice(0,300)}`);
-    const data = JSON.parse(raw);
-    if (data?.url) location.href = data.url;
-    else throw new Error("Server response missing URL");
-  } catch (e) {
-    alert("We couldn't start the payment. Please try again.");
-  } finally {
-    $btn.disabled = false;
-    $btn.textContent = original;
-  }
+    const raw = await r.text().catch(()=> ""); if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
+    const data = JSON.parse(raw); if (data?.url) location.href = data.url; else throw new Error("No URL from server");
+  } catch(e){ alert("We couldn't start the payment. Please try again."); }
+  finally { $pay.disabled = false; $pay.textContent = prev; }
 }
 
-// =============== EVENTS ==================
-$files?.addEventListener("change", (e) => {
-  addFilesFromInput(e.target.files || []);
-});
+// File UI with removable items
+function renderFileList(){
+  if (!$fileList) return;
+  $fileList.innerHTML="";
+  if (selected.size===0){ const p=document.createElement('p'); p.className="muted mt-2"; p.textContent="No files selected yet."; $fileList.appendChild(p); return; }
+  const ul=document.createElement('ul'); ul.className="mt-2 space-y-2";
+  for (const [key, ent] of selected.entries()){
+    const li=document.createElement('li'); li.className="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2";
+    const left=document.createElement('div'); left.className="truncate";
+    left.innerHTML = `<span class="font-medium">${ent.file.name}</span>` + (ent.uploaded ? ` <span class="text-xs text-gray-600">· ${ent.uploaded.words} words</span>` : ` <span class="text-xs text-gray-500">· pending</span>`);
+    const btn=document.createElement('button'); btn.className="ml-3 text-gray-500 hover:text-red-600 text-xl leading-none"; btn.textContent="×"; btn.setAttribute("aria-label","Remove file");
+    btn.addEventListener('click', ()=>{ selected.delete(key); renderFileList(); if ($quoteBox && $quoteBox.style.display==="block") renderQuote(); });
+    li.appendChild(left); li.appendChild(btn); ul.appendChild(li);
+  }
+  $fileList.appendChild(ul);
+}
+function addFilesFromInput(fileList){ const arr=Array.from(fileList||[]); for (const f of arr){ const k=fileKey(f); if(!selected.has(k)) selected.set(k,{file:f}); } if ($files) $files.value=""; renderFileList(); }
 
-$btnPreview?.addEventListener("click", (e) => {
-  e.preventDefault();
-  previewQuote();
-});
+$files?.addEventListener("change", (e)=> addFilesFromInput(e.target.files || []));
+$btnPreview?.addEventListener("click", (e)=> { e.preventDefault(); previewQuote(); });
 
-// Initialize file list to "empty" message
-renderFileList();
+// Init
+(function(){ if ($fileList && selected.size===0){ const p=document.createElement('p'); p.className="muted mt-2"; p.textContent="No files selected yet."; $fileList.appendChild(p); } })();
