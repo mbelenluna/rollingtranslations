@@ -215,14 +215,12 @@ exports.createCheckoutSession = onRequest(
 
       let {
         requestId, totalWords = 0, email, fullName, description,
-        rush, certified, subject,
-        sourceLang, targetLang,   // compat (single)
-        pairs,                    // multi: [{sourceLang, targetLang}]
-        successUrl, cancelUrl
+        rush, certified, subject, notes,                      // 👈 notes
+        sourceLang, targetLang, pairs, successUrl, cancelUrl
       } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
-      // Palabras (preferimos server si ya existiera algo)
+      // Preferimos server si ya existiera algo
       let wordsServer = Number(totalWords || 0);
       try {
         const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
@@ -233,38 +231,26 @@ exports.createCheckoutSession = onRequest(
         }
       } catch {}
 
-      // Monto total (suma por par) y validación de pares
       const { amountCents, unsupported } =
         computeAmountCentsMulti(wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang });
       if (unsupported) return res.status(400).json({ error: "Unsupported language pair(s)." });
       if (!(amountCents > 0)) return res.status(400).json({ error: "Invalid amount computed." });
 
       const amountUsd = amountCents / 100;
-      const effRate = wordsServer > 0 ? (amountUsd / wordsServer) : null; // $/palabra “blend”
-
-      // Resumen legible de pares (para emails/log)
+      const effRate = wordsServer > 0 ? (amountUsd / wordsServer) : null;
       const arrPairs = Array.isArray(pairs) && pairs.length ? pairs : [{ sourceLang, targetLang }];
       const pairsSummary = arrPairs.map(p => `${p.sourceLang}→${p.targetLang}`).join(", ");
-      const srcSummary = arrPairs[0]?.sourceLang || sourceLang || "—";
-      const tgtSummary = (arrPairs.length > 1)
-        ? `Multiple (${arrPairs.length}): ${arrPairs.map(p=>p.targetLang).join(", ")}`
-        : (arrPairs[0]?.targetLang || targetLang || "—");
 
-      // Orígenes para las URLs de retorno
       const origin = (process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || CHECKOUT_ORIGIN).replace(/\/+$/, '');
       const success_url = successUrl || `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`;
       const cancel_url  = cancelUrl  || `${origin}/cancel.html?requestId=${encodeURIComponent(requestId)}`;
-
       const name = description || "Professional translation";
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_email: email || undefined,
         line_items: [{
-          price_data: {
-            currency: "usd",
-            product_data: { name, description: `Total words: ${wordsServer}` },
-            unit_amount: amountCents
-          },
+          price_data: { currency: "usd", product_data: { name, description: `Total words: ${wordsServer}` }, unit_amount: amountCents },
           quantity: 1
         }],
         success_url, cancel_url,
@@ -276,7 +262,8 @@ exports.createCheckoutSession = onRequest(
             rush: String(rush || "standard"),
             certified: String(certified === "true" || certified === true),
             subject: String(subject || "general"),
-            pairs: JSON.stringify(arrPairs)
+            pairs: JSON.stringify(arrPairs),
+            notes: String(notes || "")
           }
         },
         metadata: {
@@ -286,36 +273,32 @@ exports.createCheckoutSession = onRequest(
         }
       });
 
-      // 🔥 Guardamos TODOS los datos en la creación del doc
+      const humanRush = (r) => r === "h24" ? "24 hours" : (r === "2bd" ? "2 business days" : "Standard");
+
       await admin.firestore().collection("crowdRequests").doc(requestId).set({
-        // Identificación / cliente
         requestId,
         email: email || null,
         fullName: fullName || null,
-
-        // Parámetros de la solicitud
-        sourceLang: srcSummary,
-        targetLang: tgtSummary,
-        pairs: arrPairs,                 // preservamos array completo
+        sourceLang: arrPairs[0]?.sourceLang || sourceLang || "—",
+        targetLang: (arrPairs.length > 1)
+          ? `Multiple (${arrPairs.length}): ${arrPairs.map(p=>p.targetLang).join(", ")}`
+          : (arrPairs[0]?.targetLang || targetLang || "—"),
+        pairs: arrPairs,
         subject: subject || "general",
         rush: String(rush || "standard"),
+        turnaroundLabel: humanRush(String(rush || "standard")), // 👈 label legible
         certified: (certified === "true" || certified === true) ? true : false,
-
-        // Estimación
+        notes: notes || null,                                    // 👈 guardamos notas
         totalWords: wordsServer,
-        estimatedTotal: amountUsd,       // 👈 para el email
-        rate: effRate ?? null,           // 👈 $/word efectivo (blend)
-
-        // Stripe / estado
+        estimatedTotal: amountUsd,
+        rate: effRate ?? null,
         stripeSessionId: session.id,
         stripeMode: "payment",
         checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
         status: "pending_payment",
-
-        // Info útil
         description: name,
         pairsSummary
-      }, { merge: false }); // merge:false asegura onCreate con datos completos
+      }, { merge: false });
 
       return res.json({ url: session.url });
     } catch (err) {
@@ -326,6 +309,7 @@ exports.createCheckoutSession = onRequest(
 );
 
 
+
 // ===== 3) Webhook Stripe (email + estado) =====
 exports.stripeWebhook = onRequest(
   { region: "us-central1", secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY] },
@@ -334,66 +318,112 @@ exports.stripeWebhook = onRequest(
       const stripeSecret = STRIPE_SECRET_KEY.value();
       const webhookSecret = STRIPE_WEBHOOK_SECRET.value();
       if (!stripeSecret || !webhookSecret) return res.status(500).send("Secrets not configured");
-      const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
+
+      const stripe = new (require("stripe"))(stripeSecret, { apiVersion: "2024-06-20" });
+      const sgMail = require("@sendgrid/mail");
+      sgMail.setApiKey(SENDGRID_API_KEY.value());
 
       const sig = req.headers["stripe-signature"];
       let event;
-      try { event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret); }
-      catch (err) { logger.error("Webhook verification failed", err); return res.status(400).send(`Webhook Error: ${err.message}`); }
+      try {
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+      } catch (err) {
+        logger.error("Webhook verification failed", err);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
+
+      const sendConfirmation = async (sessionLike, eventId) => {
+        const requestId = sessionLike?.metadata?.requestId || null;
+        const amountTotal = typeof sessionLike?.amount_total === "number" ? (sessionLike.amount_total / 100) : null;
+        const paymentIntentId = sessionLike?.payment_intent || null;
+
+        // Cargamos doc
+        const docRef = admin.firestore().collection("crowdRequests").doc(requestId || "unknown");
+        let docData = {};
+        if (requestId) {
+          const snap = await docRef.get();
+          if (snap.exists) docData = snap.data() || {};
+        }
+
+        // ⚠️ Deduplicación: si ya lo enviamos, salimos
+        if (docData.confirmationEmailSentAt) {
+          logger.info("Confirmation already sent, skipping", { requestId, eventId });
+          return; // no reenviar
+        }
+
+        // Campos para el mail
+        const clientEmail = docData.email || sessionLike?.customer_details?.email || "";
+        const clientName  = docData.fullName || docData.fullname || "Client";
+        const totalWords  = Number(docData.totalWords ?? sessionLike?.metadata?.totalWords ?? 0);
+        const subject     = String(docData.subject || "general");
+        const rushCode    = String(docData.rush || "standard");
+        const turnaround  = docData.turnaroundLabel || (rushCode === "h24" ? "24 hours" : (rushCode === "2bd" ? "2 business days" : "Standard"));
+        const certified   = docData.certified === true ? "Yes" : "No";
+        const notes       = (docData.notes && String(docData.notes).trim()) ? String(docData.notes).trim() : null;
+
+        const pairsList = Array.isArray(docData.pairs) && docData.pairs.length
+          ? docData.pairs.map(p => `${p.sourceLang} → ${p.targetLang}`).join("<br>")
+          : `${docData.sourceLang || "—"} → ${docData.targetLang || "—"}`;
+
+        const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+        const amountStr = amountTotal != null ? nf.format(amountTotal) :
+                          (docData.amountPaid != null ? nf.format(docData.amountPaid) : "—");
+
+        const tableRows = `
+          <tr><td style="padding:8px 0;color:#64748b">Order ID</td><td style="padding:8px 0"><b>${requestId || "—"}</b></td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Languages</td><td style="padding:8px 0">${pairsList}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Total words</td><td style="padding:8px 0">${totalWords || "—"}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Amount paid</td><td style="padding:8px 0"><b>${amountStr}</b></td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Turnaround</td><td style="padding:8px 0">${turnaround}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Certification</td><td style="padding:8px 0">${certified}</td></tr>
+          <tr><td style="padding:8px 0;color:#64748b">Subject</td><td style="padding:8px 0">${subject}</td></tr>
+          ${notes ? `<tr><td style="padding:8px 0;color:#64748b">Notes</td><td style="padding:8px 0;white-space:pre-wrap">${notes.replace(/</g,"&lt;")}</td></tr>` : ""}
+        `;
+
+        const html = `
+          <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
+            <h2 style="margin:0 0 8px 0;">Your order is confirmed ✅</h2>
+            <p style="margin:0 0 14px 0;">Thank you for choosing <b>Rolling Translations</b>!</p>
+            <table style="border-collapse:collapse;width:100%;max-width:560px">${tableRows}</table>
+            <p style="margin:16px 0 8px 0;">We’ll start processing your request and email you with updates shortly.</p>
+            <p style="margin:0 0 14px 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
+            <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
+          </div>
+        `;
+
+        // Enviar (cliente + copia interna)
+        const msgs = [];
+        if (clientEmail) msgs.push({
+          to: clientEmail,
+          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+          subject: `Order ${requestId || sessionLike.id} confirmed — Rolling Translations`,
+          html
+        });
+        msgs.push({
+          to: "info@rolling-translations.com",
+          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+          subject: `New paid order — ${requestId || sessionLike.id}`,
+          html
+        });
+        if (msgs.length) await sgMail.send(msgs);
+
+        // Marcar como pagado + confirmar que YA se envió (idempotencia a futuro)
+        if (requestId) {
+          await docRef.set({
+            status: "paid",
+            paidAt: admin.firestore.FieldValue.serverTimestamp(),
+            paymentIntentId,
+            amountPaid: amountTotal != null ? amountTotal : (docData.amountPaid ?? null),
+            confirmationEmailSentAt: admin.firestore.FieldValue.serverTimestamp(),
+            confirmationEmailSessionId: sessionLike.id || null,
+            confirmationEmailEventId: eventId || null
+          }, { merge: true });
+        }
+      };
 
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
-        const paymentIntentId = session.payment_intent;
-        const requestId = session.metadata && session.metadata.requestId;
-        const totalWords = session.metadata && Number(session.metadata.totalWords || 0);
-        const amountTotal = typeof session.amount_total === "number" ? session.amount_total : null;
-
-        if (requestId) {
-          try {
-            await admin.firestore().collection("crowdRequests").doc(requestId).set({
-              status: "paid", paidAt: admin.firestore.FieldValue.serverTimestamp(),
-              paymentIntentId: paymentIntentId || null, amountPaid: amountTotal != null ? amountTotal / 100 : null,
-            }, { merge: true });
-          } catch (e) { logger.error("Firestore update failed", e); }
-
-          try {
-            sgMail.setApiKey(SENDGRID_API_KEY.value());
-            let docData = {};
-            try {
-              const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
-              if (snap.exists) docData = snap.data() || {};
-            } catch {}
-
-            const clientEmail = docData.email || session.customer_details?.email || "";
-            const clientName = docData.fullName || docData.fullname || "Client";
-            const sourceLang = docData.sourceLang || "—";
-            const targetLang = docData.targetLang || "—";
-            const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-            const amountStr = amountTotal != null ? nf.format(amountTotal / 100) : "—";
-
-            const html = `
-              <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
-                <h2 style="margin:0 0 8px 0;">Your order is confirmed ✅</h2>
-                <p style="margin:0 0 14px 0;">Thank you for choosing <b>Rolling Translations</b>!</p>
-                <table style="border-collapse:collapse;width:100%;max-width:560px">
-                  <tr><td style="padding:8px 0;color:#64748b">Order ID</td><td style="padding:8px 0"><b>${requestId}</b></td></tr>
-                  <tr><td style="padding:8px 0;color:#64748b">Languages</td><td style="padding:8px 0">${sourceLang} → ${targetLang}</td></tr>
-                  <tr><td style="padding:8px 0;color:#64748b">Total words</td><td style="padding:8px 0">${Number.isFinite(totalWords) ? totalWords : (docData.totalWords ?? docData.estWords ?? "—")}</td></tr>
-                  <tr><td style="padding:8px 0;color:#64748b">Amount paid</td><td style="padding:8px 0"><b>${amountStr}</b></td></tr>
-                </table>
-                <p style="margin:16px 0 8px 0;">We’ll start processing your request and email you with updates shortly.</p>
-                <p style="margin:0 0 14px 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
-                <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
-              </div>
-            `;
-            const msgs = [];
-            if (clientEmail) msgs.push({ to: clientEmail, from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `Order ${requestId} confirmed — Rolling Translations`, html });
-            msgs.push({ to: "info@rolling-translations.com", from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `New paid order — ${requestId}`, html });
-            if (msgs.length) await sgMail.send(msgs);
-          } catch (mailErr) { logger.error("SendGrid send failed", mailErr?.response?.body || mailErr?.message || mailErr); }
-        } else {
-          logger.warn("checkout.session.completed without requestId in metadata");
-        }
+        await sendConfirmation(session, event.id);
       }
 
       res.json({ received: true });
@@ -404,36 +434,168 @@ exports.stripeWebhook = onRequest(
   }
 );
 
+
+exports.resendConfirmation = onRequest(
+  { region: "us-central1", secrets: [STRIPE_SECRET_KEY, SENDGRID_API_KEY] },
+  async (req, res) => {
+    try {
+      const stripeSecret = STRIPE_SECRET_KEY.value();
+      if (!stripeSecret) return res.status(500).send("Stripe secret not configured");
+      const stripe = new (require("stripe"))(stripeSecret, { apiVersion: "2024-06-20" });
+
+      const sgMail = require("@sendgrid/mail");
+      sgMail.setApiKey(SENDGRID_API_KEY.value());
+
+      const sessionId = req.query.sessionId || req.body?.sessionId;
+      const requestIdQ = req.query.requestId || req.body?.requestId;
+      if (!sessionId && !requestIdQ) return res.status(400).send("Missing sessionId or requestId");
+
+      let session = null;
+      if (sessionId) session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (!admin.apps.length) admin.initializeApp({ storageBucket: "rolling-crowdsourcing.firebasestorage.app" });
+      const db = admin.firestore();
+
+      let requestId = requestIdQ || (session?.metadata?.requestId ?? null);
+      let docData = {};
+      let docRef = null;
+
+      if (requestId) {
+        docRef = db.collection("crowdRequests").doc(requestId);
+        const snap = await docRef.get();
+        if (snap.exists) docData = snap.data() || {};
+      }
+
+      // Si ya se envió, no reenviamos
+      if (docData.confirmationEmailSentAt) {
+        return res.status(200).json({ ok: true, alreadySent: true });
+      }
+
+      const paid = session ? (session.payment_status === "paid" || session.status === "complete")
+                           : (docData?.status === "paid");
+      if (!paid) return res.status(400).send("Not paid yet");
+
+      const clientEmail = docData.email || session?.customer_details?.email || "";
+      const clientName  = docData.fullName || docData.fullname || "Client";
+      const totalWords  = Number(docData.totalWords ?? session?.metadata?.totalWords ?? 0);
+      const subject     = String(docData.subject || "general");
+      const rushCode    = String(docData.rush || "standard");
+      const turnaround  = docData.turnaroundLabel || (rushCode === "h24" ? "24 hours" : (rushCode === "2bd" ? "2 business days" : "Standard"));
+      const certified   = docData.certified === true ? "Yes" : "No";
+      const notes       = (docData.notes && String(docData.notes).trim()) ? String(docData.notes).trim() : null;
+
+      const pairsList = Array.isArray(docData.pairs) && docData.pairs.length
+        ? docData.pairs.map(p => `${p.sourceLang} → ${p.targetLang}`).join("<br>")
+        : `${docData.sourceLang || "—"} → ${docData.targetLang || "—"}`;
+
+      const amountTotal = typeof session?.amount_total === "number" ? (session.amount_total / 100) : (docData.amountPaid ?? docData.estimatedTotal ?? null);
+      const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+      const amountStr = amountTotal != null ? nf.format(amountTotal) : "—";
+
+      const tableRows = `
+        <tr><td style="padding:8px 0;color:#64748b">Order ID</td><td style="padding:8px 0"><b>${requestId || sessionId}</b></td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Languages</td><td style="padding:8px 0">${pairsList}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Total words</td><td style="padding:8px 0">${totalWords || "—"}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Amount paid</td><td style="padding:8px 0"><b>${amountStr}</b></td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Turnaround</td><td style="padding:8px 0">${turnaround}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Certification</td><td style="padding:8px 0">${certified}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b">Subject</td><td style="padding:8px 0">${subject}</td></tr>
+        ${notes ? `<tr><td style="padding:8px 0;color:#64748b">Notes</td><td style="padding:8px 0;white-space:pre-wrap">${notes.replace(/</g,"&lt;")}</td></tr>` : ""}
+      `;
+
+      const html = `
+        <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
+          <h2 style="margin:0 0 8px 0;">Your order is confirmed ✅</h2>
+          <p style="margin:0 0 14px 0;">Thank you for choosing <b>Rolling Translations</b>!</p>
+          <table style="border-collapse:collapse;width:100%;max-width:560px">${tableRows}</table>
+          <p style="margin:16px 0 8px 0;">We’ll start processing your request and email you with updates shortly.</p>
+          <p style="margin:0 0 14px 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
+          <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
+        </div>
+      `;
+
+      const msgs = [];
+      if (clientEmail) msgs.push({
+        to: clientEmail,
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: `Order ${requestId || sessionId} confirmed — Rolling Translations`,
+        html
+      });
+      msgs.push({
+        to: "info@rolling-translations.com",
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: `Re-send paid order — ${requestId || sessionId}`,
+        html
+      });
+      if (msgs.length) await sgMail.send(msgs);
+
+      if (docRef) {
+        await docRef.set({
+          status: "paid",
+          paidAt: admin.firestore.FieldValue.serverTimestamp(),
+          amountPaid: amountTotal != null ? amountTotal : null,
+          confirmationEmailSentAt: admin.firestore.FieldValue.serverTimestamp(),
+          confirmationEmailSessionId: session?.id || null,
+        }, { merge: true });
+      }
+
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error("resendConfirmation error", err?.response?.body || err?.message || err);
+      return res.status(500).send("Error resending");
+    }
+  }
+);
+
+
+
 // ===== 4) Email on new request =====
 exports.emailOnRequestCreated = onDocumentCreated(
   { document: "crowdRequests/{requestId}", region: "us-central1", secrets: [SENDGRID_API_KEY] },
   async (event) => {
     const data = event.data?.data() || {};
     const requestId = event.params.requestId;
+
     try {
       const clientEmail = data.email || data.clientEmail || "";
-      const clientName = data.fullName || data.fullname || "Client";
-      const sourceLang = data.sourceLang || "—";
-      const targetLang = data.targetLang || "—";
-      const totalWords = Number(data.totalWords ?? data.estWords ?? data.words ?? 0);
-      const rate = Number(data.rate ?? 0);
-      const estTotal = typeof data.estimatedTotal === "number" ? Number(data.estimatedTotal) : null;
+      const clientName  = data.fullName || data.fullname || "Client";
+
+      const totalWords  = Number(data.totalWords ?? data.estWords ?? data.words ?? 0);
+      const rate        = Number(data.rate ?? 0);
+      const estTotal    = typeof data.estimatedTotal === "number" ? Number(data.estimatedTotal) : null;
+
+      const rushCode    = String(data.rush || "standard");
+      const turnaround  = data.turnaroundLabel || (rushCode === "h24" ? "24 hours" : (rushCode === "2bd" ? "2 business days" : "Standard"));
+      const certified   = data.certified === true ? "Yes" : "No";
+      const subject     = String(data.subject || "general");
+      const notes       = (data.notes && String(data.notes).trim()) ? String(data.notes).trim() : null;
+
+      // Pairs list (soporta multi-target)
+      const pairsList = Array.isArray(data.pairs) && data.pairs.length
+        ? data.pairs.map(p => `${p.sourceLang} → ${p.targetLang}`).join("<br>")
+        : `${data.sourceLang || "—"} → ${data.targetLang || "—"}`;
 
       const nf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
       const amountStr = estTotal != null ? nf.format(estTotal) : "—";
-      const rateStr = rate ? `$${rate.toFixed(2)}/word` : "—";
+      const rateStr   = rate ? `$${rate.toFixed(2)}/word` : (estTotal && totalWords ? `$${(estTotal/totalWords).toFixed(2)}/word` : "—");
+
+      const tableRowsCommon = `
+        <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${pairsList}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Total words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Turnaround</td><td style="padding:6px 0">${turnaround}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Certification</td><td style="padding:6px 0">${certified}</td></tr>
+        <tr><td style="padding:6px 0;color:#64748b">Subject</td><td style="padding:6px 0">${subject}</td></tr>
+        ${notes ? `<tr><td style="padding:6px 0;color:#64748b">Notes</td><td style="padding:6px 0;white-space:pre-wrap">${notes.replace(/</g,"&lt;")}</td></tr>` : ""}
+      `;
 
       const htmlClient = `
         <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
           <h2 style="margin:0 0 10px 0;">We received your request ✅</h2>
           <p style="margin:0 0 12px 0;">Hi ${clientName}, thanks for choosing <b>Rolling Translations</b>!</p>
-          <table style="border-collapse:collapse;width:100%;max-width:560px">
-            <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Total words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
-          </table>
+          <table style="border-collapse:collapse;width:100%;max-width:560px">${tableRowsCommon}</table>
           <p style="margin:14px 0 0 0;">To complete your order, please finish the payment you just started. We'll email you once it's confirmed.</p>
           <p style="margin:14px 0 0 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
           <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
@@ -444,20 +606,31 @@ exports.emailOnRequestCreated = onDocumentCreated(
         <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
           <h3 style="margin:0 0 10px 0;">New crowdsourcing request</h3>
           <table style="border-collapse:collapse;width:100%;max-width:560px">
-            <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
             <tr><td style="padding:6px 0;color:#64748b">Client</td><td style="padding:6px 0">${clientName} &lt;${clientEmail || "—"}&gt;</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${sourceLang} → ${targetLang}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
-            <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
+            ${tableRowsCommon}
           </table>
         </div>
       `;
 
+      const sgMail = require("@sendgrid/mail");
       sgMail.setApiKey(SENDGRID_API_KEY.value());
+
       const messages = [];
-      if (clientEmail) messages.push({ to: clientEmail, from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `We received your request — ${requestId}`, html: htmlClient });
-      messages.push({ to: "info@rolling-translations.com", from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `New crowdsourcing request — ${requestId}`, html: htmlInternal });
+      if (clientEmail) {
+        messages.push({
+          to: clientEmail,
+          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+          subject: `We received your request — ${requestId}`,
+          html: htmlClient,
+        });
+      }
+      messages.push({
+        to: "info@rolling-translations.com",
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: `New crowdsourcing request — ${requestId}`,
+        html: htmlInternal,
+      });
+
       if (messages.length) await sgMail.send(messages);
       logger.info("Emails sent for new request", { requestId });
     } catch (err) {
