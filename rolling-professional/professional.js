@@ -1,3 +1,13 @@
+/* professional.js — v6d (multi-target, fix Spanish variants & robust matching)
+ * - Source default = English (if empty)
+ * - No target preselected; chips start empty
+ * - Robust language normalization (English (US) -> english; conserva paréntesis en otros)
+ * - Multi-target UI con chips + datalist
+ * - Pricing por par (English<->X); X->English = +$0.02/word
+ * - Preview -> quote-only; Pay cobra suma total
+ * - Valida pares no soportados ANTES de subir
+ */
+
 const DEBUG = false;
 function ts(){const d=new Date();return d.toISOString().replace('T',' ').replace('Z','');}
 function log(...a){ if(DEBUG) console.log('[RT '+ts()+']',...a); }
@@ -72,25 +82,32 @@ function requestId(){ return `PRO-${Date.now()}-${Math.random().toString(36).sli
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function titleize(s){ return s.split(' ').map(w=> w==='and'||w==='of' ? w : (w[0]? w[0].toUpperCase()+w.slice(1) : '')).join(' '); }
 
-// Language normalization robusta
+// Normalización de idiomas
 function normalizeLangName(s){
   let out = norm(s);
-  const noParen = out.replace(/\s*\(.*?\)\s*/g,'').trim(); // "English (US)" -> "english"
-  if (noParen) out = noParen;
+  // Errores comunes / alias
   const aliases = {
     'eenglish':'english','englisn':'english',
     'gurajati':'gujarati','gebrew':'hebrew','noewegian':'norwegian',
-    'malaysian':'malay',
+    'malaysian':'malay','hakkien':'hokkien',
     'farsi':'farsi','persian':'farsi',
-    'hakkien':'hokkien',
-    'simplified chinese':'chinese (simplified)',
-    'traditional chinese':'chinese (traditional)',
-    'haitian creole':'french creole'
+    'haitian creole':'french creole',
+    // variantes Spanish comunes
+    'spanish (es)':'spanish (spain)','spanish (europe)':'spanish (spain)','spanish (castilian)':'spanish (spain)',
+    'spanish (la)':'spanish (latam)','spanish la':'spanish (latam)','spanish latam':'spanish (latam)'
   };
   out = aliases[out] || out;
-  if (/^english\b/.test(out)) out = 'english';
-  if (/^chinese\b.*simplified/.test(out)) out = 'chinese (simplified)';
-  if (/^chinese\b.*traditional/.test(out)) out = 'chinese (traditional)';
+
+  // English con región -> 'english'
+  if (/^english\b/.test(out)) return 'english';
+
+  // Chinese variantes
+  if (/^chinese\b/.test(out)){
+    if (out.includes('simplified')) return 'chinese (simplified)';
+    if (out.includes('traditional')) return 'chinese (traditional)';
+  }
+
+  // Mantener paréntesis para Spanish (LATAM/Spain), Portuguese (Brazil/Portugal), etc.
   return out;
 }
 function isEnglishLang(x){ return /^english\b/.test(normalizeLangName(x)); }
@@ -165,7 +182,9 @@ function refreshDatalist(){
   if (!dl) return;
   dl.innerHTML = allowed.map(t=> `<option value="${t}"></option>`).join('');
   for (const t of Array.from(selectedTargets)){
-    if (!allowed.includes(t)) selectedTargets.delete(t);
+    // Si cambió el source y ya no es válido, lo quitamos
+    const ok = allowed.find(a => normalizeLangName(a) === normalizeLangName(t));
+    if (!ok) selectedTargets.delete(t);
   }
   renderTargetChips();
 }
@@ -191,17 +210,19 @@ function renderTargetChips(){
 }
 function addTargetFromInput(){
   const inp = $("#addTargetInput"); if (!inp) return;
-  const label = (inp.value||"").trim();
-  if (!label) return;
+  const raw = (inp.value||"").trim();
+  if (!raw) return;
   const allowed = allowedTargetsForSource($source?.value || 'English');
-  if (!allowed.includes(label)) { alert("We don't support that language as a target for the chosen source."); return; }
-  selectedTargets.add(label);
+  // Matching case-insensitive y normalizado
+  const found = allowed.find(opt => normalizeLangName(opt) === normalizeLangName(raw));
+  if (!found) { alert("We don't support that language as a target for the chosen source."); return; }
+  selectedTargets.add(found); // guardamos la etiqueta canónica
   inp.value = "";
   renderTargetChips();
 }
 $source?.addEventListener('change', refreshDatalist);
 buildMultiTargetUI();
-refreshDatalist(); // asegura opciones correctas si seteamos English por defecto
+refreshDatalist();
 
 // ------- Words / pricing -------
 function sumWords(){
