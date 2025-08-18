@@ -1,7 +1,7 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Permitir subidas a 'crowd'
+    // Estructura que usa tu código: crowd/uploads/{uid}/{filename}
     match /crowd/uploads/{uid}/{fileName} {
       allow read, write: if request.auth != null
         && request.auth.uid == uid
