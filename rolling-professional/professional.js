@@ -1,12 +1,3 @@
-/* professional.js — v6b (multi-target, defaults fixed)
- * - Source default = English (if empty)
- * - No target preselected (chips start empty)
- * - Multi-target UI with chips + datalist
- * - Pricing por par (English<->X); X->English = +$0.02/word
- * - Preview -> quote-only; Pay cobra suma total
- * - Bloquea pares no soportados ANTES de subir
- */
-
 const DEBUG = false;
 function ts(){const d=new Date();return d.toISOString().replace('T',' ').replace('Z','');}
 function log(...a){ if(DEBUG) console.log('[RT '+ts()+']',...a); }
@@ -55,22 +46,12 @@ const $quoteBox = $("#quoteBox");
 const $quoteDetails = $("#quoteDetails");
 if ($btnPay) $btnPay.style.display="none";
 
-// Defaults solicitados por Belu
-if ($source && (!$source.value || $source.value.trim() === "")) {
-  $source.value = "English";
-}
-if ($target) {
-  // evita target preseleccionado (ej. Afrikaans)
-  $target.value = "";
-}
+// Defaults
+if ($source && (!$source.value || $source.value.trim() === "")) { $source.value = "English"; }
+if ($target) { $target.value = ""; } // ningún target por defecto
 
 // Preview en azul (match Pay Now)
-(function(){
-  if ($btnPreview){
-    $btnPreview.classList.remove("bg-gray-200");
-    $btnPreview.classList.add("bg-blue-600","text-white","hover:bg-blue-700","focus:ring-2","focus:ring-blue-600","focus:ring-offset-2");
-  }
-})();
+(function(){ if ($btnPreview){ $btnPreview.classList.remove("bg-gray-200"); $btnPreview.classList.add("bg-blue-600","text-white","hover:bg-blue-700","focus:ring-2","focus:ring-blue-600","focus:ring-offset-2"); } })();
 
 // ------- Files state -------
 const selectedFiles = new Map(); // key -> { file, uploaded?: {name, gsPath, words} }
@@ -91,6 +72,29 @@ function requestId(){ return `PRO-${Date.now()}-${Math.random().toString(36).sli
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function titleize(s){ return s.split(' ').map(w=> w==='and'||w==='of' ? w : (w[0]? w[0].toUpperCase()+w.slice(1) : '')).join(' '); }
 
+// Language normalization robusta
+function normalizeLangName(s){
+  let out = norm(s);
+  const noParen = out.replace(/\s*\(.*?\)\s*/g,'').trim(); // "English (US)" -> "english"
+  if (noParen) out = noParen;
+  const aliases = {
+    'eenglish':'english','englisn':'english',
+    'gurajati':'gujarati','gebrew':'hebrew','noewegian':'norwegian',
+    'malaysian':'malay',
+    'farsi':'farsi','persian':'farsi',
+    'hakkien':'hokkien',
+    'simplified chinese':'chinese (simplified)',
+    'traditional chinese':'chinese (traditional)',
+    'haitian creole':'french creole'
+  };
+  out = aliases[out] || out;
+  if (/^english\b/.test(out)) out = 'english';
+  if (/^chinese\b.*simplified/.test(out)) out = 'chinese (simplified)';
+  if (/^chinese\b.*traditional/.test(out)) out = 'chinese (traditional)';
+  return out;
+}
+function isEnglishLang(x){ return /^english\b/.test(normalizeLangName(x)); }
+
 // ------- Pricing table -------
 const PAIR_BASE_USD = {
   "english->afrikaans":0.16,"english->albanian":0.21,"english->amharic":0.19,"english->arabic":0.15,
@@ -109,17 +113,6 @@ const PAIR_BASE_USD = {
   "english->thai":0.15,"english->chinese (traditional)":0.14,"english->turkish":0.19,"english->ukrainian":0.16,
   "english->urdu":0.16,"english->vietnamese":0.15,"english->zomi":0.30,"english->zulu":0.30
 };
-function normalizeLangName(s){
-  s = norm(s);
-  const aliases = {
-    'eenglish':'english','englisn':'english',
-    'gurajati':'gujarati','gebrew':'hebrew','noewegian':'norwegian',
-    'malaysian':'malay','farsi':'farsi','persian':'farsi',
-    'simplified chinese':'chinese (simplified)','traditional chinese':'chinese (traditional)',
-    'haitian creole':'french creole'
-  };
-  return aliases[s] || s;
-}
 function pairBaseRateUSD(sourceLang, targetLang){
   const src = normalizeLangName(sourceLang);
   const tgt = normalizeLangName(targetLang);
@@ -136,15 +129,11 @@ function pairBaseRateUSD(sourceLang, targetLang){
 const selectedTargets = new Set();
 function allTargetsFromTable(){
   const set = new Set();
-  Object.keys(PAIR_BASE_USD).forEach(k=>{
-    const tgt = k.split('->')[1];
-    set.add(titleize(tgt));
-  });
+  Object.keys(PAIR_BASE_USD).forEach(k=>{ set.add(titleize(k.split('->')[1])); });
   return Array.from(set).sort();
 }
 function allowedTargetsForSource(src){
-  const s = normalizeLangName(src);
-  if (s==='english') return allTargetsFromTable().filter(x=> x.toLowerCase()!=='english');
+  if (isEnglishLang(src)) return allTargetsFromTable().filter(x=> x.toLowerCase()!=='english');
   return ['English'];
 }
 function buildMultiTargetUI(){
@@ -168,7 +157,6 @@ function buildMultiTargetUI(){
   refreshDatalist();
   $("#btnAddTarget")?.addEventListener('click', addTargetFromInput);
   $("#addTargetInput")?.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addTargetFromInput(); }});
-  // ⚠️ No auto-agregar target inicial. Chips empiezan vacíos.
   renderTargetChips();
 }
 function refreshDatalist(){
@@ -176,7 +164,6 @@ function refreshDatalist(){
   const dl = $("#targetOptions");
   if (!dl) return;
   dl.innerHTML = allowed.map(t=> `<option value="${t}"></option>`).join('');
-  // eliminar chips no permitidos si cambió el source
   for (const t of Array.from(selectedTargets)){
     if (!allowed.includes(t)) selectedTargets.delete(t);
   }
@@ -357,7 +344,6 @@ async function ensureAuth(email){
   } else { const anon = await signInAnonymously(auth); return anon.user; }
 }
 async function previewQuote(){
-  // Validaciones en orden correcto
   if (selectedTargets.size === 0) { alert("Please add at least one target language."); return; }
   if (!allPairsSupported()){ alert("We don't support the language pair you selected. We apologize for the inconvenience."); return; }
   if (selectedFiles.size===0){ alert("Upload at least one file."); return; }

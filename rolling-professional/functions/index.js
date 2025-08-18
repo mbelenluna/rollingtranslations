@@ -1,134 +1,79 @@
-// index.js — Pair-based pricing + multi-target checkout + full endpoints
-// ===== Cloud Functions for Firebase v2 (Node.js 22) =====
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
-
-// Admin SDK
 const admin = require("firebase-admin");
 const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 const xlsx = require("xlsx");
 const fileTypeLib = require("file-type");
 
-// ===== Pair-based rate table (English <-> Other) =====
 const PAIR_BASE_USD = {
-  "english->afrikaans": 0.16,
-  "english->albanian": 0.21,
-  "english->amharic": 0.19,
-  "english->arabic": 0.15,
-  "english->armenian": 0.15,
-  "english->bengali": 0.19,
-  "english->bosnian": 0.30,
-  "english->bulgarian": 0.21,
-  "english->chinese (simplified)": 0.14,
-  "english->chinese (traditional)": 0.14,
-  "english->czech": 0.21,
-  "english->danish": 0.21,
-  "english->dari": 0.16,
-  "english->dutch": 0.19,
-  "english->estonian": 0.21,
-  "english->farsi": 0.15,
-  "english->finnish": 0.21,
-  "english->french": 0.15,
-  "english->french creole": 0.16,
-  "english->greek": 0.21,
-  "english->gujarati": 0.19,
-  "english->hebrew": 0.19,
-  "english->hindi": 0.15,
-  "english->hmong": 0.30,
-  "english->hokkien": 0.21,
-  "english->indonesian": 0.15,
-  "english->italian": 0.15,
-  "english->japanese": 0.16,
-  "english->korean": 0.15,
-  "english->lao": 0.19,
-  "english->latvian": 0.30,
-  "english->lithuanian": 0.21,
-  "english->malay": 0.19,
-  "english->mongolian": 0.21,
-  "english->nepali": 0.21,
-  "english->norwegian": 0.19,
-  "english->pashto": 0.15,
-  "english->polish": 0.14,
-  "english->portuguese (brazil)": 0.12,
-  "english->portuguese (portugal)": 0.12,
-  "english->punjabi": 0.16,
-  "english->romanian": 0.22,
-  "english->russian": 0.15,
-  "english->slovak": 0.19,
-  "english->slovene": 0.19,
-  "english->somali": 0.19,
-  "english->spanish (latam)": 0.12,
-  "english->spanish (spain)": 0.12,
-  "english->swahili": 0.19,
-  "english->swedish": 0.19,
-  "english->tagalog": 0.14,
-  "english->telugu": 0.19,
-  "english->thai": 0.15,
-  "english->turkish": 0.19,
-  "english->ukrainian": 0.16,
-  "english->urdu": 0.16,
-  "english->vietnamese": 0.15,
-  "english->zomi": 0.30,
-  "english->zulu": 0.30
+  "english->afrikaans": 0.16, "english->albanian": 0.21, "english->amharic": 0.19, "english->arabic": 0.15,
+  "english->armenian": 0.15, "english->bengali": 0.19, "english->bosnian": 0.30, "english->bulgarian": 0.21,
+  "english->chinese (simplified)": 0.14, "english->chinese (traditional)": 0.14, "english->czech": 0.21,
+  "english->danish": 0.21, "english->dari": 0.16, "english->dutch": 0.19, "english->estonian": 0.21,
+  "english->farsi": 0.15, "english->finnish": 0.21, "english->french": 0.15, "english->french creole": 0.16,
+  "english->greek": 0.21, "english->gujarati": 0.19, "english->hebrew": 0.19, "english->hindi": 0.15,
+  "english->hmong": 0.30, "english->hokkien": 0.21, "english->indonesian": 0.15, "english->italian": 0.15,
+  "english->japanese": 0.16, "english->korean": 0.15, "english->lao": 0.19, "english->latvian": 0.30,
+  "english->lithuanian": 0.21, "english->malay": 0.19, "english->mongolian": 0.21, "english->nepali": 0.21,
+  "english->norwegian": 0.19, "english->pashto": 0.15, "english->polish": 0.14,
+  "english->portuguese (brazil)": 0.12, "english->portuguese (portugal)": 0.12, "english->punjabi": 0.16,
+  "english->romanian": 0.22, "english->russian": 0.15, "english->slovak": 0.19, "english->slovene": 0.19,
+  "english->somali": 0.19, "english->spanish (latam)": 0.12, "english->spanish (spain)": 0.12, "english->swahili": 0.19,
+  "english->swedish": 0.19, "english->tagalog": 0.14, "english->telugu": 0.19, "english->thai": 0.15,
+  "english->turkish": 0.19, "english->ukrainian": 0.16, "english->urdu": 0.16, "english->vietnamese": 0.15,
+  "english->zomi": 0.30, "english->zulu": 0.30
 };
 
+function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function normalizeLangName(s) {
-  if (!s) return "";
-  s = String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+  let out = norm(s);
+  const noParen = out.replace(/\s*\(.*?\)\s*/g,'').trim();
+  if (noParen) out = noParen;
   const aliases = {
-    'eenglish':'english','englisn':'english',
-    'gurajati':'gujarati',
-    'gebrew':'hebrew',
-    'noewegian':'norwegian',
-    'malaysian':'malay',
-    'farsi':'farsi','persian':'farsi',
-    'simplified chinese':'chinese (simplified)',
-    'traditional chinese':'chinese (traditional)',
-    'haitian creole':'french creole'
+    "eenglish": "english", "englisn": "english", "gurajati": "gujarati", "gebrew": "hebrew",
+    "noewegian": "norwegian", "malaysian": "malay", "farsi": "farsi", "persian": "farsi",
+    "simplified chinese": "chinese (simplified)", "traditional chinese": "chinese (traditional)",
+    "haitian creole": "french creole", "hakkien":"hokkien"
   };
-  return aliases[s] || s;
+  out = aliases[out] || out;
+  if (/^english\b/.test(out)) out = "english";
+  if (/^chinese\b.*simplified/.test(out)) out = "chinese (simplified)";
+  if (/^chinese\b.*traditional/.test(out)) out = "chinese (traditional)";
+  return out;
 }
 
 function pairBaseRateUSD(sourceLang, targetLang) {
   const src = normalizeLangName(sourceLang);
   const tgt = normalizeLangName(targetLang);
-  if (src === 'english' && tgt !== 'english') {
+  if (src === "english" && tgt !== "english") {
     const base = PAIR_BASE_USD[`english->${tgt}`];
     return base != null ? Number(base) : null;
-  } else if (tgt === 'english' && src !== 'english') {
+  } else if (tgt === "english" && src !== "english") {
     const base = PAIR_BASE_USD[`english->${src}`];
-    return base != null ? Number(base) + 0.02 : null; // reverse direction +$0.02
+    return base != null ? Number(base) + 0.02 : null; // X->English = base + $0.02
   }
   return null; // non-English↔non-English not supported
 }
 
-// ===== Global options & init =====
 setGlobalOptions({ region: "us-central1" });
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    storageBucket: "rolling-crowdsourcing.firebasestorage.app",
-  });
+  admin.initializeApp({ storageBucket: "rolling-crowdsourcing.firebasestorage.app" });
 }
 const bucket = admin.storage().bucket();
 
-// ===== Parameters / Secrets =====
 const Stripe = require("stripe");
 const sgMail = require("@sendgrid/mail");
+const { onRequest: _onRequest } = require("firebase-functions/v2/https");
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
 
-const CHECKOUT_ORIGIN =
-  process.env.checkout_origin ||
-  process.env.CHECKOUT_ORIGIN ||
-  "https://mbelenluna.github.io/rolling-portal";
-
-// Allowed CORS origins for your frontend(s)
+const CHECKOUT_ORIGIN = process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || "https://mbelenluna.github.io/rolling-portal";
 const ALLOWED_ORIGINS = [
   "https://mbelenluna.github.io",
   "https://mbelenluna.github.io/rolling-portal",
@@ -136,11 +81,9 @@ const ALLOWED_ORIGINS = [
   "https://www.rolling-translations.com",
 ];
 
-// ===== Helpers: quoting / parsing =====
 const MIN_TOTAL_USD = 1.0;
-
-// Legacy (fallback) — not used for supported pairs
-function rateForWords(words) { return 0.10; }
+// Legacy (fallback) — only used in /getQuoteForFile response (UI calcula precios en frontend con pares)
+function rateForWords(words){ return 0.10; }
 
 function computeAmountCentsForPair(totalWords, rush, certified, subject, sourceLang, targetLang) {
   const w = Number(totalWords || 0);
@@ -151,22 +94,16 @@ function computeAmountCentsForPair(totalWords, rush, certified, subject, sourceL
   let totalUsd = w * Number(rate);
 
   switch ((subject || "").toLowerCase()) {
-    case 'technical':
-    case 'marketing':
-      totalUsd *= 1.20; break;
-    case 'legal':
-    case 'medical':
-      totalUsd *= 1.25; break;
-    default: break;
+    case "technical":
+    case "marketing": totalUsd *= 1.20; break;
+    case "legal":
+    case "medical": totalUsd *= 1.25; break;
   }
-
   switch (rush) {
-    case '2bd': totalUsd *= 1.20; break;
-    case 'h24': totalUsd *= 1.40; break;
-    default: break;
+    case "2bd": totalUsd *= 1.20; break;
+    case "h24": totalUsd *= 1.40; break;
   }
-
-  if (certified === 'true' || certified === true) totalUsd *= 1.10;
+  if (certified === "true" || certified === true) totalUsd *= 1.10;
 
   totalUsd = Math.max(totalUsd, MIN_TOTAL_USD);
   return { rate, amountUsd: totalUsd, amountCents: Math.round(totalUsd * 100) };
@@ -177,9 +114,7 @@ function computeAmountCentsMulti(totalWords, rush, certified, subject, pairs, fa
   if (Array.isArray(pairs) && pairs.length > 0) {
     let sum = 0;
     for (const p of pairs) {
-      const one = computeAmountCentsForPair(
-        totalWords, rush, certified, subject, p.sourceLang, p.targetLang
-      );
+      const one = computeAmountCentsForPair(totalWords, rush, certified, subject, p.sourceLang, p.targetLang);
       if (one.unsupported) return { amountCents: 0, unsupported: true };
       sum += one.amountCents;
     }
@@ -198,12 +133,10 @@ function countWordsGeneric(text) {
   const parts = cleaned.trim().split(/\s+/);
   return parts[0] === "" ? 0 : parts.length;
 }
-
 async function fileTypeFromBufferSafe(buf) {
   try { return await fileTypeLib.fileTypeFromBuffer(buf); }
   catch { return null; }
 }
-
 async function extractTextFromBuffer(buf, filename) {
   const ft = await fileTypeFromBufferSafe(buf);
   const mime = ft && ft.mime ? ft.mime : "";
@@ -266,17 +199,10 @@ exports.getQuoteForFile = onRequest(
   },
   async (req, res) => {
     try {
-      if (req.method !== "POST") {
-        return res.status(405).send("Method Not Allowed");
-      }
-
+      if (req.method !== "POST") { return res.status(405).send("Method Not Allowed"); }
       const { gsPath, uid } = req.body || {};
       if (!gsPath) return res.status(400).send("Missing gsPath.");
-      
-      // Validate path to user-owned uploads
-      if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) {
-        return res.status(403).send("Forbidden path.");
-      }
+      if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) { return res.status(403).send("Forbidden path."); }
 
       const file = bucket.file(gsPath);
       const [buf] = await file.download();
@@ -284,16 +210,9 @@ exports.getQuoteForFile = onRequest(
       const text = await extractTextFromBuffer(buf, gsPath);
       let words = countWordsGeneric(text);
 
-      // Heuristic: scanned PDF (no visible text)
       const scanned = words < 10 && gsPath.toLowerCase().endsWith(".pdf");
       if (scanned) {
-        return res.json({
-          words: 0,
-          scanned: true,
-          rate: null,
-          total: null,
-          note: "Likely scanned PDF (requires OCR)."
-        });
+        return res.json({ words: 0, scanned: true, rate: null, total: null, note: "Likely scanned PDF (requires OCR)." });
       }
 
       const rate = rateForWords(words);
@@ -319,9 +238,7 @@ exports.createCheckoutSession = onRequest(
       if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
       const stripeSecret = STRIPE_SECRET_KEY.value();
-      if (!stripeSecret) {
-        return res.status(500).json({ error: "Stripe secret key not configured" });
-      }
+      if (!stripeSecret) { return res.status(500).json({ error: "Stripe secret key not configured" }); }
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
       let {
@@ -348,12 +265,8 @@ exports.createCheckoutSession = onRequest(
         wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang }
       );
 
-      if (unsupported) {
-        return res.status(400).json({ error: "Unsupported language pair(s)." });
-      }
-      if (!(amountCents > 0)) {
-        return res.status(400).json({ error: "Invalid amount computed." });
-      }
+      if (unsupported) { return res.status(400).json({ error: "Unsupported language pair(s)." }); }
+      if (!(amountCents > 0)) { return res.status(400).json({ error: "Invalid amount computed." }); }
 
       const origin = (process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || CHECKOUT_ORIGIN).replace(/\/+$/, '');
       const success_url = successUrl || `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`;
