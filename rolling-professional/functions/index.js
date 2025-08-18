@@ -1,4 +1,4 @@
-// index.js (MODIFICADO)
+// index.js — Pair-based pricing + multi-target checkout + full endpoints
 // ===== Cloud Functions for Firebase v2 (Node.js 22) =====
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
@@ -13,7 +13,6 @@ const mammoth = require("mammoth");
 const xlsx = require("xlsx");
 const fileTypeLib = require("file-type");
 
-
 // ===== Pair-based rate table (English <-> Other) =====
 const PAIR_BASE_USD = {
   "english->afrikaans": 0.16,
@@ -22,7 +21,7 @@ const PAIR_BASE_USD = {
   "english->arabic": 0.15,
   "english->armenian": 0.15,
   "english->bengali": 0.19,
-  "english->bosnian": 0.3,
+  "english->bosnian": 0.30,
   "english->bulgarian": 0.21,
   "english->chinese (simplified)": 0.14,
   "english->chinese (traditional)": 0.14,
@@ -39,14 +38,14 @@ const PAIR_BASE_USD = {
   "english->gujarati": 0.19,
   "english->hebrew": 0.19,
   "english->hindi": 0.15,
-  "english->hmong": 0.3,
+  "english->hmong": 0.30,
   "english->hokkien": 0.21,
   "english->indonesian": 0.15,
   "english->italian": 0.15,
   "english->japanese": 0.16,
   "english->korean": 0.15,
   "english->lao": 0.19,
-  "english->latvian": 0.3,
+  "english->latvian": 0.30,
   "english->lithuanian": 0.21,
   "english->malay": 0.19,
   "english->mongolian": 0.21,
@@ -73,8 +72,8 @@ const PAIR_BASE_USD = {
   "english->ukrainian": 0.16,
   "english->urdu": 0.16,
   "english->vietnamese": 0.15,
-  "english->zomi": 0.3,
-  "english->zulu": 0.3
+  "english->zomi": 0.30,
+  "english->zulu": 0.30
 };
 
 function normalizeLangName(s) {
@@ -97,25 +96,19 @@ function normalizeLangName(s) {
 function pairBaseRateUSD(sourceLang, targetLang) {
   const src = normalizeLangName(sourceLang);
   const tgt = normalizeLangName(targetLang);
-  // Only handle pairs with English on one side
   if (src === 'english' && tgt !== 'english') {
     const base = PAIR_BASE_USD[`english->${tgt}`];
-    return base != null ? base : null;
+    return base != null ? Number(base) : null;
   } else if (tgt === 'english' && src !== 'english') {
     const base = PAIR_BASE_USD[`english->${src}`];
-    if (base != null) return Number(base) + 0.02; // reverse direction +$0.02
-    return null;
+    return base != null ? Number(base) + 0.02 : null; // reverse direction +$0.02
   }
-  return null; // non-English↔non-English not supported (fallback below)
+  return null; // non-English↔non-English not supported
 }
-// Stripe + SendGrid
-const Stripe = require("stripe");
-const sgMail = require("@sendgrid/mail");
 
 // ===== Global options & init =====
 setGlobalOptions({ region: "us-central1" });
 
-// Initialize Admin with your *new* GCS bucket (firebasestorage.app)
 if (!admin.apps.length) {
   admin.initializeApp({
     storageBucket: "rolling-crowdsourcing.firebasestorage.app",
@@ -124,7 +117,8 @@ if (!admin.apps.length) {
 const bucket = admin.storage().bucket();
 
 // ===== Parameters / Secrets =====
-// Secrets: set with `firebase functions:secrets:set NAME`
+const Stripe = require("stripe");
+const sgMail = require("@sendgrid/mail");
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
@@ -145,20 +139,18 @@ const ALLOWED_ORIGINS = [
 // ===== Helpers: quoting / parsing =====
 const MIN_TOTAL_USD = 1.0;
 
-function rateForWords(words) { return 0.10; } // unused in pair-based mode
+// Legacy (fallback) — not used for supported pairs
+function rateForWords(words) { return 0.10; }
 
-
-function computeAmountCents(totalWords, rush, certified, subject, sourceLang, targetLang) {
+function computeAmountCentsForPair(totalWords, rush, certified, subject, sourceLang, targetLang) {
   const w = Number(totalWords || 0);
   let rate = pairBaseRateUSD(sourceLang, targetLang);
   if (rate == null) {
-    // Fallback to legacy ladder to avoid breaking flows for unsupported pairs
-    rate = rateForWords(w);
+    return { rate: null, amountUsd: 0, amountCents: 0, unsupported: true };
   }
   let totalUsd = w * Number(rate);
 
-  // (Optional) Subject multipliers — keeping as-is unless specified otherwise
-  switch (subject) {
+  switch ((subject || "").toLowerCase()) {
     case 'technical':
     case 'marketing':
       totalUsd *= 1.20; break;
@@ -168,20 +160,36 @@ function computeAmountCents(totalWords, rush, certified, subject, sourceLang, ta
     default: break;
   }
 
-  // Rush multipliers
   switch (rush) {
     case '2bd': totalUsd *= 1.20; break;
     case 'h24': totalUsd *= 1.40; break;
     default: break;
   }
 
-  // Certified +10% (unchanged)
-  if (certified === 'true') totalUsd *= 1.10;
+  if (certified === 'true' || certified === true) totalUsd *= 1.10;
 
   totalUsd = Math.max(totalUsd, MIN_TOTAL_USD);
   return { rate, amountUsd: totalUsd, amountCents: Math.round(totalUsd * 100) };
 }
 
+// Multi: suma por cada par
+function computeAmountCentsMulti(totalWords, rush, certified, subject, pairs, fallbackSingle) {
+  if (Array.isArray(pairs) && pairs.length > 0) {
+    let sum = 0;
+    for (const p of pairs) {
+      const one = computeAmountCentsForPair(
+        totalWords, rush, certified, subject, p.sourceLang, p.targetLang
+      );
+      if (one.unsupported) return { amountCents: 0, unsupported: true };
+      sum += one.amountCents;
+    }
+    return { amountCents: sum, unsupported: false };
+  }
+  // Fallback a par único (compatibilidad)
+  const { sourceLang, targetLang } = fallbackSingle || {};
+  const out = computeAmountCentsForPair(totalWords, rush, certified, subject, sourceLang, targetLang);
+  return { amountCents: out.amountCents, unsupported: !!out.unsupported };
+}
 
 // Simple word counter (safe without unicode props)
 function countWordsGeneric(text) {
@@ -265,7 +273,7 @@ exports.getQuoteForFile = onRequest(
       const { gsPath, uid } = req.body || {};
       if (!gsPath) return res.status(400).send("Missing gsPath.");
       
-      // CAMBIO IMPORTANTE: Validar la ruta de "pro-uploads"
+      // Validate path to user-owned uploads
       if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) {
         return res.status(403).send("Forbidden path.");
       }
@@ -299,7 +307,7 @@ exports.getQuoteForFile = onRequest(
   }
 );
 
-// ===== 2) Stripe Checkout session creator =====
+// ===== 2) Stripe Checkout session creator (multi-target) =====
 exports.createCheckoutSession = onRequest(
   {
     cors: ALLOWED_ORIGINS,
@@ -316,10 +324,16 @@ exports.createCheckoutSession = onRequest(
       }
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
-      const { requestId, totalWords = 0, email, description, rush, certified, subject, sourceLang, targetLang } = req.body || {};
+      let {
+        requestId, totalWords = 0, email, description,
+        rush, certified, subject,
+        sourceLang, targetLang,   // compat (single)
+        pairs,                    // [{sourceLang, targetLang}, ...] (multi)
+        successUrl, cancelUrl     // optional overrides
+      } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
-      // Optionally, fetch Firestore doc to cross-check
+      // Optionally cross-check Firestore
       let wordsServer = Number(totalWords || 0);
       try {
         const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
@@ -328,11 +342,24 @@ exports.createCheckoutSession = onRequest(
           if (Number(d.totalWords) > 0) wordsServer = Number(d.totalWords);
           else if (Number(d.estWords) > 0) wordsServer = Number(d.estWords);
         }
-      } catch (_) { }
+      } catch (_) { /* ignore */ }
 
-      const { rate, amountCents } = computeAmountCents(wordsServer, rush, certified, subject, sourceLang, targetLang);
+      const { amountCents, unsupported } = computeAmountCentsMulti(
+        wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang }
+      );
 
-      const origin = CHECKOUT_ORIGIN;
+      if (unsupported) {
+        return res.status(400).json({ error: "Unsupported language pair(s)." });
+      }
+      if (!(amountCents > 0)) {
+        return res.status(400).json({ error: "Invalid amount computed." });
+      }
+
+      const origin = (process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || CHECKOUT_ORIGIN).replace(/\/+$/, '');
+      const success_url = successUrl || `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`;
+      const cancel_url  = cancelUrl  || `${origin}/cancel.html?requestId=${encodeURIComponent(requestId)}`;
+
+      const name = description || "Professional translation";
 
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -340,21 +367,29 @@ exports.createCheckoutSession = onRequest(
         line_items: [{
           price_data: {
             currency: "usd",
-            product_data: {
-              name: "Crowdsourced translation",
-              description: description || `Total words: ${wordsServer}`
-            },
+            product_data: { name, description: `Total words: ${wordsServer}` },
             unit_amount: amountCents,
           },
           quantity: 1,
         }],
-        success_url: `${origin.replace(/\/+$/, '')}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`,
-        cancel_url: `${origin.replace(/\/+$/, '')}/cancel.html?requestId=${encodeURIComponent(requestId)}`,
+        success_url,
+        cancel_url,
         payment_intent_data: {
-          description: `Crowdsourced translation — ${wordsServer} words @ ${rate.toFixed(2)}/word`,
-          metadata: { requestId, totalWords: String(wordsServer) }
+          description: `${name} — ${wordsServer} words`,
+          metadata: {
+            requestId,
+            totalWords: String(wordsServer),
+            rush: String(rush || "standard"),
+            certified: String(certified === "true" || certified === true),
+            subject: String(subject || "general"),
+            pairs: Array.isArray(pairs) ? JSON.stringify(pairs) : JSON.stringify([{ sourceLang, targetLang }])
+          }
         },
-        metadata: { requestId, totalWords: String(wordsServer) }
+        metadata: {
+          requestId,
+          totalWords: String(wordsServer),
+          pairs: Array.isArray(pairs) ? JSON.stringify(pairs) : JSON.stringify([{ sourceLang, targetLang }])
+        }
       });
 
       await admin.firestore().collection("crowdRequests").doc(requestId).set({
@@ -362,6 +397,7 @@ exports.createCheckoutSession = onRequest(
         stripeMode: "payment",
         checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
         status: "pending_payment",
+        totalWords: wordsServer
       }, { merge: true });
 
       return res.json({ url: session.url });
@@ -376,7 +412,6 @@ exports.createCheckoutSession = onRequest(
 exports.stripeWebhook = onRequest(
   {
     region: "us-central1",
-    // Stripe (server-to-server) doesn't need CORS
     secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY],
   },
   async (req, res) => {
@@ -393,7 +428,6 @@ exports.stripeWebhook = onRequest(
       let event;
 
       try {
-        // IMPORTANT: use the raw body for verification
         event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
       } catch (err) {
         logger.error("Webhook signature verification failed", err);
@@ -483,7 +517,6 @@ exports.stripeWebhook = onRequest(
         }
       }
 
-      // Must return 200 to Stripe quickly
       res.json({ received: true });
     } catch (err) {
       logger.error("stripeWebhook error", err);
