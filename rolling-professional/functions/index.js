@@ -13,6 +13,101 @@ const mammoth = require("mammoth");
 const xlsx = require("xlsx");
 const fileTypeLib = require("file-type");
 
+
+// ===== Pair-based rate table (English <-> Other) =====
+const PAIR_BASE_USD = {
+  "english->afrikaans": 0.16,
+  "english->albanian": 0.21,
+  "english->amharic": 0.19,
+  "english->arabic": 0.15,
+  "english->armenian": 0.15,
+  "english->bengali": 0.19,
+  "english->bosnian": 0.3,
+  "english->bulgarian": 0.21,
+  "english->chinese (simplified)": 0.14,
+  "english->chinese (traditional)": 0.14,
+  "english->czech": 0.21,
+  "english->danish": 0.21,
+  "english->dari": 0.16,
+  "english->dutch": 0.19,
+  "english->estonian": 0.21,
+  "english->farsi": 0.15,
+  "english->finnish": 0.21,
+  "english->french": 0.15,
+  "english->french creole": 0.16,
+  "english->greek": 0.21,
+  "english->gujarati": 0.19,
+  "english->hebrew": 0.19,
+  "english->hindi": 0.15,
+  "english->hmong": 0.3,
+  "english->hokkien": 0.21,
+  "english->indonesian": 0.15,
+  "english->italian": 0.15,
+  "english->japanese": 0.16,
+  "english->korean": 0.15,
+  "english->lao": 0.19,
+  "english->latvian": 0.3,
+  "english->lithuanian": 0.21,
+  "english->malay": 0.19,
+  "english->mongolian": 0.21,
+  "english->nepali": 0.21,
+  "english->norwegian": 0.19,
+  "english->pashto": 0.15,
+  "english->polish": 0.14,
+  "english->portuguese (brazil)": 0.12,
+  "english->portuguese (portugal)": 0.12,
+  "english->punjabi": 0.16,
+  "english->romanian": 0.22,
+  "english->russian": 0.15,
+  "english->slovak": 0.19,
+  "english->slovene": 0.19,
+  "english->somali": 0.19,
+  "english->spanish (latam)": 0.12,
+  "english->spanish (spain)": 0.12,
+  "english->swahili": 0.19,
+  "english->swedish": 0.19,
+  "english->tagalog": 0.14,
+  "english->telugu": 0.19,
+  "english->thai": 0.15,
+  "english->turkish": 0.19,
+  "english->ukrainian": 0.16,
+  "english->urdu": 0.16,
+  "english->vietnamese": 0.15,
+  "english->zomi": 0.3,
+  "english->zulu": 0.3
+};
+
+function normalizeLangName(s) {
+  if (!s) return "";
+  s = String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+  const aliases = {
+    'eenglish':'english','englisn':'english',
+    'gurajati':'gujarati',
+    'gebrew':'hebrew',
+    'noewegian':'norwegian',
+    'malaysian':'malay',
+    'farsi':'farsi','persian':'farsi',
+    'simplified chinese':'chinese (simplified)',
+    'traditional chinese':'chinese (traditional)',
+    'haitian creole':'french creole'
+  };
+  return aliases[s] || s;
+}
+
+function pairBaseRateUSD(sourceLang, targetLang) {
+  const src = normalizeLangName(sourceLang);
+  const tgt = normalizeLangName(targetLang);
+  // Only handle pairs with English on one side
+  if (src === 'english' && tgt !== 'english') {
+    const base = PAIR_BASE_USD[`english->${tgt}`];
+    return base != null ? base : null;
+  } else if (tgt === 'english' && src !== 'english') {
+    const base = PAIR_BASE_USD[`english->${src}`];
+    if (base != null) return Number(base) + 0.02; // reverse direction +$0.02
+    return null;
+  }
+  return null; // non-English↔non-English not supported (fallback below)
+}
 // Stripe + SendGrid
 const Stripe = require("stripe");
 const sgMail = require("@sendgrid/mail");
@@ -50,62 +145,43 @@ const ALLOWED_ORIGINS = [
 // ===== Helpers: quoting / parsing =====
 const MIN_TOTAL_USD = 1.0;
 
-function rateForWords(words) {
-  const w = Number(words || 0);
-  if (w >= 1_000_000) return 0.04;
-  if (w >= 500_000) return 0.05;
-  if (w >= 300_000) return 0.055;
-  if (w >= 100_000) return 0.06;
-  if (w >= 50_000) return 0.07;
-  if (w >= 10_000) return 0.08;
-  return 0.10;
-}
+function rateForWords(words) { return 0.10; } // unused in pair-based mode
 
-function computeAmountCents(totalWords, rush, certified, subject) {
+
+function computeAmountCents(totalWords, rush, certified, subject, sourceLang, targetLang) {
   const w = Number(totalWords || 0);
-  let rate = rateForWords(w);
-  let totalUsd = w * rate;
+  let rate = pairBaseRateUSD(sourceLang, targetLang);
+  if (rate == null) {
+    // Fallback to legacy ladder to avoid breaking flows for unsupported pairs
+    rate = rateForWords(w);
+  }
+  let totalUsd = w * Number(rate);
 
-  // Apply subject-based multipliers
+  // (Optional) Subject multipliers — keeping as-is unless specified otherwise
   switch (subject) {
     case 'technical':
     case 'marketing':
-      totalUsd *= 1.20; // 20% extra
-      break;
+      totalUsd *= 1.20; break;
     case 'legal':
     case 'medical':
-      totalUsd *= 1.25; // 25% extra
-      break;
-    default:
-      // No change for 'general' or other subjects
-      break;
-  }
-  
-  // Apply rush multipliers
-  switch (rush) {
-    case '2bd':
-      totalUsd *= 1.20; // 20% extra for 2 business days
-      break;
-    case 'h24':
-      totalUsd *= 1.40; // 40% extra for 24 hours
-      break;
-    default:
-      // No change for 'standard'
-      break;
-  }
-  
-  // Apply certified fee
-  if (certified === 'true') {
-    totalUsd *= 1.10; // 10% extra
+      totalUsd *= 1.25; break;
+    default: break;
   }
 
+  // Rush multipliers
+  switch (rush) {
+    case '2bd': totalUsd *= 1.20; break;
+    case 'h24': totalUsd *= 1.40; break;
+    default: break;
+  }
+
+  // Certified +10% (unchanged)
+  if (certified === 'true') totalUsd *= 1.10;
+
   totalUsd = Math.max(totalUsd, MIN_TOTAL_USD);
-  return {
-    rate,
-    amountUsd: totalUsd,
-    amountCents: Math.round(totalUsd * 100),
-  };
+  return { rate, amountUsd: totalUsd, amountCents: Math.round(totalUsd * 100) };
 }
+
 
 // Simple word counter (safe without unicode props)
 function countWordsGeneric(text) {
@@ -240,7 +316,7 @@ exports.createCheckoutSession = onRequest(
       }
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
-      const { requestId, totalWords = 0, email, description, rush, certified, subject } = req.body || {};
+      const { requestId, totalWords = 0, email, description, rush, certified, subject, sourceLang, targetLang } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
       // Optionally, fetch Firestore doc to cross-check
@@ -254,7 +330,7 @@ exports.createCheckoutSession = onRequest(
         }
       } catch (_) { }
 
-      const { rate, amountCents } = computeAmountCents(wordsServer, rush, certified, subject);
+      const { rate, amountCents } = computeAmountCents(wordsServer, rush, certified, subject, sourceLang, targetLang);
 
       const origin = CHECKOUT_ORIGIN;
 
