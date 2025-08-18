@@ -1,38 +1,59 @@
+
+/* professional.patched.js
+ * Rolling Translations — Professional Services (Instant Quote)
+ * Changes vs. original:
+ * - Persistent file queue with removable items (X) rendered in #fileList
+ * - Selecting more files appends; previous ones remain
+ * - Quote appears on a separate "preview" step (#quoteBox) with a loading message
+ * - "Pay Now" button only appears after the quote is ready (and uses Stripe as before)
+ * - Word count reflects current selection (adds/removes across multiple picks)
+ *
+ * Drop-in replacement for ./professional.js referenced by professional.html.
+ * If you prefer, rename this file to professional.js.
+ */
+
 const DEBUG = false;
 
-// ---------- Lightweight logger ----------
-const log = (...a) => { if (DEBUG) console.log("[RT]", ...a); };
-const warn = (...a) => { if (DEBUG) console.warn("[RT]", ...a); };
-const err =  (...a) => { if (DEBUG) console.error("[RT]", ...a); };
+// ===== Logging helpers =====
+function ts() { const d = new Date(); return d.toISOString().replace('T',' ').replace('Z',''); }
+function log(...args){ if(DEBUG) console.log('[RT '+ts()+']', ...args); }
+function info(...args){ if(DEBUG) console.info('[RT '+ts()+']', ...args); }
+function warn(...args){ if(DEBUG) console.warn('[RT '+ts()+']', ...args); }
+function err(...args){ if(DEBUG) console.error('[RT '+ts()+']', ...args); }
 
-// ---------- Firebase imports ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInAnonymously,
-  signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, deleteObject } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
+import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
 
-// ---------- Config ----------
+// ==================== CONFIG ====================
 const firebaseConfig = {
   apiKey: "AIzaSyCRrDn3p9alXlLjZN7SoBkJSodcSk2uZs8",
   authDomain: "rolling-crowdsourcing.firebaseapp.com",
   projectId: "rolling-crowdsourcing",
-  storageBucket: "rolling-crowdsourcing.appspot.com",   // <= bucket correcto
+  storageBucket: "rolling-crowdsourcing.firebasestorage.app",
   messagingSenderId: "831997390366",
   appId: "1:831997390366:web:a86f5223fa22cc250b480f",
   measurementId: "G-77E7560XRX"
 };
 
+// ==================== INIT ====================
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app); // kept for parity with original
+const storage = getStorage(app);
+let currentUser = null;
+onAuthStateChanged(auth, (user) => { currentUser = user || null; });
+
+// ==================== CONSTANTS ====================
 const CF_BASE = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net";
 const CURRENCY = "usd";
-
-// Pricing tiers (20¢ up to 500, 16¢ up to 2k, 12¢ thereafter), rush +40%, certified +$15
 const PRO_TIERS_CENTS = [
   { upTo: 500, rateCents: 20 },
   { upTo: 2000, rateCents: 16 },
@@ -41,87 +62,44 @@ const PRO_TIERS_CENTS = [
 const RUSH_MULTIPLIER = 1.4;
 const CERTIFIED_FEE_CENTS = 1500;
 
-// ---------- Init ----------
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-log("Firebase initialized", { bucket: app.options.storageBucket });
-
-// ---------- DOM ----------
+// ==================== DOM HOOKS ====================
 const $ = (s) => document.querySelector(s);
-const $fullName   = $("#fullName");
-const $email      = $("#email");
-const $password   = $("#password");
-const $source     = $("#sourceLang");
-const $target     = $("#targetLang");
-const $subject    = $("#subject");
-const $rush       = $("#rush");
-const $certified  = $("#certified");
-const $files      = $("#files");
+const $fullName = $("#fullName");
+const $email = $("#email");
+const $source = $("#sourceLang");
+const $target = $("#targetLang");
+const $subject = $("#subject");
+const $rush = $("#rush");
+const $certified = $("#certified");
+const $files = $("#files");
+const $fileList = $("#fileList");
 const $btnPreview = $("#btnPreview");
-const $btnPay     = $("#btnPay");
-const $quoteBox   = $("#quoteBox");
+const $btnPay = $("#btnPay"); // will be hidden; we will create a Pay button inside #quoteBox
+const $quoteBox = $("#quoteBox");
 const $quoteDetails = $("#quoteDetails");
 
-// Create/ensure a container to render selected files
-let $fileList = $("#fileList");
-if (!$fileList) {
-  $fileList = document.createElement("div");
-  $fileList.id = "fileList";
-  $fileList.style.marginTop = "8px";
-  $files?.insertAdjacentElement("afterend", $fileList);
-}
-// Minimal chip styles
-const style = document.createElement("style");
-style.textContent = `
-#fileList { display: flex; flex-wrap: wrap; gap: 8px; }
-.file-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  border: 1px solid #e2e2e2; padding: 6px 10px; border-radius: 999px;
-  font-size: 14px; background: #fafafa;
-}
-.file-chip .remove {
-  cursor: pointer; border: none; background: transparent; font-weight: 600;
-}
-.file-chip .meta { opacity: .7; font-size: 12px; }
-`;
-document.head.appendChild(style);
+// Hide the in-form Pay button entirely; we'll show one in the quote view
+if ($btnPay) $btnPay.style.display = "none";
 
-// ---------- State ----------
-let currentUser = null;
-// items: [{id, name, size, signature, gsPath, words}]
-let items = [];
-let pendingUploads = 0;
+// ==================== STATE ====================
+// Map key: name::size::lastModified  →  { file, uploaded?: { name, gsPath, words } }
+const selected = new Map();
 let lastQuoteCents = 0;
 
-// ---------- Auth ----------
-onAuthStateChanged(auth, (user) => { currentUser = user || null; });
-
-async function ensureAuth(email, password) {
-  if (currentUser) return currentUser;
-  if (email && password) {
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      return cred.user;
-    } catch (e) {
-      if (e?.code === "auth/user-not-found" || e?.code === "auth/wrong-password") {
-        const cred2 = await createUserWithEmailAndPassword(auth, email, password);
-        return cred2.user;
-      }
-      throw e;
-    }
-  }
-  const anon = await signInAnonymously(auth);
-  return anon.user;
-}
-
-// ---------- Utilities ----------
+// ==================== HELPERS ====================
 const fmtMoney = (cents) => new Intl.NumberFormat(undefined, { style: "currency", currency: CURRENCY.toUpperCase() }).format((cents | 0) / 100);
-const requestId = () => `PRO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-const signatureOf = (file) => `${file.name}:${file.size}:${file.lastModified}`;
+function readBoolFlexible(el) {
+  if (!el) return false;
+  if (el.type === "checkbox") return !!el.checked;
+  const v = String(el.value || "").toLowerCase();
+  if (v === "true" || v === "yes" || v === "1") return true;
+  if (v === "false" || v === "no" || v === "0" || v === "standard") return false;
+  return !!v;
+}
+function requestId() { return `PRO-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
+function fileKey(f) { return `${f.name}::${f.size}::${f.lastModified||0}`; }
 
-function calcProfessionalQuoteCents(words, { rush, certified }) {
+function calcProfessionalQuoteCents(words, opts) {
   let remaining = Math.max(0, words | 0);
   let total = 0;
   let consumed = 0;
@@ -134,52 +112,64 @@ function calcProfessionalQuoteCents(words, { rush, certified }) {
     remaining -= chunk;
     consumed += chunk;
   }
-  if (rush) total = Math.round(total * RUSH_MULTIPLIER);
-  if (certified) total += CERTIFIED_FEE_CENTS;
+  if (opts?.rush) total = Math.round(total * RUSH_MULTIPLIER);
+  if (opts?.certified) total += CERTIFIED_FEE_CENTS;
   return total;
 }
 
-function readBoolFlexible(el) {
-  if (!el) return false;
-  if (el.type === "checkbox") return !!el.checked;
-  const v = String(el.value || "").toLowerCase();
-  if (["true","yes","1"].includes(v)) return true;
-  if (["false","no","0","standard"].includes(v)) return false;
-  return !!v;
+function sumSelectedWords() {
+  let words = 0;
+  for (const ent of selected.values()) {
+    if (ent.uploaded && Number.isFinite(ent.uploaded.words)) words += ent.uploaded.words | 0;
+  }
+  return words;
 }
 
-// ---------- Backend helpers ----------
-async function getQuoteForGsPath(gsPath, uid) {
-  // Try relative path first (your backend accepted this), fallback to gs://
-  const tryOnce = async (path) => {
-    const r = await fetch(`${CF_BASE}/getQuoteForFile`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gsPath: path, uid })
-    });
-    const text = await r.text().catch(() => "");
-    if (!r.ok) throw new Error(`${r.status} ${text}`);
-    const json = JSON.parse(text);
-    return json;
-  };
+function ensureQuotePayButton() {
+  let $btn = document.querySelector("#btnPayQuote");
+  if ($btn) return $btn;
+  $btn = document.createElement("button");
+  $btn.id = "btnPayQuote";
+  $btn.className = "mt-4 px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50";
+  $btn.textContent = "Pay now";
+  $btn.addEventListener("click", (e) => { e.preventDefault(); startPayment(); });
+  $quoteBox?.appendChild($btn);
+  return $btn;
+}
 
-  try {
-    // relative path only
-    if (gsPath.startsWith("gs://")) {
-      // if we got a gs://, convert to relative to avoid 403
-      const rel = gsPath.replace(/^gs:\/\/[^\/]+\//, "");
-      return await tryOnce(rel);
-    } else {
-      return await tryOnce(gsPath);
-    }
-  } catch (e1) {
-    // fallback to gs:// if relative fails (unlikely)
-    if (!gsPath.startsWith("gs://")) {
-      const gs = `gs://${firebaseConfig.storageBucket}/${gsPath}`;
-      return await tryOnce(gs);
-    }
-    throw e1;
-  }
+function renderQuote() {
+  if (!$quoteBox || !$quoteDetails) return;
+  const rush = readBoolFlexible($rush);
+  const certified = readBoolFlexible($certified);
+  const totalWords = sumSelectedWords();
+  lastQuoteCents = calcProfessionalQuoteCents(totalWords, { rush, certified });
+
+  const parts = [
+    `<strong>Total words:</strong> ${totalWords}`,
+    `<strong>Languages:</strong> ${$source?.value || "-"} → ${$target?.value || "-"}`,
+    `<strong>Rush:</strong> ${rush ? "Yes" : "No"}`,
+    `<strong>Certified:</strong> ${certified ? "Yes" : "No"}`,
+    `<strong>Total:</strong> ${fmtMoney(lastQuoteCents)}`,
+  ];
+  $quoteDetails.innerHTML = parts.join("<br>");
+  $quoteBox.style.display = "block";
+
+  // Reveal Pay button only if there are analyzed files and a positive quote
+  const $btn = ensureQuotePayButton();
+  $btn.disabled = !(lastQuoteCents > 0 && sumSelectedWords() > 0);
+}
+
+async function getQuoteForGsPath(gsPath, uid) {
+  const r = await fetch(`${CF_BASE}/getQuoteForFile`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ gsPath, uid })
+  });
+  const raw = await r.text().catch(() => "");
+  if (!r.ok) throw new Error(`getQuoteForFile failed: ${r.status} ${raw.slice(0,300)}`);
+  let json;
+  try { json = JSON.parse(raw); } catch { throw new Error("getQuoteForFile returned non-JSON"); }
+  return json;
 }
 
 async function uploadAndQuote(file, uid) {
@@ -187,167 +177,149 @@ async function uploadAndQuote(file, uid) {
   const relPath = `crowd/uploads/${uid}/${stamp}-${file.name}`;
   const sref = ref(storage, relPath);
   await uploadBytes(sref, file);
-  const quote = await getQuoteForGsPath(relPath, uid);
-  return { relPath, words: (quote?.words | 0) };
-}
 
-// ---------- Rendering ----------
-function renderFileList() {
-  $fileList.innerHTML = "";
-  if (!items.length) return;
-
-  for (const it of items) {
-    const chip = document.createElement("div");
-    chip.className = "file-chip";
-    chip.dataset.id = it.id;
-
-    const name = document.createElement("span");
-    name.textContent = it.name;
-
-    const meta = document.createElement("span");
-    meta.className = "meta";
-    meta.textContent = `(${it.words} words)`;
-
-    const btn = document.createElement("button");
-    btn.className = "remove";
-    btn.type = "button";
-    btn.setAttribute("aria-label", `Remove ${it.name}`);
-    btn.textContent = "✕";
-    btn.addEventListener("click", () => removeItem(it.id));
-
-    chip.appendChild(name);
-    chip.appendChild(meta);
-    chip.appendChild(btn);
-    $fileList.appendChild(chip);
+  const gsFull = `gs://${firebaseConfig.storageBucket}/${relPath}`;
+  try {
+    const quote = await getQuoteForGsPath(gsFull, uid);
+    return { name: file.name, gsPath: gsFull, words: quote.words | 0 };
+  } catch (e) {
+    // fallback to relative path
+    const quote2 = await getQuoteForGsPath(relPath, uid);
+    return { name: file.name, gsPath: relPath, words: quote2.words | 0 };
   }
 }
 
-function renderQuote() {
-  const rush = readBoolFlexible($rush);
-  const certified = readBoolFlexible($certified);
-  const totalWords = items.reduce((s, it) => s + (it.words | 0), 0);
-  const cents = calcProfessionalQuoteCents(totalWords, { rush, certified });
-  lastQuoteCents = cents;
-
-  if ($quoteDetails) {
-    $quoteDetails.innerHTML = [
-      `<strong>Files:</strong> ${items.length}`,
-      `<strong>Total words:</strong> ${totalWords}`,
-      `<strong>Languages:</strong> ${$source?.value || "-"} → ${$target?.value || "-"}`,
-      `<strong>Rush:</strong> ${rush ? "Yes" : "No"}`,
-      `<strong>Certified:</strong> ${certified ? "Yes" : "No"}`,
-      `<strong>Total:</strong> ${fmtMoney(cents)}`,
-    ].join("<br>");
-  }
-  if ($quoteBox) $quoteBox.style.display = "block";
-
-  // Enable pay only when we have files, a price, and nothing uploading
-  const canPay = items.length > 0 && cents > 0 && pendingUploads === 0;
-  if ($btnPay) $btnPay.disabled = !canPay;
-}
-
-// ---------- Add / Remove files ----------
-function removeItem(id) {
-  const idx = items.findIndex(x => x.id === id);
-  if (idx === -1) return;
-  const it = items[idx];
-  items.splice(idx, 1);
-  // Try to delete from storage; ignore errors silently
-  if (it.gsPath) {
-    try {
-      const sref = ref(storage, it.gsPath.startsWith("gs://")
-        ? it.gsPath.replace(/^gs:\/\/[^\/]+\//, "")
-        : it.gsPath
-      );
-      deleteObject(sref).catch(() => {});
-    } catch (_) {}
-  }
-  renderFileList();
-  renderQuote();
-}
-
-async function addFiles(selectedFiles) {
-  if (!selectedFiles || !selectedFiles.length) return;
-  const email = ($email?.value || "").trim();
-  const password = $password?.value || "";
-  const user = await ensureAuth(email, password);
-
-  const existing = new Set(items.map(it => it.signature));
-  const toProcess = [];
-  for (const f of Array.from(selectedFiles)) {
-    const sig = signatureOf(f);
-    if (existing.has(sig)) continue; // dedupe
-    toProcess.push({ file: f, sig });
-    existing.add(sig);
-  }
-  if (!toProcess.length) return;
-
-  pendingUploads += toProcess.length;
-  // temporary UI state
-  if ($quoteDetails) $quoteDetails.innerHTML = "Uploading and analyzing files…";
-  renderQuote();
-
-  for (const { file, sig } of toProcess) {
-    try {
-      const { relPath, words } = await uploadAndQuote(file, user.uid);
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-      items.push({
-        id,
-        name: file.name,
-        size: file.size,
-        signature: sig,
-        gsPath: relPath,
-        words
-      });
-    } catch (e) {
-      err("Failed to upload/quote file", file?.name, e);
-      alert(`No pudimos procesar "${file?.name}". Intenta otra vez o con otro formato.`);
-    } finally {
-      pendingUploads--;
-      renderFileList();
-      renderQuote();
+async function ensureAuth(email) {
+  if (currentUser) return currentUser;
+  const e = (email || "").trim();
+  try {
+    if (e) {
+      try {
+        const cred = await signInWithEmailAndPassword(auth, e, "placeholder-password");
+        return cred.user;
+      } catch (err1) {
+        if (err1?.code === 'auth/user-not-found' || err1?.code === 'auth/wrong-password') {
+          const cred2 = await createUserWithEmailAndPassword(auth, e, "placeholder-password");
+          return cred2.user;
+        }
+        throw err1;
+      }
+    } else {
+      const anon = await signInAnonymously(auth);
+      return anon.user;
     }
+  } catch (e2) {
+    err("Auth error:", e2);
+    throw e2;
   }
 }
 
-// ---------- Events ----------
-$files?.addEventListener("change", (e) => {
-  addFiles(e.target.files);
-});
+// =============== FILE LIST UI ==================
+function renderFileList() {
+  if (!$fileList) return;
+  $fileList.innerHTML = "";
 
-$btnPreview?.addEventListener("click", (e) => {
-  e.preventDefault();
-  if ($files?.files?.length) addFiles($files.files);
-  else renderQuote();
-});
-
-$rush?.addEventListener("change", renderQuote);
-$certified?.addEventListener("change", renderQuote);
-$source?.addEventListener("change", renderQuote);
-$target?.addEventListener("change", renderQuote);
-$subject?.addEventListener("change", renderQuote);
-
-// ---------- Pay Now ----------
-$btnPay?.addEventListener("click", async (e) => {
-  e.preventDefault();
-  if (pendingUploads > 0) {
-    alert("Aguarde a que terminen de subirse los archivos.");
+  if (selected.size === 0) {
+    const p = document.createElement("p");
+    p.className = "muted mt-2";
+    p.textContent = "No files selected yet.";
+    $fileList.appendChild(p);
     return;
   }
-  if (!items.length) {
-    alert("Subí al menos un archivo.");
+
+  const ul = document.createElement("ul");
+  ul.className = "mt-2 space-y-2";
+  for (const [key, ent] of selected.entries()) {
+    const li = document.createElement("li");
+    li.className = "flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2";
+    const left = document.createElement("div");
+    left.className = "truncate";
+    left.innerHTML = `<span class="font-medium">${ent.file.name}</span>` +
+                     (ent.uploaded ? ` <span class="text-xs text-gray-600">· ${ent.uploaded.words} words</span>`
+                                   : ` <span class="text-xs text-gray-500">· pending</span>`);
+    const btn = document.createElement("button");
+    btn.className = "ml-3 text-gray-500 hover:text-red-600 text-xl leading-none";
+    btn.setAttribute("aria-label", "Remove file");
+    btn.textContent = "×";
+    btn.addEventListener("click", () => {
+      selected.delete(key);
+      renderFileList();
+      if ($quoteBox && $quoteBox.style.display === "block") {
+        // If we're on the quote step, update totals immediately
+        if (sumSelectedWords() > 0) renderQuote();
+        else {
+          $quoteDetails.textContent = "No files selected.";
+          const $pay = document.querySelector("#btnPayQuote");
+          if ($pay) $pay.disabled = true;
+        }
+      }
+    });
+    li.appendChild(left);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  }
+  $fileList.appendChild(ul);
+}
+
+function addFilesFromInput(fileList) {
+  const arr = Array.from(fileList || []);
+  for (const f of arr) {
+    const key = fileKey(f);
+    if (!selected.has(key)) selected.set(key, { file: f });
+  }
+  // Clear the native input so user can re-open the picker and add the same file if removed, etc.
+  if ($files) $files.value = "";
+  renderFileList();
+}
+
+// =============== QUOTE PREVIEW FLOW ==================
+async function previewQuote() {
+  if (selected.size === 0) {
+    alert("Upload at least one file.");
     return;
   }
-  if (!lastQuoteCents) {
-    alert("Generá la cotización primero.");
+  $quoteBox.style.display = "block";
+  $quoteDetails.textContent = "Loading / processing your files…";
+
+  $btnPreview?.setAttribute("disabled", "true");
+  try {
+    const user = await ensureAuth($email?.value || "");
+    // Upload/analyze only entries that aren't analyzed yet
+    for (const ent of selected.values()) {
+      if (!ent.uploaded) {
+        try {
+          const u = await uploadAndQuote(ent.file, user.uid);
+          ent.uploaded = u;
+          renderFileList(); // update "pending" → words
+        } catch (e) {
+          warn("Failed to analyze", ent.file?.name, e);
+        }
+      }
+    }
+    renderQuote();
+  } catch (e) {
+    alert("Something went wrong while preparing your quote. Please try again.");
+  } finally {
+    $btnPreview?.removeAttribute("disabled");
+  }
+}
+
+// =============== PAYMENT ==================
+async function startPayment() {
+  // Ensure quote is ready
+  const totalWords = sumSelectedWords();
+  if (!totalWords || !lastQuoteCents) {
+    alert("Generate your quote first.");
     return;
   }
   const email = ($email?.value || "").trim();
   if (!email) {
-    alert("Necesitamos un email para el recibo.");
+    alert("We need an email for the receipt.");
     return;
   }
-  const totalWords = items.reduce((s, it) => s + (it.words | 0), 0);
+  if (!currentUser) {
+    try { await ensureAuth(email); } catch { alert("Authentication failed."); return; }
+  }
   const desc = [
     "Professional translation",
     `${$source?.value || "-"}→${$target?.value || "-"}`,
@@ -356,44 +328,52 @@ $btnPay?.addEventListener("click", async (e) => {
     readBoolFlexible($certified) ? "certified" : null,
   ].filter(Boolean).join(" · ");
 
-  const mappedRush =
-    ($rush?.value === "urgent") ? "h24" :
-    ($rush?.value === "rush")   ? "2bd" :
-                                  "standard";
+  const mappedRush = ($rush?.value === 'urgent') ? 'h24'
+                    : ($rush?.value === 'rush') ? '2bd'
+                    : 'standard';
 
   const payload = {
     requestId: requestId(),
     email,
     description: desc,
     totalWords,
-    subject: $subject?.value || "general",
+    subject: $subject?.value,
     certified: String(readBoolFlexible($certified)),
     rush: mappedRush
   };
 
-  $btnPay.disabled = true;
-  const original = $btnPay.textContent;
-  $btnPay.textContent = "Creating payment session…";
+  const $btn = ensureQuotePayButton();
+  $btn.disabled = true;
+  const original = $btn.textContent;
+  $btn.textContent = "Creating payment session…";
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const raw = await r.text();
-    if (!r.ok) throw new Error(`createCheckoutSession failed: ${r.status} ${raw}`);
+    const raw = await r.text().catch(() => "");
+    if (!r.ok) throw new Error(`createCheckoutSession failed: ${r.status} ${raw.slice(0,300)}`);
     const data = JSON.parse(raw);
     if (data?.url) location.href = data.url;
     else throw new Error("Server response missing URL");
   } catch (e) {
-    err("Payment flow error:", e);
-    alert("No pudimos iniciar el pago. Revisá la consola para más detalles.");
+    alert("We couldn't start the payment. Please try again.");
   } finally {
-    $btnPay.disabled = false;
-    $btnPay.textContent = original;
+    $btn.disabled = false;
+    $btn.textContent = original;
   }
+}
+
+// =============== EVENTS ==================
+$files?.addEventListener("change", (e) => {
+  addFilesFromInput(e.target.files || []);
 });
 
-// ---------- First render ----------
+$btnPreview?.addEventListener("click", (e) => {
+  e.preventDefault();
+  previewQuote();
+});
+
+// Initialize file list to "empty" message
 renderFileList();
-renderQuote();
