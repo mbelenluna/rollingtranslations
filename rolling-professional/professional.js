@@ -76,6 +76,7 @@ const $btnPreview = $("#btnPreview");
 const $btnPay = $("#btnPay");
 const $quoteBox = $("#quoteBox");
 const $quoteDetails = $("#quoteDetails");
+const $notes = document.querySelector("#notes");
 if ($btnPay) $btnPay.style.display="none";
 
 // Defaults
@@ -442,21 +443,17 @@ async function startPayment(){
   if (!(words>0 && lastQuoteCents>0)) { alert("Generate your quote first."); return; }
   const email = ($email?.value || "").trim(); if (!email){ alert("We need an email for the receipt."); return; }
 
-  const fullName = ($fullName?.value || "").trim();
+  const fullName = (document.querySelector("#fullName")?.value || "").trim();
   const rTok = rushToken();
   const certified = readBoolFlexible($certified);
   const subject = ($subject?.value || "").toLowerCase();
   const sourceLang = $source?.value || "";
   const targets = Array.from(selectedTargets);
   const pairs = targets.map(tgt => ({ sourceLang, targetLang: tgt }));
+  const notes = ($notes?.value || "").trim();
 
   const reqId = requestId();
-
-  // mismo cálculo de URLs que ya veníamos usando
-  const basePath = (() => {
-    try { return new URL('.', location.href).href; }
-    catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); }
-  })();
+  const basePath = (() => { try { return new URL('.', location.href).href; } catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); } })();
   const successUrl = `${basePath}success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
   const cancelUrl  = `${basePath}cancel.html?requestId=${encodeURIComponent(reqId)}`;
 
@@ -477,14 +474,15 @@ async function startPayment(){
       body: JSON.stringify({
         requestId: reqId,
         email,
-        fullName,                 // 👈 ahora mandamos el nombre
+        fullName,
         description: desc,
         totalWords: words,
         rush: rTok,
         certified: String(certified),
         subject,
-        pairs,                    // multi-target
-        successUrl,               // 👈 forzamos rutas propias
+        notes,                // 👈 ahora enviamos notas
+        pairs,
+        successUrl,
         cancelUrl
       })
     });
@@ -496,6 +494,7 @@ async function startPayment(){
     if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; }
   }
 }
+
 
 
 // ------- File UI (persistente + quitar) -------
