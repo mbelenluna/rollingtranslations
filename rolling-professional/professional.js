@@ -62,6 +62,23 @@ if ($target) { $target.value = ""; } // ningún target por defecto
 
 // Preview en azul (match Pay Now)
 (function(){ if ($btnPreview){ $btnPreview.classList.remove("bg-gray-200"); $btnPreview.classList.add("bg-blue-600","text-white","hover:bg-blue-700","focus:ring-2","focus:ring-blue-600","focus:ring-offset-2"); } })();
+function setPreviewLoading(isLoading){
+  if (!$btnPreview) return;
+  if (isLoading){
+    $btnPreview.dataset.originalText = $btnPreview.textContent || "Preview Quote";
+    $btnPreview.textContent = "Loading / processing…";
+    $btnPreview.classList.remove("bg-blue-600","hover:bg-blue-700");
+    $btnPreview.classList.add("bg-gray-400","cursor-not-allowed","opacity-70");
+    $btnPreview.setAttribute("disabled","true");
+    $btnPreview.setAttribute("aria-busy","true");
+  } else {
+    $btnPreview.textContent = $btnPreview.dataset.originalText || "Preview Quote";
+    $btnPreview.classList.remove("bg-gray-400","cursor-not-allowed","opacity-70");
+    $btnPreview.classList.add("bg-blue-600","hover:bg-blue-700");
+    $btnPreview.removeAttribute("disabled");
+    $btnPreview.removeAttribute("aria-busy");
+  }
+}
 
 // ------- Files state -------
 const selectedFiles = new Map(); // key -> { file, uploaded?: {name, gsPath, words} }
@@ -369,20 +386,25 @@ async function previewQuote(){
   if (!allPairsSupported()){ alert("We don't support the language pair you selected. We apologize for the inconvenience."); return; }
   if (selectedFiles.size===0){ alert("Upload at least one file."); return; }
 
-  $quoteBox.classList.remove("hidden");
-  $quoteDetails.innerHTML = `<div class="p-8 text-center text-gray-600">Loading / processing your files…</div>`;
-  $btnPreview?.setAttribute("disabled","true");
+  // Mostrar carga en el botón (pantallas chicas lo ven sí o sí)
+  setPreviewLoading(true);
+
   try {
     const user = await ensureAuth($email?.value || "");
+    // Subir y calcular palabras (solo los que faltan)
     for (const ent of selectedFiles.values()){
       if (!ent.uploaded){
         try { ent.uploaded = await uploadAndQuote(ent.file, user.uid); }
-        catch {}
+        catch { /* si falla uno, lo ignoramos y seguimos */ }
       }
     }
+    // Al terminar, renderizamos la vista de quote (esto oculta el form y muestra el quote)
     renderQuoteView();
+  } catch(e){
+    alert("We couldn't generate your quote. Please try again.");
   } finally {
-    $btnPreview?.removeAttribute("disabled");
+    // Ya no importa que el form se oculte después, igual restauramos por prolijidad
+    setPreviewLoading(false);
   }
 }
 async function startPayment(){
