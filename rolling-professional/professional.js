@@ -1,7 +1,9 @@
 
-/* professional.patched.v3.js
- * Pair-based pricing (English <-> Other). Reverse (X→English) adds $0.02/word.
- * Still applies rush/certified/subject multipliers (same as backend).
+/* professional.patched.v4.js
+ * - Pair-based pricing (English<->X, reverse +$0.02)
+ * - "Preview quote" switches to a quote-only view (form hidden)
+ * - Enhanced quote UI (bigger typography, file list, details)
+ * - "Edit selection" brings the form back; pay allowed only on quote view
  */
 
 const DEBUG = false;
@@ -36,6 +38,7 @@ const CF_BASE = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net";
 const CURRENCY = "usd";
 
 const $ = (s)=>document.querySelector(s);
+const $form = $("#quoteForm");
 const $email = $("#email");
 const $source = $("#sourceLang");
 const $target = $("#targetLang");
@@ -65,7 +68,7 @@ function readBoolFlexible(el){
 function fileKey(f){ return `${f.name}::${f.size}::${f.lastModified||0}`; }
 function requestId(){ return `PRO-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 
-// Pair table
+// Pair table (from Belu's list)
 const PAIR_BASE_USD = {
   "english->afrikaans": 0.16,
   "english->albanian": 0.21,
@@ -73,31 +76,29 @@ const PAIR_BASE_USD = {
   "english->arabic": 0.15,
   "english->armenian": 0.15,
   "english->bengali": 0.19,
-  "english->bosnian": 0.3,
+  "english->bosnian": 0.30,
   "english->bulgarian": 0.21,
-  "english->chinese (simplified)": 0.14,
-  "english->chinese (traditional)": 0.14,
   "english->czech": 0.21,
   "english->danish": 0.21,
   "english->dari": 0.16,
   "english->dutch": 0.19,
+  "english->french": 0.15,
+  "english->french creole": 0.16,
   "english->estonian": 0.21,
   "english->farsi": 0.15,
   "english->finnish": 0.21,
-  "english->french": 0.15,
-  "english->french creole": 0.16,
   "english->greek": 0.21,
   "english->gujarati": 0.19,
   "english->hebrew": 0.19,
   "english->hindi": 0.15,
-  "english->hmong": 0.3,
+  "english->hmong": 0.30,
   "english->hokkien": 0.21,
   "english->indonesian": 0.15,
   "english->italian": 0.15,
   "english->japanese": 0.16,
   "english->korean": 0.15,
   "english->lao": 0.19,
-  "english->latvian": 0.3,
+  "english->latvian": 0.30,
   "english->lithuanian": 0.21,
   "english->malay": 0.19,
   "english->mongolian": 0.21,
@@ -110,6 +111,7 @@ const PAIR_BASE_USD = {
   "english->punjabi": 0.16,
   "english->romanian": 0.22,
   "english->russian": 0.15,
+  "english->chinese (simplified)": 0.14,
   "english->slovak": 0.19,
   "english->slovene": 0.19,
   "english->somali": 0.19,
@@ -120,12 +122,13 @@ const PAIR_BASE_USD = {
   "english->tagalog": 0.14,
   "english->telugu": 0.19,
   "english->thai": 0.15,
+  "english->chinese (traditional)": 0.14,
   "english->turkish": 0.19,
   "english->ukrainian": 0.16,
   "english->urdu": 0.16,
   "english->vietnamese": 0.15,
-  "english->zomi": 0.3,
-  "english->zulu": 0.3
+  "english->zomi": 0.30,
+  "english->zulu": 0.30
 };
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function normalizeLangName(s){
@@ -152,12 +155,17 @@ function pairBaseRateUSD(sourceLang, targetLang){
   return null;
 }
 
+function sumWords(){
+  let w=0; for (const v of selected.values()) if (v.uploaded && Number.isFinite(v.uploaded.words)) w+= v.uploaded.words|0; return w;
+}
+function rushToken(){ const v=($rush?.value||"").toLowerCase(); if(v==='urgent')return'h24'; if(v==='rush')return'2bd'; return 'standard'; }
+
 function computeAmountCentsFE(words){
   const src = $source?.value || "";
   const tgt = $target?.value || "";
   const subject = ($subject?.value || "").toLowerCase();
-  const rush = (function(){const v=($rush?.value||"").toLowerCase(); if(v==='urgent')return'h24'; if(v==='rush')return'2bd'; return 'standard';})();
   const certified = readBoolFlexible($certified);
+  const rTok = rushToken();
   let rate = pairBaseRateUSD(src, tgt);
   if (rate == null) return 0;
   let totalUsd = words * Number(rate);
@@ -168,48 +176,84 @@ function computeAmountCentsFE(words){
     case 'legal':
     case 'medical': totalUsd *= 1.25; break;
   }
-  switch (rush){
+  switch (rTok){
     case '2bd': totalUsd *= 1.20; break;
     case 'h24': totalUsd *= 1.40; break;
   }
   if (certified) totalUsd *= 1.10;
-
   const MIN_TOTAL_USD = 1.0;
   return Math.round(Math.max(totalUsd, MIN_TOTAL_USD) * 100);
 }
 
-function ensureQuotePayButton(){
-  let $btn = document.querySelector("#btnPayQuote");
-  if ($btn) return $btn;
-  $btn = document.createElement("button");
-  $btn.id = "btnPayQuote";
-  $btn.className = "mt-4 px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50";
-  $btn.textContent = "Pay now";
-  $btn.addEventListener("click", (e)=>{ e.preventDefault(); startPayment(); });
-  $quoteBox?.appendChild($btn);
-  return $btn;
+// ===== Quote-only view (form hidden) =====
+function buildQuoteMarkup(words, cents){
+  const src = $source?.value || "-";
+  const tgt = $target?.value || "-";
+  const subject = ($subject?.value || "General");
+  const rTok = rushToken();
+  const rushLabel = rTok==='h24' ? '24 hours' : (rTok==='2bd' ? '2 business days' : 'Standard');
+  const certified = readBoolFlexible($certified);
+  const files = Array.from(selected.values()).filter(v=>v.uploaded);
+
+  const fileItems = files.map(v => {
+    const w = v.uploaded?.words ?? 0;
+    return `<li class="flex justify-between py-2"><span class="truncate">${v.file.name}</span><span class="text-gray-600">${w.toLocaleString()} w</span></li>`;
+  }).join("");
+
+  return `
+  <div class="rounded-2xl border border-gray-200 p-8 bg-white shadow-sm">
+    <div class="flex items-start justify-between">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Your Quote</h2>
+        <p class="text-gray-500 mt-1">${src} → ${tgt} · ${files.length} file${files.length===1?'':'s'}</p>
+      </div>
+      <div class="text-right">
+        <div class="text-4xl md:text-5xl font-black">${fmtMoney(cents)}</div>
+        <div class="text-xs md:text-sm text-gray-500">Includes options selected</div>
+      </div>
+    </div>
+
+    <dl class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm md:text-base">
+      <div><dt class="font-semibold">Words</dt><dd>${words.toLocaleString()}</dd></div>
+      <div><dt class="font-semibold">Subject</dt><dd>${subject || 'General'}</dd></div>
+      <div><dt class="font-semibold">Turnaround</dt><dd>${rushLabel}</dd></div>
+      <div><dt class="font-semibold">Certified</dt><dd>${certified ? 'Yes' : 'No'}</dd></div>
+    </dl>
+
+    <div class="mt-6">
+      <h3 class="font-semibold mb-2">Files</h3>
+      <ul class="divide-y divide-gray-200 text-sm md:text-base">${fileItems || '<li class="py-2 text-gray-500">No files</li>'}</ul>
+    </div>
+
+    <div class="mt-8 flex flex-col md:flex-row gap-3">
+      <button id="btnEdit" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Edit selection</button>
+      <button id="btnPayQuote" class="px-5 py-3 rounded-xl bg-blue-600 text-white text-base font-semibold disabled:opacity-50">Pay now</button>
+    </div>
+  </div>`;
 }
 
-function sumWords(){
-  let w=0; for (const v of selected.values()) if (v.uploaded && Number.isFinite(v.uploaded.words)) w+= v.uploaded.words|0; return w;
+function showQuoteOnly(){
+  if ($form) $form.classList.add("hidden");
+  if ($quoteBox) $quoteBox.classList.remove("hidden");
+}
+function showFormAgain(){
+  if ($quoteBox) $quoteBox.classList.add("hidden");
+  if ($form) $form.classList.remove("hidden");
 }
 
-function renderQuote(){
-  if (!$quoteBox || !$quoteDetails) return;
+function renderQuoteView(){
   const words = sumWords();
   lastQuoteCents = computeAmountCentsFE(words);
-  const parts = [
-    `<strong>Total words:</strong> ${words}`,
-    `<strong>Languages:</strong> ${$source?.value || "-"} → ${$target?.value || "-"}`,
-    `<strong>Total:</strong> ${fmtMoney(lastQuoteCents)}`,
-  ];
-  $quoteDetails.innerHTML = parts.join("<br>");
-  $quoteBox.style.display="block";
-  const $btn = ensureQuotePayButton();
-  $btn.disabled = !(lastQuoteCents > 0 && words > 0);
+  $quoteDetails.innerHTML = buildQuoteMarkup(words, lastQuoteCents);
+  showQuoteOnly();
+  const btnPay = document.querySelector("#btnPayQuote");
+  const btnEdit = document.querySelector("#btnEdit");
+  if (btnPay) btnPay.disabled = !(lastQuoteCents > 0 && words > 0);
+  if (btnPay) btnPay.addEventListener("click", (e)=>{ e.preventDefault(); startPayment(); });
+  if (btnEdit) btnEdit.addEventListener("click", (e)=>{ e.preventDefault(); showFormAgain(); });
 }
 
-// Upload/analyze
+// Upload/analyze (runs only on Preview)
 async function getQuoteForGsPath(gsPath, uid){
   const r = await fetch(`${CF_BASE}/getQuoteForFile`,{
     method:"POST", headers:{ "Content-Type":"application/json" },
@@ -219,7 +263,6 @@ async function getQuoteForGsPath(gsPath, uid){
   if (!r.ok) throw new Error(`getQuoteForFile failed: ${r.status} ${raw.slice(0,200)}`);
   return JSON.parse(raw);
 }
-import { ref as sRef } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js"; // alias not used here
 
 async function uploadAndQuote(file, uid){
   const stamp = Date.now();
@@ -242,32 +285,34 @@ async function ensureAuth(email){
       }
       throw err1;
     }
-  } else {
-    const anon = await signInAnonymously(auth); return anon.user;
-  }
+  } else { const anon = await signInAnonymously(auth); return anon.user; }
 }
 
 async function previewQuote(){
   if (selected.size===0){ alert("Upload at least one file."); return; }
-  $quoteBox.style.display="block"; $quoteDetails.textContent="Loading / processing your files…";
+  $quoteBox.classList.remove("hidden");
+  $quoteDetails.innerHTML = `<div class="p-8 text-center text-gray-600">Loading / processing your files…</div>`;
   $btnPreview?.setAttribute("disabled","true");
   try {
     const user = await ensureAuth($email?.value || "");
     for (const ent of selected.values()){
       if (!ent.uploaded){
-        try { ent.uploaded = await uploadAndQuote(ent.file, user.uid); renderFileList(); } catch {}
+        try { ent.uploaded = await uploadAndQuote(ent.file, user.uid); }
+        catch {}
       }
     }
-    renderQuote();
-  } finally { $btnPreview?.removeAttribute("disabled"); }
+    renderQuoteView();
+  } finally {
+    $btnPreview?.removeAttribute("disabled");
+  }
 }
 
 async function startPayment(){
   const words = sumWords();
-  if (!(words>0)) { alert("Generate your quote first."); return; }
+  if (!(words>0 && lastQuoteCents>0)) { alert("Generate your quote first."); return; }
   const email = ($email?.value || "").trim(); if (!email){ alert("We need an email for the receipt."); return; }
 
-  const rush = (function(){const v=($rush?.value||"").toLowerCase(); if(v==='urgent')return'h24'; if(v==='rush')return'2bd'; return 'standard';})();
+  const rTok = rushToken();
   const certified = readBoolFlexible($certified);
   const subject = ($subject?.value || "").toLowerCase();
   const sourceLang = $source?.value || "";
@@ -277,39 +322,41 @@ async function startPayment(){
     "Professional translation",
     `${sourceLang||"-"}→${targetLang||"-"}`,
     `${words} words`,
-    rush!=='standard' ? rush : null,
+    rTok!=='standard' ? rTok : null,
     certified ? "certified" : null,
     subject && subject!=='general' ? subject : null,
   ].filter(Boolean).join(" · ");
 
-  const $pay = document.querySelector("#btnPayQuote") || ensureQuotePayButton();
-  $pay.disabled = true; const prev = $pay.textContent; $pay.textContent = "Creating payment session…";
+  const $pay = document.querySelector("#btnPayQuote");
+  if ($pay){ $pay.disabled = true; $pay.textContent = "Creating payment session…"; }
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
       method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({
         requestId: requestId(), email, description: desc, totalWords: words,
-        rush, certified: String(certified), subject, sourceLang, targetLang
+        rush: rTok, certified: String(certified), subject, sourceLang, targetLang
       })
     });
     const raw = await r.text().catch(()=> ""); if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
     const data = JSON.parse(raw); if (data?.url) location.href = data.url; else throw new Error("No URL from server");
   } catch(e){ alert("We couldn't start the payment. Please try again."); }
-  finally { $pay.disabled = false; $pay.textContent = prev; }
+  finally { if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; } }
 }
 
-// File UI with removable items
+// File UI with removable items; persists across selections
 function renderFileList(){
   if (!$fileList) return;
   $fileList.innerHTML="";
-  if (selected.size===0){ const p=document.createElement('p'); p.className="muted mt-2"; p.textContent="No files selected yet."; $fileList.appendChild(p); return; }
+  if (selected.size===0){
+    const p=document.createElement('p'); p.className="muted mt-2"; p.textContent="No files selected yet."; $fileList.appendChild(p); return;
+  }
   const ul=document.createElement('ul'); ul.className="mt-2 space-y-2";
   for (const [key, ent] of selected.entries()){
     const li=document.createElement('li'); li.className="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2";
     const left=document.createElement('div'); left.className="truncate";
     left.innerHTML = `<span class="font-medium">${ent.file.name}</span>` + (ent.uploaded ? ` <span class="text-xs text-gray-600">· ${ent.uploaded.words} words</span>` : ` <span class="text-xs text-gray-500">· pending</span>`);
     const btn=document.createElement('button'); btn.className="ml-3 text-gray-500 hover:text-red-600 text-xl leading-none"; btn.textContent="×"; btn.setAttribute("aria-label","Remove file");
-    btn.addEventListener('click', ()=>{ selected.delete(key); renderFileList(); if ($quoteBox && $quoteBox.style.display==="block") renderQuote(); });
+    btn.addEventListener('click', ()=>{ selected.delete(key); renderFileList(); });
     li.appendChild(left); li.appendChild(btn); ul.appendChild(li);
   }
   $fileList.appendChild(ul);
