@@ -1,3 +1,4 @@
+// index.js — Pair-based pricing + multi-target checkout + full endpoints (v6d)
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -9,6 +10,7 @@ const mammoth = require("mammoth");
 const xlsx = require("xlsx");
 const fileTypeLib = require("file-type");
 
+// ===== Pair-based rate table =====
 const PAIR_BASE_USD = {
   "english->afrikaans": 0.16, "english->albanian": 0.21, "english->amharic": 0.19, "english->arabic": 0.15,
   "english->armenian": 0.15, "english->bengali": 0.19, "english->bosnian": 0.30, "english->bulgarian": 0.21,
@@ -31,19 +33,28 @@ const PAIR_BASE_USD = {
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function normalizeLangName(s) {
   let out = norm(s);
-  const noParen = out.replace(/\s*\(.*?\)\s*/g,'').trim();
-  if (noParen) out = noParen;
   const aliases = {
-    "eenglish": "english", "englisn": "english", "gurajati": "gujarati", "gebrew": "hebrew",
-    "noewegian": "norwegian", "malaysian": "malay", "farsi": "farsi", "persian": "farsi",
-    "simplified chinese": "chinese (simplified)", "traditional chinese": "chinese (traditional)",
-    "haitian creole": "french creole", "hakkien":"hokkien"
+    "eenglish": "english", "englisn": "english",
+    "gurajati": "gujarati", "gebrew": "hebrew", "noewegian": "norwegian",
+    "malaysian": "malay", "hakkien":"hokkien",
+    "farsi": "farsi", "persian": "farsi",
+    "haitian creole": "french creole",
+    // Spanish variants
+    "spanish (es)": "spanish (spain)", "spanish (europe)": "spanish (spain)", "spanish (castilian)":"spanish (spain)",
+    "spanish (la)":"spanish (latam)","spanish la":"spanish (latam)","spanish latam":"spanish (latam)"
   };
   out = aliases[out] || out;
-  if (/^english\b/.test(out)) out = "english";
-  if (/^chinese\b.*simplified/.test(out)) out = "chinese (simplified)";
-  if (/^chinese\b.*traditional/.test(out)) out = "chinese (traditional)";
-  return out;
+
+  // English con región -> 'english'
+  if (/^english\b/.test(out)) return "english";
+
+  // Chinese variantes
+  if (/^chinese\b/.test(out)){
+    if (out.includes("simplified")) return "chinese (simplified)";
+    if (out.includes("traditional")) return "chinese (traditional)";
+  }
+
+  return out; // conservar paréntesis para Spanish/Portuguese/etc.
 }
 
 function pairBaseRateUSD(sourceLang, targetLang) {
@@ -56,7 +67,7 @@ function pairBaseRateUSD(sourceLang, targetLang) {
     const base = PAIR_BASE_USD[`english->${src}`];
     return base != null ? Number(base) + 0.02 : null; // X->English = base + $0.02
   }
-  return null; // non-English↔non-English not supported
+  return null; // non-English↔non-English no soportado
 }
 
 setGlobalOptions({ region: "us-central1" });
@@ -68,7 +79,6 @@ const bucket = admin.storage().bucket();
 
 const Stripe = require("stripe");
 const sgMail = require("@sendgrid/mail");
-const { onRequest: _onRequest } = require("firebase-functions/v2/https");
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
@@ -82,15 +92,13 @@ const ALLOWED_ORIGINS = [
 ];
 
 const MIN_TOTAL_USD = 1.0;
-// Legacy (fallback) — only used in /getQuoteForFile response (UI calcula precios en frontend con pares)
+// Fallback legacy para /getQuoteForFile (el precio final lo calcula el front por pares)
 function rateForWords(words){ return 0.10; }
 
 function computeAmountCentsForPair(totalWords, rush, certified, subject, sourceLang, targetLang) {
   const w = Number(totalWords || 0);
   let rate = pairBaseRateUSD(sourceLang, targetLang);
-  if (rate == null) {
-    return { rate: null, amountUsd: 0, amountCents: 0, unsupported: true };
-  }
+  if (rate == null) return { rate: null, amountUsd: 0, amountCents: 0, unsupported: true };
   let totalUsd = w * Number(rate);
 
   switch ((subject || "").toLowerCase()) {
@@ -108,8 +116,6 @@ function computeAmountCentsForPair(totalWords, rush, certified, subject, sourceL
   totalUsd = Math.max(totalUsd, MIN_TOTAL_USD);
   return { rate, amountUsd: totalUsd, amountCents: Math.round(totalUsd * 100) };
 }
-
-// Multi: suma por cada par
 function computeAmountCentsMulti(totalWords, rush, certified, subject, pairs, fallbackSingle) {
   if (Array.isArray(pairs) && pairs.length > 0) {
     let sum = 0;
@@ -120,13 +126,12 @@ function computeAmountCentsMulti(totalWords, rush, certified, subject, pairs, fa
     }
     return { amountCents: sum, unsupported: false };
   }
-  // Fallback a par único (compatibilidad)
   const { sourceLang, targetLang } = fallbackSingle || {};
   const out = computeAmountCentsForPair(totalWords, rush, certified, subject, sourceLang, targetLang);
   return { amountCents: out.amountCents, unsupported: !!out.unsupported };
 }
 
-// Simple word counter (safe without unicode props)
+// Wordcount genérico
 function countWordsGeneric(text) {
   if (!text) return 0;
   const cleaned = String(text).replace(/[^A-Za-z0-9’'-]+/g, " ");
@@ -134,43 +139,26 @@ function countWordsGeneric(text) {
   return parts[0] === "" ? 0 : parts.length;
 }
 async function fileTypeFromBufferSafe(buf) {
-  try { return await fileTypeLib.fileTypeFromBuffer(buf); }
-  catch { return null; }
+  try { return await fileTypeLib.fileTypeFromBuffer(buf); } catch { return null; }
 }
 async function extractTextFromBuffer(buf, filename) {
   const ft = await fileTypeFromBufferSafe(buf);
   const mime = ft && ft.mime ? ft.mime : "";
   const ext = (filename.split(".").pop() || "").toLowerCase();
 
-  // Text-like
-  if (mime.startsWith("text/") || ["txt", "csv", "srt", "vtt", "md", "html", "json"].includes(ext)) {
+  if (mime.startsWith("text/") || ["txt","csv","srt","vtt","md","html","json"].includes(ext)) {
     let text = buf.toString("utf8");
-    if (ext === "json") {
-      try { text = JSON.stringify(JSON.parse(text)); } catch { }
-    }
-    if (ext === "srt" || ext === "vtt") {
-      text = text.replace(/\d{2}:\d{2}:\d{2}[,\.]\d{3} --> .+\n/g, " ");
-    }
+    if (ext==="json") { try { text = JSON.stringify(JSON.parse(text)); } catch {} }
+    if (ext==="srt" || ext==="vtt") { text = text.replace(/\d{2}:\d{2}:\d{2}[,\.]\d{3} --> .+\n/g, " "); }
     return text;
   }
-
-  // PDF
   if (mime === "application/pdf" || ext === "pdf") {
-    const data = await pdfParse(buf);
-    return data.text || "";
+    const data = await pdfParse(buf); return data.text || "";
   }
-
-  // DOCX
   if (ext === "docx" || mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    const res = await mammoth.extractRawText({ buffer: buf });
-    return (res && res.value) || "";
+    const res = await mammoth.extractRawText({ buffer: buf }); return (res && res.value) || "";
   }
-
-  // XLS/XLSX
-  if (
-    ["xlsx", "xls"].includes(ext) ||
-    (mime && (mime.includes("spreadsheetml") || mime.includes("ms-excel")))
-  ) {
+  if (["xlsx","xls"].includes(ext) || (mime && (mime.includes("spreadsheetml") || mime.includes("ms-excel")))) {
     const wb = xlsx.read(buf, { type: "buffer" });
     let text = "";
     for (const name of wb.SheetNames) {
@@ -183,41 +171,30 @@ async function extractTextFromBuffer(buf, filename) {
     }
     return text;
   }
-
-  // Legacy .doc → ignore text
   if (ext === "doc") return "";
-
-  // Fallback
   return buf.toString("utf8");
 }
 
 // ===== 1) Auto-quote HTTP (CORS) =====
 exports.getQuoteForFile = onRequest(
-  {
-    cors: ALLOWED_ORIGINS,
-    region: "us-central1",
-  },
+  { cors: ALLOWED_ORIGINS, region: "us-central1" },
   async (req, res) => {
     try {
-      if (req.method !== "POST") { return res.status(405).send("Method Not Allowed"); }
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
       const { gsPath, uid } = req.body || {};
       if (!gsPath) return res.status(400).send("Missing gsPath.");
-      if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) { return res.status(403).send("Forbidden path."); }
+      if (!uid || !gsPath.startsWith(`crowd/uploads/${uid}/`)) return res.status(403).send("Forbidden path.");
 
       const file = bucket.file(gsPath);
       const [buf] = await file.download();
-
       const text = await extractTextFromBuffer(buf, gsPath);
       let words = countWordsGeneric(text);
 
       const scanned = words < 10 && gsPath.toLowerCase().endsWith(".pdf");
-      if (scanned) {
-        return res.json({ words: 0, scanned: true, rate: null, total: null, note: "Likely scanned PDF (requires OCR)." });
-      }
+      if (scanned) return res.json({ words: 0, scanned: true, rate: null, total: null, note: "Likely scanned PDF (requires OCR)." });
 
       const rate = rateForWords(words);
       const total = Math.round(Math.max(words * rate, MIN_TOTAL_USD) * 100) / 100;
-
       return res.json({ words, rate, total, currency: "USD" });
     } catch (err) {
       logger.error("getQuoteForFile error", err);
@@ -226,31 +203,21 @@ exports.getQuoteForFile = onRequest(
   }
 );
 
-// ===== 2) Stripe Checkout session creator (multi-target) =====
+// ===== 2) Stripe Checkout session (multi-target) =====
 exports.createCheckoutSession = onRequest(
-  {
-    cors: ALLOWED_ORIGINS,
-    region: "us-central1",
-    secrets: [STRIPE_SECRET_KEY],
-  },
+  { cors: ALLOWED_ORIGINS, region: "us-central1", secrets: [STRIPE_SECRET_KEY] },
   async (req, res) => {
     try {
       if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
-
       const stripeSecret = STRIPE_SECRET_KEY.value();
-      if (!stripeSecret) { return res.status(500).json({ error: "Stripe secret key not configured" }); }
+      if (!stripeSecret) return res.status(500).json({ error: "Stripe secret key not configured" });
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
-      let {
-        requestId, totalWords = 0, email, description,
-        rush, certified, subject,
-        sourceLang, targetLang,   // compat (single)
-        pairs,                    // [{sourceLang, targetLang}, ...] (multi)
-        successUrl, cancelUrl     // optional overrides
-      } = req.body || {};
+      let { requestId, totalWords = 0, email, description, rush, certified, subject,
+            sourceLang, targetLang, pairs, successUrl, cancelUrl } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
-      // Optionally cross-check Firestore
+      // Cross-check opcional con Firestore
       let wordsServer = Number(totalWords || 0);
       try {
         const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
@@ -259,39 +226,31 @@ exports.createCheckoutSession = onRequest(
           if (Number(d.totalWords) > 0) wordsServer = Number(d.totalWords);
           else if (Number(d.estWords) > 0) wordsServer = Number(d.estWords);
         }
-      } catch (_) { /* ignore */ }
+      } catch {}
 
-      const { amountCents, unsupported } = computeAmountCentsMulti(
-        wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang }
-      );
+      const { amountCents, unsupported } =
+        computeAmountCentsMulti(wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang });
 
-      if (unsupported) { return res.status(400).json({ error: "Unsupported language pair(s)." }); }
-      if (!(amountCents > 0)) { return res.status(400).json({ error: "Invalid amount computed." }); }
+      if (unsupported) return res.status(400).json({ error: "Unsupported language pair(s)." });
+      if (!(amountCents > 0)) return res.status(400).json({ error: "Invalid amount computed." });
 
       const origin = (process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || CHECKOUT_ORIGIN).replace(/\/+$/, '');
       const success_url = successUrl || `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`;
       const cancel_url  = cancelUrl  || `${origin}/cancel.html?requestId=${encodeURIComponent(requestId)}`;
 
       const name = description || "Professional translation";
-
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_email: email || undefined,
         line_items: [{
-          price_data: {
-            currency: "usd",
-            product_data: { name, description: `Total words: ${wordsServer}` },
-            unit_amount: amountCents,
-          },
+          price_data: { currency: "usd", product_data: { name, description: `Total words: ${wordsServer}` }, unit_amount: amountCents },
           quantity: 1,
         }],
-        success_url,
-        cancel_url,
+        success_url, cancel_url,
         payment_intent_data: {
           description: `${name} — ${wordsServer} words`,
           metadata: {
-            requestId,
-            totalWords: String(wordsServer),
+            requestId, totalWords: String(wordsServer),
             rush: String(rush || "standard"),
             certified: String(certified === "true" || certified === true),
             subject: String(subject || "general"),
@@ -299,18 +258,15 @@ exports.createCheckoutSession = onRequest(
           }
         },
         metadata: {
-          requestId,
-          totalWords: String(wordsServer),
+          requestId, totalWords: String(wordsServer),
           pairs: Array.isArray(pairs) ? JSON.stringify(pairs) : JSON.stringify([{ sourceLang, targetLang }])
         }
       });
 
       await admin.firestore().collection("crowdRequests").doc(requestId).set({
-        stripeSessionId: session.id,
-        stripeMode: "payment",
+        stripeSessionId: session.id, stripeMode: "payment",
         checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: "pending_payment",
-        totalWords: wordsServer
+        status: "pending_payment", totalWords: wordsServer
       }, { merge: true });
 
       return res.json({ url: session.url });
@@ -321,31 +277,20 @@ exports.createCheckoutSession = onRequest(
   }
 );
 
-// ===== 3) Stripe Webhook (verifies signature) =====
+// ===== 3) Webhook Stripe (email + estado) =====
 exports.stripeWebhook = onRequest(
-  {
-    region: "us-central1",
-    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY],
-  },
+  { region: "us-central1", secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY] },
   async (req, res) => {
     try {
       const stripeSecret = STRIPE_SECRET_KEY.value();
       const webhookSecret = STRIPE_WEBHOOK_SECRET.value();
-      if (!stripeSecret || !webhookSecret) {
-        logger.error("Missing Stripe secrets");
-        return res.status(500).send("Secrets not configured");
-      }
+      if (!stripeSecret || !webhookSecret) return res.status(500).send("Secrets not configured");
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
       const sig = req.headers["stripe-signature"];
       let event;
-
-      try {
-        event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-      } catch (err) {
-        logger.error("Webhook signature verification failed", err);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-      }
+      try { event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret); }
+      catch (err) { logger.error("Webhook verification failed", err); return res.status(400).send(`Webhook Error: ${err.message}`); }
 
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
@@ -354,30 +299,21 @@ exports.stripeWebhook = onRequest(
         const totalWords = session.metadata && Number(session.metadata.totalWords || 0);
         const amountTotal = typeof session.amount_total === "number" ? session.amount_total : null;
 
-        if (!requestId) {
-          logger.warn("checkout.session.completed without requestId in metadata");
-        } else {
+        if (requestId) {
           try {
             await admin.firestore().collection("crowdRequests").doc(requestId).set({
-              status: "paid",
-              paidAt: admin.firestore.FieldValue.serverTimestamp(),
-              paymentIntentId: paymentIntentId || null,
-              amountPaid: amountTotal != null ? amountTotal / 100 : null,
+              status: "paid", paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              paymentIntentId: paymentIntentId || null, amountPaid: amountTotal != null ? amountTotal / 100 : null,
             }, { merge: true });
-          } catch (e) {
-            logger.error("Failed to update Firestore on payment", e);
-          }
+          } catch (e) { logger.error("Firestore update failed", e); }
 
-          // ==== Send emails with SendGrid ====
           try {
             sgMail.setApiKey(SENDGRID_API_KEY.value());
-
-            // Retrieve doc for more details
             let docData = {};
             try {
               const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
               if (snap.exists) docData = snap.data() || {};
-            } catch (_) { }
+            } catch {}
 
             const clientEmail = docData.email || session.customer_details?.email || "";
             const clientName = docData.fullName || docData.fullname || "Client";
@@ -396,37 +332,18 @@ exports.stripeWebhook = onRequest(
                   <tr><td style="padding:8px 0;color:#64748b">Total words</td><td style="padding:8px 0">${Number.isFinite(totalWords) ? totalWords : (docData.totalWords ?? docData.estWords ?? "—")}</td></tr>
                   <tr><td style="padding:8px 0;color:#64748b">Amount paid</td><td style="padding:8px 0"><b>${amountStr}</b></td></tr>
                 </table>
-                <p style="margin:16px 0 8px 0;">
-                  We’ll start processing your request and email you with updates shortly.
-                </p>
-                <p style="margin:0 0 14px 0;">
-                  Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.
-                </p>
+                <p style="margin:16px 0 8px 0;">We’ll start processing your request and email you with updates shortly.</p>
+                <p style="margin:0 0 14px 0;">Questions? <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
                 <p style="margin:18px 0 0 0;color:#64748b;font-size:13px">— Rolling Translations</p>
               </div>
             `;
-
             const msgs = [];
-            if (clientEmail) {
-              msgs.push({
-                to: clientEmail,
-                from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-                subject: `Order ${requestId} confirmed — Rolling Translations`,
-                html,
-              });
-            }
-            // Internal copy
-            msgs.push({
-              to: "info@rolling-translations.com",
-              from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-              subject: `New paid order — ${requestId}`,
-              html,
-            });
-
+            if (clientEmail) msgs.push({ to: clientEmail, from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `Order ${requestId} confirmed — Rolling Translations`, html });
+            msgs.push({ to: "info@rolling-translations.com", from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `New paid order — ${requestId}`, html });
             if (msgs.length) await sgMail.send(msgs);
-          } catch (mailErr) {
-            logger.error("SendGrid send failed", mailErr?.response?.body || mailErr?.message || mailErr);
-          }
+          } catch (mailErr) { logger.error("SendGrid send failed", mailErr?.response?.body || mailErr?.message || mailErr); }
+        } else {
+          logger.warn("checkout.session.completed without requestId in metadata");
         }
       }
 
@@ -438,17 +355,12 @@ exports.stripeWebhook = onRequest(
   }
 );
 
-// ===== 4) Firestore trigger: email on new request (pre-payment receipt) =====
+// ===== 4) Email on new request =====
 exports.emailOnRequestCreated = onDocumentCreated(
-  {
-    document: "crowdRequests/{requestId}",
-    region: "us-central1",
-    secrets: [SENDGRID_API_KEY],
-  },
+  { document: "crowdRequests/{requestId}", region: "us-central1", secrets: [SENDGRID_API_KEY] },
   async (event) => {
     const data = event.data?.data() || {};
     const requestId = event.params.requestId;
-
     try {
       const clientEmail = data.email || data.clientEmail || "";
       const clientName = data.fullName || data.fullname || "Client";
@@ -494,23 +406,9 @@ exports.emailOnRequestCreated = onDocumentCreated(
       `;
 
       sgMail.setApiKey(SENDGRID_API_KEY.value());
-
       const messages = [];
-      if (clientEmail) {
-        messages.push({
-          to: clientEmail,
-          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-          subject: `We received your request — ${requestId}`,
-          html: htmlClient,
-        });
-      }
-      messages.push({
-        to: "info@rolling-translations.com",
-        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-        subject: `New crowdsourcing request — ${requestId}`,
-        html: htmlInternal,
-      });
-
+      if (clientEmail) messages.push({ to: clientEmail, from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `We received your request — ${requestId}`, html: htmlClient });
+      messages.push({ to: "info@rolling-translations.com", from: { email: "info@rolling-translations.com", name: "Rolling Translations" }, subject: `New crowdsourcing request — ${requestId}`, html: htmlInternal });
       if (messages.length) await sgMail.send(messages);
       logger.info("Emails sent for new request", { requestId });
     } catch (err) {
