@@ -213,11 +213,16 @@ exports.createCheckoutSession = onRequest(
       if (!stripeSecret) return res.status(500).json({ error: "Stripe secret key not configured" });
       const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
 
-      let { requestId, totalWords = 0, email, description, rush, certified, subject,
-            sourceLang, targetLang, pairs, successUrl, cancelUrl } = req.body || {};
+      let {
+        requestId, totalWords = 0, email, fullName, description,
+        rush, certified, subject,
+        sourceLang, targetLang,   // compat (single)
+        pairs,                    // multi: [{sourceLang, targetLang}]
+        successUrl, cancelUrl
+      } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
-      // Cross-check opcional con Firestore
+      // Palabras (preferimos server si ya existiera algo)
       let wordsServer = Number(totalWords || 0);
       try {
         const snap = await admin.firestore().collection("crowdRequests").doc(requestId).get();
@@ -228,12 +233,24 @@ exports.createCheckoutSession = onRequest(
         }
       } catch {}
 
+      // Monto total (suma por par) y validación de pares
       const { amountCents, unsupported } =
         computeAmountCentsMulti(wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang });
-
       if (unsupported) return res.status(400).json({ error: "Unsupported language pair(s)." });
       if (!(amountCents > 0)) return res.status(400).json({ error: "Invalid amount computed." });
 
+      const amountUsd = amountCents / 100;
+      const effRate = wordsServer > 0 ? (amountUsd / wordsServer) : null; // $/palabra “blend”
+
+      // Resumen legible de pares (para emails/log)
+      const arrPairs = Array.isArray(pairs) && pairs.length ? pairs : [{ sourceLang, targetLang }];
+      const pairsSummary = arrPairs.map(p => `${p.sourceLang}→${p.targetLang}`).join(", ");
+      const srcSummary = arrPairs[0]?.sourceLang || sourceLang || "—";
+      const tgtSummary = (arrPairs.length > 1)
+        ? `Multiple (${arrPairs.length}): ${arrPairs.map(p=>p.targetLang).join(", ")}`
+        : (arrPairs[0]?.targetLang || targetLang || "—");
+
+      // Orígenes para las URLs de retorno
       const origin = (process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || CHECKOUT_ORIGIN).replace(/\/+$/, '');
       const success_url = successUrl || `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(requestId)}`;
       const cancel_url  = cancelUrl  || `${origin}/cancel.html?requestId=${encodeURIComponent(requestId)}`;
@@ -243,31 +260,62 @@ exports.createCheckoutSession = onRequest(
         mode: "payment",
         customer_email: email || undefined,
         line_items: [{
-          price_data: { currency: "usd", product_data: { name, description: `Total words: ${wordsServer}` }, unit_amount: amountCents },
-          quantity: 1,
+          price_data: {
+            currency: "usd",
+            product_data: { name, description: `Total words: ${wordsServer}` },
+            unit_amount: amountCents
+          },
+          quantity: 1
         }],
         success_url, cancel_url,
         payment_intent_data: {
           description: `${name} — ${wordsServer} words`,
           metadata: {
-            requestId, totalWords: String(wordsServer),
+            requestId,
+            totalWords: String(wordsServer),
             rush: String(rush || "standard"),
             certified: String(certified === "true" || certified === true),
             subject: String(subject || "general"),
-            pairs: Array.isArray(pairs) ? JSON.stringify(pairs) : JSON.stringify([{ sourceLang, targetLang }])
+            pairs: JSON.stringify(arrPairs)
           }
         },
         metadata: {
-          requestId, totalWords: String(wordsServer),
-          pairs: Array.isArray(pairs) ? JSON.stringify(pairs) : JSON.stringify([{ sourceLang, targetLang }])
+          requestId,
+          totalWords: String(wordsServer),
+          pairs: JSON.stringify(arrPairs)
         }
       });
 
+      // 🔥 Guardamos TODOS los datos en la creación del doc
       await admin.firestore().collection("crowdRequests").doc(requestId).set({
-        stripeSessionId: session.id, stripeMode: "payment",
+        // Identificación / cliente
+        requestId,
+        email: email || null,
+        fullName: fullName || null,
+
+        // Parámetros de la solicitud
+        sourceLang: srcSummary,
+        targetLang: tgtSummary,
+        pairs: arrPairs,                 // preservamos array completo
+        subject: subject || "general",
+        rush: String(rush || "standard"),
+        certified: (certified === "true" || certified === true) ? true : false,
+
+        // Estimación
+        totalWords: wordsServer,
+        estimatedTotal: amountUsd,       // 👈 para el email
+        rate: effRate ?? null,           // 👈 $/word efectivo (blend)
+
+        // Stripe / estado
+        stripeSessionId: session.id,
+        stripeMode: "payment",
         checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: "pending_payment", totalWords: wordsServer
-      }, { merge: true });
+        status: "pending_payment",
+
+        // Info útil
+        description: name,
+        pairsSummary
+      }, { merge: false }); // merge:false asegura onCreate con datos completos
 
       return res.json({ url: session.url });
     } catch (err) {
@@ -276,6 +324,7 @@ exports.createCheckoutSession = onRequest(
     }
   }
 );
+
 
 // ===== 3) Webhook Stripe (email + estado) =====
 exports.stripeWebhook = onRequest(

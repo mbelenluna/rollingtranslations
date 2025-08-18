@@ -41,6 +41,7 @@ const CURRENCY = "usd";
 
 // ------- DOM -------
 const $ = (s)=>document.querySelector(s);
+const $fullName = document.querySelector("#fullName");
 const $form = $("#quoteForm");
 const $email = $("#email");
 const $source = $("#sourceLang");
@@ -412,6 +413,7 @@ async function startPayment(){
   if (!(words>0 && lastQuoteCents>0)) { alert("Generate your quote first."); return; }
   const email = ($email?.value || "").trim(); if (!email){ alert("We need an email for the receipt."); return; }
 
+  const fullName = ($fullName?.value || "").trim();
   const rTok = rushToken();
   const certified = readBoolFlexible($certified);
   const subject = ($subject?.value || "").toLowerCase();
@@ -419,14 +421,13 @@ async function startPayment(){
   const targets = Array.from(selectedTargets);
   const pairs = targets.map(tgt => ({ sourceLang, targetLang: tgt }));
 
-  const reqId = requestId(); // usar el mismo en URLs y body
-  // Base = carpeta actual (…/rolling-professional/)
+  const reqId = requestId();
+
+  // mismo cálculo de URLs que ya veníamos usando
   const basePath = (() => {
     try { return new URL('.', location.href).href; }
     catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); }
   })();
-
-  // Forzamos las URLs de retorno a tu carpeta Firebase
   const successUrl = `${basePath}success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
   const cancelUrl  = `${basePath}cancel.html?requestId=${encodeURIComponent(reqId)}`;
 
@@ -441,35 +442,32 @@ async function startPayment(){
 
   const $pay = document.querySelector("#btnPayQuote");
   if ($pay){ $pay.disabled = true; $pay.textContent = "Creating payment session…"; }
-
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({
         requestId: reqId,
         email,
+        fullName,                 // 👈 ahora mandamos el nombre
         description: desc,
         totalWords: words,
         rush: rTok,
         certified: String(certified),
         subject,
-        pairs,
-        // 👇 obligamos a Stripe a volver a tus páginas
-        successUrl,
+        pairs,                    // multi-target
+        successUrl,               // 👈 forzamos rutas propias
         cancelUrl
       })
     });
-    const raw = await r.text().catch(()=> ""); 
-    if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
-    const data = JSON.parse(raw);
-    if (data?.url) location.href = data.url; else throw new Error("No URL from server");
+    const raw = await r.text().catch(()=> ""); if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
+    const data = JSON.parse(raw); if (data?.url) location.href = data.url; else throw new Error("No URL from server");
   } catch(e){
     alert("We couldn't start the payment. Please try again.");
   } finally {
     if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; }
   }
 }
+
 
 // ------- File UI (persistente + quitar) -------
 function renderFileList(){
