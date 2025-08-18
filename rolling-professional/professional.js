@@ -14,7 +14,15 @@ function log(...a){ if(DEBUG) console.log('[RT '+ts()+']',...a); }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInAnonymously,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js";
@@ -31,6 +39,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+(async () => {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch {
+    try {
+      await setPersistence(auth, browserSessionPersistence);
+    } catch {
+      await setPersistence(auth, inMemoryPersistence);
+    }
+  }
+})();
+
 const db = getFirestore(app);
 const storage = getStorage(app);
 let currentUser = null;
@@ -368,20 +389,28 @@ async function uploadAndQuote(file, uid){
   const q = await getQuoteForGsPath(relPath, uid);
   return { name:file.name, gsPath: relPath, words: q.words|0 };
 }
-async function ensureAuth(email){
+async function ensureAuth(_email){
+  // Si ya hay sesión, listo
   if (currentUser) return currentUser;
-  const e = String(email||"").trim();
-  if (e){
+
+  // Sesión anónima siempre (robusta frente a bloqueos/restricciones)
+  try {
+    const anon = await signInAnonymously(auth);
+    currentUser = anon.user;
+    return currentUser;
+  } catch (e) {
+    // Si por alguna razón falla, reintentamos una vez (por si la persistencia cayó a inMemory)
     try {
-      const cred = await signInWithEmailAndPassword(auth, e, "placeholder-password"); return cred.user;
-    } catch (err1){
-      if (err1?.code === 'auth/user-not-found' || err1?.code === 'auth/wrong-password'){
-        const cred2 = await createUserWithEmailAndPassword(auth, e, "placeholder-password"); return cred2.user;
-      }
-      throw err1;
+      const anon2 = await signInAnonymously(auth);
+      currentUser = anon2.user;
+      return currentUser;
+    } catch (e2) {
+      // Como último recurso, seguimos sin auth (el upload fallará y mostraremos error amigable)
+      return null;
     }
-  } else { const anon = await signInAnonymously(auth); return anon.user; }
+  }
 }
+
 async function previewQuote(){
   if (selectedTargets.size === 0) { alert("Please add at least one target language."); return; }
   if (!allPairsSupported()){ alert("We don't support the language pair you selected. We apologize for the inconvenience."); return; }
