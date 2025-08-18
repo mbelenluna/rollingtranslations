@@ -397,6 +397,17 @@ async function startPayment(){
   const targets = Array.from(selectedTargets);
   const pairs = targets.map(tgt => ({ sourceLang, targetLang: tgt }));
 
+  const reqId = requestId(); // usar el mismo en URLs y body
+  // Base = carpeta actual (…/rolling-professional/)
+  const basePath = (() => {
+    try { return new URL('.', location.href).href; }
+    catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); }
+  })();
+
+  // Forzamos las URLs de retorno a tu carpeta Firebase
+  const successUrl = `${basePath}success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
+  const cancelUrl  = `${basePath}cancel.html?requestId=${encodeURIComponent(reqId)}`;
+
   const desc = [
     "Professional translation",
     `${sourceLang||"-"}→${targets.join('/')||"-"}`,
@@ -408,18 +419,34 @@ async function startPayment(){
 
   const $pay = document.querySelector("#btnPayQuote");
   if ($pay){ $pay.disabled = true; $pay.textContent = "Creating payment session…"; }
+
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
-      method:"POST", headers:{ "Content-Type":"application/json" },
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({
-        requestId: requestId(), email, description: desc, totalWords: words,
-        rush: rTok, certified: String(certified), subject, pairs
+        requestId: reqId,
+        email,
+        description: desc,
+        totalWords: words,
+        rush: rTok,
+        certified: String(certified),
+        subject,
+        pairs,
+        // 👇 obligamos a Stripe a volver a tus páginas
+        successUrl,
+        cancelUrl
       })
     });
-    const raw = await r.text().catch(()=> ""); if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
-    const data = JSON.parse(raw); if (data?.url) location.href = data.url; else throw new Error("No URL from server");
-  } catch(e){ alert("We couldn't start the payment. Please try again."); }
-  finally { if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; } }
+    const raw = await r.text().catch(()=> ""); 
+    if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
+    const data = JSON.parse(raw);
+    if (data?.url) location.href = data.url; else throw new Error("No URL from server");
+  } catch(e){
+    alert("We couldn't start the payment. Please try again.");
+  } finally {
+    if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; }
+  }
 }
 
 // ------- File UI (persistente + quitar) -------
