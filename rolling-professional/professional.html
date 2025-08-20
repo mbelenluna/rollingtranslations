@@ -1,39 +1,395 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Rolling Translations — Professional Services (Instant Quote)</title>
-  <meta name="description" content="Instant quote & checkout — choose language pair, subject, turnaround and pay securely." />
+  <meta name="description"
+    content="Instant quote & checkout — choose language pair, subject, turnaround and pay securely." />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <meta http-equiv="Permissions-Policy" content="payment=(self)">
   <style>
-    :root { --brand:#0ea5e9; --brand-dark:#0284c7; --ink:#0f172a; }
-    body { font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--ink) }
-    .field label { font-weight:600; font-size:.9rem }
-    .field input, .field select, .field textarea {
-      width: 100%;
-      border:1px solid #e5e7eb; border-radius:.75rem; padding:.7rem .9rem; outline: none;
+    :root {
+      --brand: #0ea5e9;
+      --brand-dark: #0284c7;
+      --ink: #0f172a;
     }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color:#93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,.1) }
-    .muted { color:#6b7280; font-size:.9rem }
+
+    body {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink)
+    }
+
+    .field label {
+      font-weight: 600;
+      font-size: .9rem
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid #e5e7eb;
+      border-radius: .75rem;
+      padding: .7rem .9rem;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: .9rem
+    }
   </style>
 </head>
+
 <body class="bg-gray-50">
-  <header class="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-3">
-      <img src="../images/logo-small.png" alt="Rolling Translations Logo">
-      <span class="text-xl font-extrabold tracking-tight">Rolling Translations</span>
-    </a>
+
+  <header class="rt-nav" id="site-header">
+    <style>
+      /* ====== Rolling Translations — Navbar ====== */
+      .rt-nav {
+        --nav-bg: fffff;
+        --nav-bg-scrolled: rgba(246, 247, 248, 0.897);
+        --border: rgba(255, 255, 255, .12);
+        --text: black;
+        --muted: #a8b3cf;
+        --accent1: #8aa4ff;
+        --accent2: #78ffd6;
+        --logo-h: 36px;
+        /* ⬅️ altura del logo */
+        position: sticky;
+        top: 0;
+        z-index: 60;
+        color: var(--text);
+        backdrop-filter: saturate(130%) blur(10px);
+      }
+
+      .rt-nav__bar {
+        width: min(100%);
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: var(--nav-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 10px 14px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        transition: background .25s, box-shadow .25s, border-color .25s, transform .25s;
+      }
+
+      .rt-nav.scrolled .rt-nav__bar {
+        background: var(--nav-bg-scrolled);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      }
+
+      /* Logo (nombre nuevo para evitar conflictos con .logo global) */
+      .rt-nav__logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+
+      .rt-nav__logo .rt-logo {
+        height: var(--logo-h);
+        width: auto;
+        max-height: var(--logo-h);
+        display: block;
+        object-fit: contain;
+        padding-left: 3rem;
+      }
+
+      /* Menú desktop */
+      .rt-nav__menu {
+        display: block;
+      }
+
+      .rt-nav__list {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .rt-nav__list a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 600;
+        letter-spacing: .2px;
+        transition: background .2s, color .2s, transform .2s;
+      }
+
+      .rt-nav__list a:hover {
+        background: rgba(255, 255, 255, .06);
+        transform: translateY(-1px);
+      }
+
+      .rt-nav__list .active-menu-item a {
+        background: linear-gradient(90deg, #ffffff12, #ffffff06);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+      }
+
+      /* CTA WhatsApp */
+      .rt-nav__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        background: linear-gradient(135deg, var(--accent1), var(--accent2));
+        color: #0b1320;
+        font-weight: 800;
+        box-shadow: 0 6px 18px rgba(120, 255, 214, .25);
+        transition: transform .15s, box-shadow .15s, background-color .15s, color .15s;
+      }
+
+      .rt-nav__cta:hover,
+      .rt-nav__cta:focus-visible {
+        background: #000 !important;
+        /* evita que alguna regla la vuelva blanca */
+        color: #fff !important;
+        /* contraste legible sobre fondo negro */
+        transform: translateY(-1px);
+        box-shadow: 0 10px 26px rgba(120, 255, 214, .35);
+      }
+
+
+      .rt-nav__cta img {
+        height: 18px;
+        width: auto;
+      }
+
+      /* Hamburguesa */
+      .rt-nav__hamburger {
+        display: none;
+        appearance: none;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+      }
+
+      .rt-nav__hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: var(--text);
+        border-radius: 2px;
+        position: relative;
+        transition: transform .25s, opacity .25s;
+      }
+
+      .rt-nav__hamburger span::before,
+      .rt-nav__hamburger span::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 22px;
+        height: 2px;
+        background: inherit;
+        border-radius: 2px;
+        transition: inherit;
+      }
+
+      .rt-nav__hamburger span::before {
+        top: -6px;
+      }
+
+      .rt-nav__hamburger span::after {
+        top: 6px;
+      }
+
+      .rt-nav__hamburger[aria-expanded="true"] span {
+        transform: rotate(45deg);
+      }
+
+      .rt-nav__hamburger[aria-expanded="true"] span::before {
+        transform: rotate(90deg);
+        top: 0;
+      }
+
+      .rt-nav__hamburger[aria-expanded="true"] span::after {
+        opacity: 0;
+        transform: translateX(-6px);
+      }
+
+      /* Drawer móvil */
+      .rt-nav__mobile {
+        position: fixed;
+
+
+        transform: translateY(-100%);
+        background: rgba(6, 10, 16, .75);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+        padding: 84px 24px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: transform .28s;
+
+        position: fixed;
+        inset: 0;
+        transform: translateY(-100%);
+        z-index: 1000;
+      }
+
+      .rt-nav__mobile.is-open {
+        transform: translateY(0);
+      }
+
+      .rt-nav__mobile-link,
+      .rt-nav__mobile-cta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 12px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        letter-spacing: .2px;
+        color: var(--text);
+        background: rgba(255, 255, 255, .06);
+        border: 1px solid rgba(255, 255, 255, .08);
+      }
+
+      .rt-nav__mobile-cta {
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent1), var(--accent2));
+        color: #0b1320;
+        border-color: transparent;
+        margin-top: 6px;
+      }
+
+      /* Responsive */
+      @media (max-width:900px) {
+        .rt-nav__list {
+          display: none;
+        }
+
+        .rt-nav__hamburger {
+          display: inline-flex;
+          z-index: 1001;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+
+        .rt-nav__bar,
+        .rt-nav__hamburger span,
+        .rt-nav__mobile {
+          transition: none !important;
+          position: fixed;
+          inset: 0;
+          transform: translateY(-100%);
+          z-index: 1000;
+        }
+      }
+    </style>
+
+    <div class="rt-nav__bar">
+      <a class="rt-nav__logo" href="index.html" aria-label="Rolling Translations Home">
+        <img class="rt-logo" src="../images/logo.png" alt="Rolling Translations Logo">
+      </a>
+
+      <nav class="rt-nav__menu" aria-label="Main">
+        <ul class="rt-nav__list" id="menu-items">
+          <li class="active-menu-item"><a href="../index.html">Home</a></li>
+          <li class="items"><a href="../index.html">Instant Quote</a></li>
+          <li class="items"><a href="../pages/services.html">Services</a></li>
+          <li class="items"><a href="../pages/about.html">About</a></li>
+          <li class="items"><a href="../pages/blog.html">Blog</a></li>
+          <li class="items"><a href="../index.html#cta">Contact</a></li>
+          <li class="contact-menu-item">
+            <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
+              <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+
+
   </header>
 
+
+  <!-- Mobile drawer -->
+  <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
+    <a class="rt-nav__mobile-link" href="../index.html">Home</a>
+    <a class="rt-nav__mobile-link" href="../pages/services.html">Services</a>
+    <a class="rt-nav__mobile-link" href="../index.html">Instant Quote</a>
+    <a class="rt-nav__mobile-link" href="../pages/about.html">About</a>
+    <a class="rt-nav__mobile-link" href="../pages/blog.html">Blog</a>
+    <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+    <a class="rt-nav__mobile-cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
+      <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+    </a>
+  </nav>
+
+  <script>
+    const header = document.getElementById('site-header');
+    const navToggle = document.getElementById('navToggle');
+    const mobileNav = document.getElementById('mobileNav');
+
+    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 2);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    navToggle.addEventListener('click', () => {
+      const open = navToggle.getAttribute('aria-expanded') === 'true';
+      navToggle.setAttribute('aria-expanded', String(!open));
+      mobileNav.classList.toggle('is-open', !open);
+      document.body.classList.toggle('no-scroll', !open);
+    });
+
+    mobileNav.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        navToggle.setAttribute('aria-expanded', 'false');
+        mobileNav.classList.remove('is-open');
+        document.body.classList.remove('no-scroll');
+      });
+    });
+  </script>
+
+
+
   <main class="max-w-5xl mx-auto px-4 pb-24">
-    <h1 class="text-3xl font-extrabold tracking-tight">Instant Quote for Translation Services</h1>
-    <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay securely.</p>
+    <h1 class="text-3xl font-extrabold tracking-tight" id="instant-h1">Instant Quote for Translation Services</h1>
+    <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay
+      securely.</p>
 
     <form id="quoteForm" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       <div class="field">
@@ -211,7 +567,9 @@
         <label for="files">Upload files</label>
         <input id="files" type="file" multiple />
         <div id="fileList"></div>
-        <p class="muted mt-2">Note: If your file contains uneditable text, our tool will not be able to detect its word count. If you would like us to translate that content, please mention it in the notes above, and we will contact you to arrange an additional payment.</p>
+        <p class="muted mt-2">Note: If your file contains uneditable text, our tool will not be able to detect its word
+          count. If you would like us to translate that content, please mention it in the notes above, and we will
+          contact you to arrange an additional payment.</p>
       </div>
 
       <div class="md:col-span-2 flex gap-3">
@@ -226,8 +584,45 @@
     </section>
   </main>
 
+      <footer class="container">
+        <div id="logo-footer">
+            <img class="logo" src="../images/logo.png" alt="Logo" />
+            <p class="small-text">Copyright © 2023 Rolling Translations LLC. All rights reserved.</p>
+            <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming and
+                California.</p>
+            <a href="https://www.linkedin.com/company/rolling-translations/"><img class="socialmedia"
+                    src="../images/icons8-linkedin-30.png" alt="LinkedIn account" /></a>
+            <a href="https://www.instagram.com/rollingtranslations/"><img class="socialmedia"
+                    src="../images/icons8-instagram-50.png" alt="Instagram account" /></a>
+            <a href="https://www.facebook.com/rollingtranslations"><img class="socialmedia"
+                    src="../images/facebook-circle.svg" alt="Facebook account" /></a>
+        </div>
+        <div id="info">
+            <ul>
+                <li>
+                    <img src="../images/icons8-address-50.png" alt="address" />1317
+                    Edgewater Dr Suite 1064, Orlando, FL 32804
+                </li>
+                <li><img src="../images/icons8-phone-50.png" alt="phone">+1 (407) 610-7310</li>
+                <li>
+                    <img src="../images/icons8-email-50.png" alt="email" />info@rolling-translations.com
+                </li>
+            </ul>
+        </div>
+        <div class="footer-navigation">
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="services.html">Our Services</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="#cta">Contact</a></li>
+                <li><a href="privacypolicy.html">Privacy Policy</a></li>
+            </ul>
+        </div>
+    </footer>
+
 
   <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
-<script type="module" src="professional.js?v=6e"></script>  
+  <script type="module" src="professional.js?v=6e"></script>
 </body>
+
 </html>

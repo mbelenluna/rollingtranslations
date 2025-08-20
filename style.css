@@ -3612,3 +3612,7 @@ img.logo {
     opacity: 1;
     pointer-events: auto;
 }
+
+#instant-h1 {
+    padding-top: 3rem;
+}
