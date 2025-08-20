@@ -700,3 +700,29 @@ exports.diag = onRequest(
     }
   }
 );
+
+const fetch = require('node-fetch');
+
+// This function acts as a proxy to serve professional.html with the correct headers
+exports.professionalHtmlProxy = onRequest(async (req, res) => {
+  try {
+    // Replace the URL below with your exact GitHub Pages URL for professional.html
+    const githubPagesUrl = 'https://rolling-translations.com/rolling-professional/professional.html';
+
+    const response = await fetch(githubPagesUrl);
+    
+    if (!response.ok) {
+      return res.status(response.status).send('Failed to fetch HTML from GitHub Pages');
+    }
+
+    const htmlContent = await response.text();
+
+    res.set('Content-Type', 'text/html');
+    res.set('Permissions-Policy', 'payment=(self)');
+    res.status(200).send(htmlContent);
+    
+  } catch (error) {
+    console.error('Proxy error:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
