@@ -628,7 +628,6 @@ exports.emailOnRequestCreated = onDocumentCreated(
         <tr><td style="padding:6px 0;color:#64748b">Order ID</td><td style="padding:6px 0"><b>${requestId}</b></td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Languages</td><td style="padding:6px 0">${pairsList}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Total words</td><td style="padding:6px 0">${totalWords || "—"}</td></tr>
-        <tr><td style="padding:6px 0;color:#64748b">Rate</td><td style="padding:6px 0">${rateStr}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Estimate</td><td style="padding:6px 0"><b>${amountStr}</b></td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Turnaround</td><td style="padding:6px 0">${turnaround}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b">Certification</td><td style="padding:6px 0">${certified}</td></tr>

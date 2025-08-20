@@ -69,7 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // emailjs must already be loaded on the page and initialized.
       emailjs.send('service_4thavy7', 'template_bfqz58e', payload)
         .then(() => {
-          window.location.href = 'success.html';
+          const successPath = window.location.pathname.includes('/pages/')
+            ? '../success.html'
+            : 'success.html';
+
+          window.location.href = successPath;
         })
         .catch((err) => {
           console.error('EmailJS error:', err);
