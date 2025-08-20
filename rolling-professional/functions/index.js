@@ -649,7 +649,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
 
       const htmlInternal = `
         <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter;">
-          <h3 style="margin:0 0 10px 0;">New crowdsourcing request</h3>
+          <h3 style="margin:0 0 10px 0;">New translation request</h3>
           <table style="border-collapse:collapse;width:100%;max-width:560px">
             <tr><td style="padding:6px 0;color:#64748b">Client</td><td style="padding:6px 0">${clientName} &lt;${clientEmail || "—"}&gt;</td></tr>
             ${tableRowsCommon}
@@ -672,7 +672,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
       messages.push({
         to: "info@rolling-translations.com",
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-        subject: `New crowdsourcing request — ${requestId}`,
+        subject: `New translation request — ${requestId}`,
         html: htmlInternal,
       });
 
