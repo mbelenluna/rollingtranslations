@@ -454,8 +454,8 @@ async function startPayment(){
 
   const reqId = requestId();
   const basePath = (() => { try { return new URL('.', location.href).href; } catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); } })();
-  const successUrl = `${basePath}success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
-  const cancelUrl  = `${basePath}cancel.html?requestId=${encodeURIComponent(reqId)}`;
+  const successUrl = `https://us-central1-rolling-crowdsourcing.cloudfunctions.net/professionalHtmlProxy?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
+  const cancelUrl  = `https://us-central1-rolling-crowdsourcing.cloudfunctions.net/professionalHtmlProxy?canceled=1&requestId=${encodeURIComponent(reqId)}`;
 
   const desc = [
     "Professional translation",
