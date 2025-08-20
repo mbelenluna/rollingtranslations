@@ -1,60 +1,28 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Rolling Translations — Professional Services (Instant Quote)</title>
-  <meta name="description"
-    content="Instant quote & checkout — choose language pair, subject, turnaround and pay securely." />
+  <meta name="description" content="Instant quote & checkout — choose language pair, subject, turnaround and pay securely." />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <meta http-equiv="Permissions-Policy" content="payment=(self)">
   <style>
-    :root {
-      --brand: #0ea5e9;
-      --brand-dark: #0284c7;
-      --ink: #0f172a;
-    }
-
-    body {
-      font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: var(--ink)
-    }
-
-    .field label {
-      font-weight: 600;
-      font-size: .9rem
-    }
-
-    .field input,
-    .field select,
-    .field textarea {
+    :root { --brand:#0ea5e9; --brand-dark:#0284c7; --ink:#0f172a; }
+    body { font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: var(--ink) }
+    .field label { font-weight:600; font-size:.9rem }
+    .field input, .field select, .field textarea {
       width: 100%;
-      border: 1px solid #e5e7eb;
-      border-radius: .75rem;
-      padding: .7rem .9rem;
-      outline: none;
+      border:1px solid #e5e7eb; border-radius:.75rem; padding:.7rem .9rem; outline: none;
     }
-
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
-      border-color: #93c5fd;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
-    }
-
-    .muted {
-      color: #6b7280;
-      font-size: .9rem
-    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:#93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,.1) }
+    .muted { color:#6b7280; font-size:.9rem }
   </style>
 </head>
-
 <body class="bg-gray-50">
   <header class="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
     <a href="/" class="flex items-center gap-3">
@@ -65,8 +33,7 @@
 
   <main class="max-w-5xl mx-auto px-4 pb-24">
     <h1 class="text-3xl font-extrabold tracking-tight">Instant Quote for Translation Services</h1>
-    <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay
-      securely.</p>
+    <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay securely.</p>
 
     <form id="quoteForm" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       <div class="field">
@@ -244,9 +211,7 @@
         <label for="files">Upload files</label>
         <input id="files" type="file" multiple />
         <div id="fileList"></div>
-        <p class="muted mt-2">Note: If your file contains uneditable text, our tool will not be able to detect its word
-          count. If you would like us to translate that content, please mention it in the notes above, and we will
-          contact you to arrange an additional payment.</p>
+        <p class="muted mt-2">Note: If your file contains uneditable text, our tool will not be able to detect its word count. If you would like us to translate that content, please mention it in the notes above, and we will contact you to arrange an additional payment.</p>
       </div>
 
       <div class="md:col-span-2 flex gap-3">
@@ -263,7 +228,6 @@
 
 
   <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
-  <script type="module" src="professional.open-in-new-tab.js?v=1"></script>
+<script type="module" src="professional.js?v=6e"></script>  
 </body>
-
 </html>
