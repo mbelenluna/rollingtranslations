@@ -1,4 +1,4 @@
-// index.js — Pair-based pricing + multi-target checkout + full endpoints (v6d)
+// index.js — Pair-based pricing + multi-target checkout + full endpoints (v6d + logs)
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
@@ -220,6 +220,12 @@ exports.createCheckoutSession = onRequest(
       } = req.body || {};
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
+      logger.info("createCheckoutSession:start", {
+        requestId,
+        wordsClient: Number(totalWords || 0),
+        pairsCount: Array.isArray(pairs) ? pairs.length : ((sourceLang && targetLang) ? 1 : 0)
+      });
+
       // Preferimos server si ya existiera algo
       let wordsServer = Number(totalWords || 0);
       try {
@@ -233,6 +239,7 @@ exports.createCheckoutSession = onRequest(
 
       const { amountCents, unsupported } =
         computeAmountCentsMulti(wordsServer, rush, certified, subject, pairs, { sourceLang, targetLang });
+      logger.info("createCheckoutSession:amount", { requestId, amountCents, unsupported });
       if (unsupported) return res.status(400).json({ error: "Unsupported language pair(s)." });
       if (!(amountCents > 0)) return res.status(400).json({ error: "Invalid amount computed." });
 
@@ -300,9 +307,10 @@ exports.createCheckoutSession = onRequest(
         pairsSummary
       }, { merge: false });
 
+      logger.info("createCheckoutSession:ok", { requestId, sessionId: session.id });
       return res.json({ url: session.url });
     } catch (err) {
-      logger.error("createCheckoutSession error", err);
+      logger.error("createCheckoutSession error", err?.response?.body || err?.message || err);
       return res.status(500).json({ error: err?.message || "Server error" });
     }
   }
@@ -317,18 +325,31 @@ exports.stripeWebhook = onRequest(
     try {
       const stripeSecret = STRIPE_SECRET_KEY.value();
       const webhookSecret = STRIPE_WEBHOOK_SECRET.value();
-      if (!stripeSecret || !webhookSecret) return res.status(500).send("Secrets not configured");
+      if (!stripeSecret || !webhookSecret) {
+        logger.error("stripeWebhook: secrets missing", { hasStripe: !!stripeSecret, hasWebhook: !!webhookSecret });
+        return res.status(500).send("Secrets not configured");
+      }
 
       const stripe = new (require("stripe"))(stripeSecret, { apiVersion: "2024-06-20" });
       const sgMail = require("@sendgrid/mail");
       sgMail.setApiKey(SENDGRID_API_KEY.value());
 
+      logger.info("stripeWebhook: hit", {
+        hasSig: !!req.headers["stripe-signature"],
+        rawLen: req.rawBody ? req.rawBody.length : null
+      });
+
       const sig = req.headers["stripe-signature"];
       let event;
       try {
         event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+        logger.info("stripeWebhook: event parsed", {
+          id: event.id, type: event.type, livemode: event.livemode
+        });
       } catch (err) {
-        logger.error("Webhook verification failed", err);
+        logger.error("stripeWebhook: constructEvent failed", {
+          message: err.message, stack: err.stack, rawType: typeof req.rawBody
+        });
         return res.status(400).send(`Webhook Error: ${err.message}`);
       }
 
@@ -337,7 +358,6 @@ exports.stripeWebhook = onRequest(
         const amountTotal = typeof sessionLike?.amount_total === "number" ? (sessionLike.amount_total / 100) : null;
         const paymentIntentId = sessionLike?.payment_intent || null;
 
-        // Cargamos doc
         const docRef = admin.firestore().collection("crowdRequests").doc(requestId || "unknown");
         let docData = {};
         if (requestId) {
@@ -345,13 +365,11 @@ exports.stripeWebhook = onRequest(
           if (snap.exists) docData = snap.data() || {};
         }
 
-        // ⚠️ Deduplicación: si ya lo enviamos, salimos
         if (docData.confirmationEmailSentAt) {
-          logger.info("Confirmation already sent, skipping", { requestId, eventId });
-          return; // no reenviar
+          logger.info("sendConfirmation: already sent, skipping", { requestId, eventId });
+          return;
         }
 
-        // Campos para el mail
         const clientEmail = docData.email || sessionLike?.customer_details?.email || "";
         const clientName  = docData.fullName || docData.fullname || "Client";
         const totalWords  = Number(docData.totalWords ?? sessionLike?.metadata?.totalWords ?? 0);
@@ -391,7 +409,6 @@ exports.stripeWebhook = onRequest(
           </div>
         `;
 
-        // Enviar (cliente + copia interna)
         const msgs = [];
         if (clientEmail) msgs.push({
           to: clientEmail,
@@ -405,9 +422,18 @@ exports.stripeWebhook = onRequest(
           subject: `New paid order — ${requestId || sessionLike.id}`,
           html
         });
-        if (msgs.length) await sgMail.send(msgs);
 
-        // Marcar como pagado + confirmar que YA se envió (idempotencia a futuro)
+        logger.info("sendConfirmation:sending", {
+          toClient: !!clientEmail, toInternal: true, amountTotal, paymentIntentId, requestId
+        });
+        try {
+          if (msgs.length) await sgMail.send(msgs);
+          logger.info("sendConfirmation:sendgrid success", { count: msgs.length, requestId });
+        } catch (e) {
+          logger.error("sendConfirmation:sendgrid error", e?.response?.body || e?.message || e);
+          throw e;
+        }
+
         if (requestId) {
           await docRef.set({
             status: "paid",
@@ -418,17 +444,25 @@ exports.stripeWebhook = onRequest(
             confirmationEmailSessionId: sessionLike.id || null,
             confirmationEmailEventId: eventId || null
           }, { merge: true });
+          logger.info("sendConfirmation:firestore updated", { requestId, eventId });
         }
       };
 
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
+        logger.info("stripeWebhook:event checkout.session.completed", {
+          sessionId: session.id,
+          email: session.customer_details?.email || null,
+          requestId: session.metadata?.requestId || null
+        });
         await sendConfirmation(session, event.id);
+      } else {
+        logger.info("stripeWebhook:ignored event", { type: event.type });
       }
 
       res.json({ received: true });
     } catch (err) {
-      logger.error("stripeWebhook error", err);
+      logger.error("stripeWebhook error", err?.response?.body || err?.message || err);
       return res.status(500).send("Webhook handler error");
     }
   }
@@ -448,6 +482,7 @@ exports.resendConfirmation = onRequest(
 
       const sessionId = req.query.sessionId || req.body?.sessionId;
       const requestIdQ = req.query.requestId || req.body?.requestId;
+      logger.info("resendConfirmation:hit", { sessionId: !!sessionId, requestId: requestIdQ || null });
       if (!sessionId && !requestIdQ) return res.status(400).send("Missing sessionId or requestId");
 
       let session = null;
@@ -466,14 +501,17 @@ exports.resendConfirmation = onRequest(
         if (snap.exists) docData = snap.data() || {};
       }
 
-      // Si ya se envió, no reenviamos
       if (docData.confirmationEmailSentAt) {
+        logger.info("resendConfirmation:already sent", { requestId });
         return res.status(200).json({ ok: true, alreadySent: true });
       }
 
       const paid = session ? (session.payment_status === "paid" || session.status === "complete")
                            : (docData?.status === "paid");
-      if (!paid) return res.status(400).send("Not paid yet");
+      if (!paid) {
+        logger.warn("resendConfirmation:not paid", { requestId, sessionId: session?.id || null });
+        return res.status(400).send("Not paid yet");
+      }
 
       const clientEmail = docData.email || session?.customer_details?.email || "";
       const clientName  = docData.fullName || docData.fullname || "Client";
@@ -527,7 +565,15 @@ exports.resendConfirmation = onRequest(
         subject: `Re-send paid order — ${requestId || sessionId}`,
         html
       });
-      if (msgs.length) await sgMail.send(msgs);
+
+      logger.info("resendConfirmation:sending", { toClient: !!clientEmail, toInternal: true, requestId, sessionId: session?.id || null });
+      try {
+        if (msgs.length) await sgMail.send(msgs);
+        logger.info("resendConfirmation:sendgrid success", { count: msgs.length, requestId });
+      } catch (e) {
+        logger.error("resendConfirmation:sendgrid error", e?.response?.body || e?.message || e);
+        throw e;
+      }
 
       if (docRef) {
         await docRef.set({
@@ -537,16 +583,16 @@ exports.resendConfirmation = onRequest(
           confirmationEmailSentAt: admin.firestore.FieldValue.serverTimestamp(),
           confirmationEmailSessionId: session?.id || null,
         }, { merge: true });
+        logger.info("resendConfirmation:firestore updated", { requestId });
       }
 
       return res.json({ ok: true });
     } catch (err) {
-      console.error("resendConfirmation error", err?.response?.body || err?.message || err);
+      logger.error("resendConfirmation error", err?.response?.body || err?.message || err);
       return res.status(500).send("Error resending");
     }
   }
 );
-
 
 
 // ===== 4) Email on new request =====
@@ -570,7 +616,6 @@ exports.emailOnRequestCreated = onDocumentCreated(
       const subject     = String(data.subject || "general");
       const notes       = (data.notes && String(data.notes).trim()) ? String(data.notes).trim() : null;
 
-      // Pairs list (soporta multi-target)
       const pairsList = Array.isArray(data.pairs) && data.pairs.length
         ? data.pairs.map(p => `${p.sourceLang} → ${p.targetLang}`).join("<br>")
         : `${data.sourceLang || "—"} → ${data.targetLang || "—"}`;
@@ -632,9 +677,26 @@ exports.emailOnRequestCreated = onDocumentCreated(
       });
 
       if (messages.length) await sgMail.send(messages);
-      logger.info("Emails sent for new request", { requestId });
+      logger.info("emailOnRequestCreated:sent", { requestId, toClient: !!clientEmail });
     } catch (err) {
       logger.error("emailOnRequestCreated error", err?.response?.body || err?.message || err);
+    }
+  }
+);
+
+// ===== 5) (Opcional) Diagnóstico de secrets — bórralo luego =====
+exports.diag = onRequest(
+  { region: "us-central1", secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SENDGRID_API_KEY] },
+  async (_req, res) => {
+    try {
+      res.json({
+        ok: true,
+        hasStripe: !!STRIPE_SECRET_KEY.value(),
+        hasWebhook: !!STRIPE_WEBHOOK_SECRET.value(),
+        hasSendgrid: !!SENDGRID_API_KEY.value()
+      });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e?.message || String(e) });
     }
   }
 );
