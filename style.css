@@ -31,7 +31,6 @@ strong {
 
 body {
     font-family: inter-regular;
-    padding-top: 100px;
     overscroll-behavior: none;
     width: 100%;
 }
@@ -71,6 +70,123 @@ h4 {
 
 /* Header */
 
+#hero.has-embed {
+    height: auto !important;
+    /* sobreescribe altura fija anterior */
+    background: linear-gradient(to bottom, #d1e2f3, white);
+    padding: 4rem 0 3rem 0;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    /* copy a la izquierda, tool a la derecha */
+    gap: 2rem;
+    align-items: start;
+}
+
+.hero-title {
+    font-size: 56px;
+    line-height: 1.1;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.hero-lead {
+    font-size: 20px;
+    margin-bottom: 1rem;
+    color: #000000;
+}
+
+.pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0 1.25rem 0;
+}
+
+.pill {
+    background: #e8f1fb;
+    color: #235789;
+    border: 1px solid #cde3ff;
+    border-radius: 999px;
+    padding: .35rem .75rem;
+    font-weight: 700;
+    font-size: .9rem;
+}
+
+
+
+.muted-mini {
+    color: #6b7280;
+    font-size: 14px;
+    margin-top: .75rem;
+}
+
+/* Contenedor del iframe (tarjeta) */
+.quote-embed {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 8px 30px rgba(17, 24, 39, 0.08);
+}
+
+.list-unstyled {
+    text-align: left;
+    display: inline-block;
+    margin: .75rem auto 0;
+}
+
+.centered-buttons {
+    text-align: left;
+    display: inline-block;
+    margin: .75rem auto 0;
+}
+
+.quote-embed iframe {
+    width: 100%;
+    min-height: 950px;
+    /* suficiente alto para el formulario */
+    border: 0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.quote-embed-fallback {
+    padding: 1rem;
+    text-align: center;
+}
+
+/* Botón principal (ya tenías .contact-button; se mantiene) */
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 992px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quote-embed iframe {
+        min-height: 1100px;
+        /* un poco más alto en móvil */
+    }
+}
+
+@media (max-width: 593px) {
+    #hero.has-embed {
+        padding: 1.5rem 0 1.5rem 0;
+    }
+
+    .hero-title {
+        font-size: 40px;
+    }
+
+    .hero-lead {
+        font-size: 18px;
+    }
+}
+
 .fixed-header {
     position: fixed;
     top: 0;
@@ -91,15 +207,23 @@ h4 {
     justify-content: space-around;
     align-items: center;
     padding: 1rem 0 0 0;
-
 }
 
+
+
+
+
 #menu-items {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    /* Esta propiedad centra los elementos verticalmente */
     list-style-type: none;
     font-family: inter-subtitles;
 }
+
+
+
 
 .whatsapp {
     width: 30px;
@@ -112,36 +236,30 @@ h4 {
 
 .active-menu-item {
     font-weight: 600;
-    border-bottom: solid #235789 2px;
     text-align: center;
 }
 
 .contact-menu-item {
     border: none;
     border-radius: 1rem;
-    background-color: #235789;
+
     color: white;
     text-align: center;
-    transition: background-color 0.5s ease;
+
 }
 
 body .fixed-header #menu-items .contact-menu-item a {
     color: white;
 }
 
-.contact-menu-item:hover {
-    background-color: #69b2fb;
-    border: none;
-}
+
 
 #menu-items li {
     margin: 0 0.25rem;
     padding: 1rem;
 }
 
-.items:hover {
-    border-bottom: solid #235789 2px;
-}
+
 
 .items {
     position: relative;
@@ -230,6 +348,8 @@ body .fixed-header #menu-items .contact-menu-item a {
     font-size: 25px;
     transition: background-color 0.5s ease;
 }
+
+
 
 .contact-button a {
     color: white;
@@ -446,7 +566,6 @@ h6 {
 .logos {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    padding-bottom: 3rem;
 }
 
 
@@ -580,17 +699,17 @@ h1 h2 h3 h4 h5 h6 {
 /* CTA */
 
 #cta {
-    background-image: url(./images/pexels-shawn-stutzman-1010496.jpg);
-    color: white;
-    padding: 5% 30% 5% 30%;
+    color: black;
+
+    background: linear-gradient(to bottom, #d1e2f3, white);
 }
 
 .cta-headline {
-    color: white;
+    color: black;
 }
 
 .cta h4 {
-    color: white !important;
+    color: black;
 }
 
 form {
@@ -618,7 +737,7 @@ textarea {
 
 .submit input {
     background-color: #235789;
-    color: white;
+    color: black;
     font-size: 16px;
 }
 
@@ -641,7 +760,7 @@ textarea {
 
 .cta-text {
     font-family: inter-regular;
-    color: white;
+    color: black;
     font-size: 16px;
 }
 
@@ -680,7 +799,7 @@ textarea {
 footer {
     display: grid;
     grid-template-areas: "logo info sitemap";
-    grid-template-columns: repeat(1fr);
+    grid-template-columns: repeat(1fr) !important;
     align-items: center;
     padding: 4rem 0 4rem 0;
     color: #000000;
@@ -709,7 +828,7 @@ footer {
 .footer-navigation {
     grid-area: sitemap;
     display: flex;
-    justify-content: center;
+    justify-content: left;
 }
 
 footer li a {
@@ -1347,17 +1466,6 @@ ul {
 
 /* Header */
 
-@media (min-width: 769px) {
-    .hamburger {
-        display: none;
-    }
-
-
-
-    .mobile-nav {
-        display: none;
-    }
-}
 
 @media (max-width: 768px) {
     #menu-items {
@@ -1399,99 +1507,23 @@ ul {
     /* Menu */
     /* Menu hamburger */
 
-    .hamburger {
-        position: relative;
-        display: block;
-        width: 70px;
-        cursor: pointer;
-        appearance: none;
-        background: none;
-        outline: none;
-        border: none;
-    }
 
-    .hamburger .bar,
-    .hamburger:after,
-    .hamburger:before {
-        content: "";
-        display: block;
-        width: 100%;
-        height: 5px;
-        background-color: black;
-        margin: 6px 0px;
-        transition: 0.4s;
-    }
 
-    .hamburger.is-active:before {
-        transform: translate(1px, 14px) rotate(-45deg);
-    }
 
-    .hamburger.is-active:after {
-        transform: translate(0px, -8px) rotate(45deg);
-    }
 
-    .hamburger.is-active .bar {
-        opacity: 0;
-    }
 
     .fixed-header {
         padding: 0;
     }
 
 
-    .mobile-nav {
-        position: fixed;
-        margin: 0;
-        top: 0;
-        left: 0;
-        width: 100%;
-        min-height: 100vh;
-        display: block;
-        z-index: 98;
-        background-color: white;
-        padding-top: 120px;
-        transition: 0.4s;
-        overflow-y: scroll;
-        -webkit-overflow-scrolling: touch;
-    }
 
 
 
-    .mobile-nav a {
-        display: block;
-        width: 100%;
-        max-width: 200px;
-        color: white;
-        margin: 0 auto 16px;
-        text-align: center;
-        padding: 12px 16px;
-        background-color: #235789;
-        color: white;
-    }
 
-    .mobile-nav #dropdown-menu-mobile a {
-        display: block;
-        width: 100%;
-        max-width: 200px;
-        color: white;
-        margin: 0 auto 16px;
-        text-align: center;
-        padding: 12px 16px;
-        background-color: black;
-        color: white;
-    }
 
-    .mobile-nav.is-active {
-        left: 0;
-    }
 
-    .mobile-nav {
-        transform: translateX(-100%);
-    }
 
-    .mobile-nav.is-active {
-        transform: translateX(0%);
-    }
 
     /* Home */
 
@@ -1659,7 +1691,7 @@ ul {
     #hero-about h1 {
         font-size: 38px;
     }
-    
+
 
     .image-container {
         display: none;
@@ -1903,11 +1935,6 @@ ul {
     }
 }
 
-@media (min-width: 769px) {
-    #cta {
-        padding: 5% 15%;
-    }
-}
 
 @media (min-width: 1448px) {
     #cta {
@@ -2716,3 +2743,872 @@ ul {
 
 }
 
+:root {
+    --brand: #235789;
+    --brand-400: #69b2fb;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --hairline: #e5e7eb;
+    /* color de la “línea” */
+    --radius: 14px;
+    --shadow-lg: 0 10px 30px rgba(17, 24, 39, .08);
+}
+
+/* ==== Separador minimalista entre secciones ==== */
+.section {
+    padding-block: clamp(2rem, 6vw, 4rem);
+    border-top: 1px solid var(--hairline);
+}
+
+/* ===== Botón primario (contact-button y submit) ===== */
+.contact-button,
+#submit-button {
+    --_bg1: var(--brand);
+    --_bg2: color-mix(in srgb, var(--brand), black 12%);
+    background: linear-gradient(180deg, var(--_bg1), var(--_bg2));
+    color: #fff !important;
+    border: 0;
+    border-radius: var(--radius);
+    padding: .75rem 1.1rem;
+    font-weight: 700;
+    letter-spacing: .2px;
+    box-shadow: 0 6px 18px rgba(35, 87, 137, .25);
+    transform: translateY(0);
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.contact-button:hover,
+#submit-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(35, 87, 137, .30);
+    background: linear-gradient(180deg, var(--_bg1), color-mix(in srgb, var(--brand), black 18%));
+}
+
+.contact-button:focus-visible,
+#submit-button:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--brand), white 60%);
+    outline-offset: 2px;
+}
+
+.contact-button:disabled,
+#submit-button:disabled {
+    opacity: .75;
+    filter: saturate(.6);
+    cursor: not-allowed;
+}
+
+/* ===== Botón outline (p.ej. .return de success page) ===== */
+.return {
+    padding: .65rem 1rem;
+    border: 1px solid var(--brand);
+    border-radius: var(--radius);
+    color: var(--brand);
+    background: #fff;
+    transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.return:hover {
+    background: var(--brand);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(35, 87, 137, .25);
+    transform: translateY(-1px);
+}
+
+/* ===================== */
+/* 1) Chat Now (en header) con look de botón */
+.contact-menu-item a {
+    --_bg1: var(--brand);
+    --_bg2: color-mix(in srgb, var(--brand), black 12%);
+    background: linear-gradient(180deg, var(--_bg1), var(--_bg2));
+    color: #fff !important;
+    border: 0;
+    border-radius: var(--radius);
+    padding: .6rem .9rem;
+    font-weight: 700;
+    letter-spacing: .2px;
+    box-shadow: 0 6px 18px rgba(35, 87, 137, .25);
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.contact-menu-item a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 26px rgba(35, 87, 137, .30);
+    background: linear-gradient(180deg, var(--_bg1), color-mix(in srgb, var(--brand), black 18%));
+}
+
+.contact-menu-item a .whatsapp {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
+/* ===================== */
+/* 2) Header moderno (sticky + blur + sombra on scroll) */
+.fixed-header {
+    position: sticky;
+    display: flex;
+    align-items: center;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: saturate(180%) blur(8px);
+    background: rgba(255, 255, 255, .72);
+    border-bottom: 1px solid var(--hairline);
+    transition: background .25s ease, box-shadow .25s ease, padding .25s ease;
+
+}
+
+/* ========== 2) Hero: centrar las “píldoras” ========== */
+/* Sólo centramos la fila de pills, sin afectar el resto del texto */
+#hero .hero-copy .pills {
+    justify-content: center;
+    /* de izquierda -> centrado */
+    text-align: center;
+    /* por si aparecen saltos de línea */
+}
+
+#hero .hero-copy {
+    /* opcional: que todo el bloque del hero respire mejor */
+    display: grid;
+    justify-items: start;
+}
+
+@media (max-width: 992px) {
+    #hero .hero-copy {
+        justify-items: center;
+        text-align: center;
+    }
+}
+
+.fixed-header.scrolled {
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 6px 24px rgba(17, 24, 39, .08);
+}
+
+/* navegación más limpia */
+#menu-items {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+}
+
+#menu-items li a {
+    position: relative;
+    padding: .4rem .6rem;
+    border-radius: 10px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+#menu-items li a::after {
+    content: "";
+    position: absolute;
+    left: .6rem;
+    right: .6rem;
+    bottom: .25rem;
+    height: 2px;
+    background: transparent;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .2s ease, background .2s ease;
+}
+
+#menu-items li a:hover::after {
+    background: var(--brand);
+    transform: scaleX(1);
+}
+
+.active-menu-item a {
+    color: var(--brand);
+}
+
+.active-menu-item a::after {
+    background: var(--brand);
+    transform: scaleX(1);
+}
+
+/* mobile-nav un toque más pulido */
+
+
+/* ===================== */
+/* 3) Footer moderno en grilla + iconos “pill” */
+
+
+footer.container {
+    position: relative;
+    border-top: 1px solid var(--hairline);
+    /* línea clara */
+    /* leve ‘tinte’ hacia arriba para separar del resto de la página */
+    background-image: linear-gradient(to bottom, rgba(17, 24, 39, .02), rgba(255, 255, 255, 0) 60%);
+}
+
+footer.container::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 10px;
+    pointer-events: none;
+    /* un “fade” muy sutil (de más oscuro a transparente) */
+    background: linear-gradient(to bottom, rgba(17, 24, 39, .10), rgba(17, 24, 39, 0));
+    opacity: .5;
+}
+
+@media (max-width:900px) {
+    footer.container {
+        grid-template-columns: 1fr;
+    }
+}
+
+#logo-footer .logo {
+    height: 48px;
+    margin-bottom: .75rem;
+}
+
+#logo-footer .small-text {
+    color: var(--muted);
+    margin: .25rem 0;
+}
+
+#info ul,
+.footer-navigation ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#info li,
+.footer-navigation li {
+    margin: .5rem 0;
+}
+
+#info li {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--muted);
+}
+
+#info li img {
+    width: 18px;
+    height: 18px;
+    opacity: .7;
+}
+
+.footer-navigation a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.footer-navigation a:hover {
+    color: var(--brand);
+    text-decoration: underline;
+}
+
+/* “píldoras” para redes (reutilizando lo que ya tenés) */
+#logo-footer a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-right: .4rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    transition: background .2s, box-shadow .2s, transform .15s;
+}
+
+#logo-footer a:hover {
+    background: #f6f9fe;
+    box-shadow: 0 6px 18px rgba(35, 87, 137, .12);
+    transform: translateY(-1px);
+}
+
+#logo-footer a img.socialmedia {
+    width: 18px;
+    height: 18px;
+    filter: grayscale(100%) contrast(110%);
+}
+
+#logo-header .logo {
+    display: inline-block;
+    height: auto !important;
+    /* respeta proporción */
+    width: auto !important;
+    max-height: 56px;
+    /* alto tope en header */
+    max-width: 100%;
+}
+
+#logo-footer .logo {
+    display: inline-block;
+    height: auto !important;
+    width: auto !important;
+    max-height: 52px;
+    /* un poco más chico en footer */
+    max-width: 100%;
+}
+
+/* Si algún estilo viejo fuerza width/height en .logo, lo neutralizamos */
+img.logo {
+    width: auto !important;
+    height: auto !important;
+}
+
+/* === 3) Icono de WhatsApp con proporción correcta === */
+.contact-menu-item a .whatsapp {
+    height: 18px;
+    /* controlás alto */
+    width: auto;
+    /* ancho se ajusta solo */
+    aspect-ratio: auto;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    filter: brightness(0) invert(1);
+    /* para que quede blanco sobre el botón */
+}
+
+footer,
+footer.container {
+    /* ocupar todo el ancho, incluso si tiene la clase .container de Bootstrap */
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+
+
+
+    /* paddings laterales sutiles */
+    padding: 4rem clamp(1rem, 4vw, 2rem);
+}
+
+
+
+/* Versión responsive: columnas apiladas en móvil */
+@media (max-width: 900px) {
+
+    footer,
+    footer.container {
+        grid-template-areas:
+            "logo"
+            "info"
+            "sitemap";
+        grid-template-columns: 1fr;
+    }
+}
+
+/* (opcional) remarcar el inicio del footer */
+footer {
+    border-top: 1px solid rgba(0, 0, 0, .08);
+    background-image: linear-gradient(to bottom, rgba(17, 24, 39, .02), rgba(255, 255, 255, 0) 60%);
+}
+
+/* ======= HAMBURGER ======= */
+.hamburger {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    flex-direction: column;
+    gap: 6px;
+}
+
+.hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #0f172a;
+    border-radius: 2px;
+    transition: transform .2s ease, opacity .2s ease, background .2s ease;
+}
+
+.hamburger span+span {
+    margin-top: 6px;
+}
+
+
+.hamburger span+span {
+    margin-top: 5px;
+}
+
+.hamburger.active span {
+    background: #235789;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ======= MOBILE NAV ======= */
+#mobileNav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 66px;
+    /* debajo del header */
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e5e7eb;
+    transform: translateY(-110%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .22s ease, opacity .22s ease;
+    z-index: 999;
+}
+
+#mobileNav.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#mobileNav a {
+    display: block;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Fondo clickeable para cerrar */
+.mobile-backdrop {
+    position: fixed;
+    background: rgba(15, 23, 42, .35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+    z-index: 998;
+}
+
+.mobile-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Bloquear scroll cuando el menú está abierto */
+body.menu-open {
+    overflow: hidden;
+}
+
+/* Asegurar que el header queda encima */
+.fixed-header {
+    z-index: 1000;
+}
+
+/* ====================== */
+/* CLEANUP + NAV MODERNO  */
+/* ====================== */
+
+/* 0) Limpieza global de estilos legacy del hamburger */
+
+/* 1) Header base bien alineado (si ya lo tenés, no pasa nada por repetir) */
+.fixed-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: clamp(.75rem, 2vw, 1.25rem);
+    backdrop-filter: saturate(180%) blur(8px);
+    background: rgba(255, 255, 255, .72);
+    border-bottom: 1px solid #e5e7eb;
+    padding: .6rem clamp(1rem, 4vw, 2rem);
+    transition: background .25s ease, box-shadow .25s ease, padding .25s ease;
+}
+
+.fixed-header.scrolled {
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 6px 24px rgba(17, 24, 39, .08);
+}
+
+#logo-header {
+    display: flex;
+    align-items: center;
+}
+
+#logo-header .logo {
+    display: block;
+    height: auto;
+    width: auto;
+    max-height: 56px;
+}
+
+/* 2) Menú de escritorio alineado */
+
+
+#menu-items li,
+#menu-items li a {
+    line-height: 1;
+}
+
+#menu-items li a {
+    padding: .5rem .6rem;
+}
+
+/* 3) Botón hamburger: 3 spans (no pseudo-elementos) */
+.hamburger {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: none;
+    /* por defecto escondido (solo móvil lo muestra) */
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+
+.hamburger span+span {
+    margin-top: 6px;
+}
+
+.hamburger.active span {
+    background: #235789;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* 4) Panel móvil moderno (#mobileNav) + backdrop */
+
+
+
+
+
+
+
+/* 6) Hero centrado (por si faltaba) */
+#hero .hero-copy {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+}
+
+#hero .hero-copy .pills {
+    justify-content: center;
+}
+
+#hero .hero-copy .list-unstyled {
+    margin: .75rem auto 0;
+    padding: 0;
+    display: inline-block;
+    text-align: left;
+}
+
+.centered-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .75rem;
+}
+
+.centered-buttons .contact-button,
+.centered-buttons .return {
+    margin: 0;
+}
+
+/* 7) Logos sin deformación */
+img.logo {
+    width: auto !important;
+    height: auto !important;
+}
+
+#logo-footer .logo {
+    max-height: 52px;
+    width: auto;
+    height: auto;
+}
+
+.contact-menu-item a .whatsapp {
+    height: 18px;
+    width: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    vertical-align: middle;
+    filter: brightness(0) invert(1);
+}
+
+/* ====================== */
+/* CLEANUP + NAV MODERNO  */
+/* ====================== */
+
+/* 0) Limpieza global de estilos legacy del hamburger */
+
+/* 1) Header base bien alineado (si ya lo tenés, no pasa nada por repetir) */
+.fixed-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: clamp(.75rem, 2vw, 1.25rem);
+    backdrop-filter: saturate(180%) blur(8px);
+    background: rgba(255, 255, 255, .72);
+    border-bottom: 1px solid #e5e7eb;
+    padding: .6rem clamp(1rem, 4vw, 2rem);
+    transition: background .25s ease, box-shadow .25s ease, padding .25s ease;
+}
+
+.fixed-header.scrolled {
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 6px 24px rgba(17, 24, 39, .08);
+}
+
+#logo-header {
+    display: flex;
+    align-items: center;
+}
+
+
+
+#logo-header .logo {
+    display: block;
+    height: auto;
+    width: auto;
+    max-height: 56px;
+}
+
+/* 2) Menú de escritorio alineado */
+#menu-items {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+#menu-items li,
+#menu-items li a {
+    line-height: 1;
+}
+
+#menu-items li a {
+    padding: .5rem .6rem;
+}
+
+/* 3) Botón hamburger: 3 spans (no pseudo-elementos) */
+.hamburger {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: none;
+    /* por defecto escondido (solo móvil lo muestra) */
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+
+.hamburger span+span {
+    margin-top: 6px;
+}
+
+.hamburger.active span {
+    background: #235789;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* 4) Panel móvil moderno (#mobileNav) + backdrop */
+
+
+
+
+
+
+/* 5) Breakpoints: mostrar/ocultar correctamente */
+@media (max-width: 811px) {
+
+    #menu-items,
+    .contact-menu-item {
+        display: none !important;
+    }
+
+    /* escondé menú desktop en móvil */
+    .hamburger {
+        display: inline-flex;
+    }
+
+    /* mostrás el botón */
+}
+
+@media (min-width: 811px) {
+    .hamburger {
+        display: none !important;
+    }
+
+    #menu-items {
+        display: flex !important;
+    }
+
+    #mobileNav {
+        transform: translateY(-110%) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    body.menu-open {
+        overflow: auto;
+    }
+}
+
+
+@media (min-width: 992.02px) {
+    .hamburger {
+        display: none !important;
+    }
+
+    /* en desktop, no mostrar el botón */
+
+}
+
+/* 6) Hero centrado (por si faltaba) */
+#hero .hero-copy {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+}
+
+#hero .hero-copy .pills {
+    justify-content: center;
+}
+
+#hero .hero-copy .list-unstyled {
+    margin: .75rem auto 0;
+    padding: 0;
+    display: inline-block;
+    text-align: left;
+}
+
+.centered-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .75rem;
+}
+
+.centered-buttons .contact-button,
+.centered-buttons .return {
+    margin: 0;
+}
+
+/* 7) Logos sin deformación */
+img.logo {
+    width: auto !important;
+    height: auto !important;
+}
+
+#logo-footer .logo {
+    max-height: 52px;
+    width: auto;
+    height: auto;
+}
+
+.contact-menu-item a .whatsapp {
+    height: 18px;
+    width: auto;
+    aspect-ratio: auto;
+    object-fit: contain;
+    vertical-align: middle;
+    filter: brightness(0) invert(1);
+}
+
+/* Logo sizes */
+.logo {
+    width: 120px;
+    height: auto;
+}
+
+@media (max-width: 575.98px) {
+    .logo {
+        width: 100px;
+    }
+}
+
+@media (min-width: 992px) {
+    .logo {
+        width: 140px;
+    }
+}
+
+
+
+@media (min-width: 576px) {
+    #menu-items a {
+        opacity: 1 !important;
+        color: #0f172a;
+    }
+}
+
+/* === Overrides: mobile drawer + scroll lock (2025-08-19) === */
+@media (max-width:900px) {
+    .rt-nav__hamburger {
+        display: inline-flex;
+    }
+
+    .rt-nav__list {
+        display: none;
+    }
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+
+
+#mobileNav.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
