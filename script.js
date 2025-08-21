@@ -1,6 +1,88 @@
 
 // Rolling Translations — site JS (safe, minimal)
 document.addEventListener('DOMContentLoaded', () => {
+  // ===== Cookie Banner + Google Consent Mode v2 =====
+  // Estado por defecto: denied (se eleva a granted al aceptar)
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+
+
+
+  (function initConsent() {
+    // Default (antes de cargar GTM)
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+
+    // Aplicar preferencia guardada
+    try {
+      const saved = JSON.parse(localStorage.getItem('rtConsent'));
+      if (saved && saved.applied) {
+        gtag('consent', 'update', saved.values);
+      } else {
+        const banner = document.getElementById('rt-cookie-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    } catch (_) { }
+  })();
+
+  function applyConsent(values) {
+    gtag('consent', 'update', values);
+    localStorage.setItem('rtConsent', JSON.stringify({ applied: true, values, ts: Date.now() }));
+    const banner = document.getElementById('rt-cookie-banner');
+    if (banner) banner.style.display = 'none';
+    gtag('event', 'cookie_consent_update', { consent_state: values });
+  }
+
+  const acceptBtn = document.getElementById('rt-consent-accept');
+  const rejectBtn = document.getElementById('rt-consent-reject');
+  if (acceptBtn) acceptBtn.addEventListener('click', () => {
+    applyConsent({
+      ad_storage: 'granted',
+      analytics_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted'
+    });
+  });
+  if (rejectBtn) rejectBtn.addEventListener('click', () => {
+    applyConsent({
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+  });
+
+  // Re-open the banner on demand
+  const openConsentLink = document.getElementById('rt-open-consent');
+  if (openConsentLink) {
+    openConsentLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      const banner = document.getElementById('rt-cookie-banner');
+      if (banner) banner.style.display = 'block';
+    });
+  }
+
+  // Optional: programmatic revoke (e.g., for a "Reject all" in a privacy page)
+  function rtRevokeConsent() {
+    const values = {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    };
+    // Update Consent Mode and persist
+    if (typeof gtag === 'function') gtag('consent', 'update', values);
+    localStorage.setItem('rtConsent', JSON.stringify({ applied: true, values, ts: Date.now() }));
+    // Show banner again if you want the user to reconsider
+    const banner = document.getElementById('rt-cookie-banner');
+    if (banner) banner.style.display = 'block';
+  }
+
+
   // ===== Header shadow on scroll (safe) =====
   const header = document.getElementById('site-header');
   if (header) {
@@ -88,3 +170,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
