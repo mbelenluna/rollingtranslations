@@ -4,6 +4,28 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+
+        // Create dataLayer and set default DENIED before any tags load
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('consent', 'default', {
+            ad_storage: 'denied',
+            analytics_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied'
+        });
+    </script>
+    <!-- Google Tag Manager -->
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+            var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
+    </script>
+    <!-- End Google Tag Manager -->
+
     <!-- Keep this page out of search results -->
     <meta name="robots" content="noindex, nofollow" />
     <title>Rolling Translations — Crowdsourced Translation (Fast & Affordable)</title>
@@ -214,7 +236,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="mt-2 text-sm text-gray-500">Confidential or regulated materials should be routed to <a
                     class="underline" href="/professional">Professional Services</a>.</div>
         </div>
@@ -281,7 +303,8 @@
                 <h3 class="font-semibold">What content is <em>not</em> allowed?</h3>
                 <p class="text-gray-700 mt-2">We do <span class="font-semibold">not</span> process medical, legal,
                     government/regulated, or highly confidential materials in the crowdsourced workflow. Please use our
-                    <a class="underline" href="/professional">Professional Services</a>.</p>
+                    <a class="underline" href="/professional">Professional Services</a>.
+                </p>
             </div>
             <div class="bg-white rounded-2xl shadow p-6">
                 <h3 class="font-semibold">How do you ensure quality?</h3>
@@ -375,27 +398,27 @@
     </style>
 </head>
 
-    <footer class="max-w-7xl mx-auto px-4 py-16 text-sm text-gray-500">
-        © <span id="y"></span> Rolling Translations. Crowdsourced Translation is a separate, opt‑in service. <a
-            class="underline" href="/professional">Professional Services</a> for regulated content.
-    </footer>
+<footer class="max-w-7xl mx-auto px-4 py-16 text-sm text-gray-500">
+    © <span id="y"></span> Rolling Translations. Crowdsourced Translation is a separate, opt‑in service. <a
+        class="underline" href="/professional">Professional Services</a> for regulated content.
+</footer>
 
-    <script>
-        document.getElementById('y').textContent = new Date().getFullYear()
-    </script>
+<script>
+    document.getElementById('y').textContent = new Date().getFullYear()
+</script>
 </body>
-        <div id="rt-cookie-banner"
-        style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e1117;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);">
-        <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-            <div style="flex:1;min-width:260px;">
-                We use cookies for analytics and advertising. See our
-                <a href="privacypolicy.html" style="color:#235789;text-decoration:underline;">Privacy Policy</a>.
-            </div>
-            <div style="display:flex;gap:8px;">
-                <button id="rt-consent-reject" class="btn btn-outline-light btn-sm">Reject</button>
-                <button id="rt-consent-accept" class="btn btn-primary btn-sm">Accept</button>
-            </div>
+<div id="rt-cookie-banner"
+    style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e1117;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);">
+    <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:260px;">
+            We use cookies for analytics and advertising. See our
+            <a href="privacypolicy.html" style="color:#235789;text-decoration:underline;">Privacy Policy</a>.
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button id="rt-consent-reject" class="btn btn-outline-light btn-sm">Reject</button>
+            <button id="rt-consent-accept" class="btn btn-primary btn-sm">Accept</button>
         </div>
     </div>
+</div>
 
 </html>

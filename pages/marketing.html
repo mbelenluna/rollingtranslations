@@ -11,6 +11,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <script>
+        // Create dataLayer and set default DENIED before any tags load
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('consent', 'default', {
+            ad_storage: 'denied',
+            analytics_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied'
+        });
+    </script>
+    <!-- Google Tag Manager -->
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+            var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');
+    </script>
+    <!-- End Google Tag Manager -->
+
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32x32.png">
@@ -571,10 +592,10 @@
         <div class="our-clients-container container">
             <h3 class="our-clients-headline">Trusted by Top Clients</h3>
             <div class="logos">
-                <img src="../images/logos/generationguard.png" alt="Generation Guard"><img src="../images/logos/hyatt.png"
-                    alt="Hyatt"><img src="../images/logos/nopain.png" alt="NoPain"><img src="../images/logos/novonordisk.png"
-                    alt="Novo Nordisk"><img src="../images/logos/nvidia.png" alt="Nvidia"><img
-                    src="../images/logos/turbonomic.png" alt="Turbonomic">
+                <img src="../images/logos/generationguard.png" alt="Generation Guard"><img
+                    src="../images/logos/hyatt.png" alt="Hyatt"><img src="../images/logos/nopain.png" alt="NoPain"><img
+                    src="../images/logos/novonordisk.png" alt="Novo Nordisk"><img src="../images/logos/nvidia.png"
+                    alt="Nvidia"><img src="../images/logos/turbonomic.png" alt="Turbonomic">
             </div>
         </div>
     </section>
@@ -839,7 +860,7 @@
             ]
         });
     </script>
-            <div id="rt-cookie-banner"
+    <div id="rt-cookie-banner"
         style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e1117;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);">
         <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
             <div style="flex:1;min-width:260px;">
