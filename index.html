@@ -403,7 +403,8 @@
                     </ul>
 
                     <div style="margin-top:1rem" class="centered-buttons">
-                        <a class="contact-button" href="rolling-professional/professional.html"><i class="fa-solid fa-bolt"></i>&nbsp; Get
+                        <a class="contact-button" href="rolling-professional/professional.html"><i
+                                class="fa-solid fa-bolt"></i>&nbsp; Get
                             instant quote</a>
                         <a class="return" style="margin-left:.5rem" href="#services">Learn more</a>
                     </div>
@@ -411,19 +412,19 @@
                     <p class="muted-mini centered-buttons">Don't have a project yet? Scroll to our contact form.</p>
                 </div>
 
-                    <noscript>
-                        <div class="quote-embed-fallback">
-                            JavaScript is required to view the instant quote.
-                            <a class="contact-button" href="rolling-professional/professional.html">Open Instant
-                                Quote</a>
-                        </div>
-                    </noscript>
-                </div>
+                <noscript>
+                    <div class="quote-embed-fallback">
+                        JavaScript is required to view the instant quote.
+                        <a class="contact-button" href="rolling-professional/professional.html">Open Instant
+                            Quote</a>
+                    </div>
+                </noscript>
+            </div>
             </div>
         </main>
     </section>
 
-        <!-- How it works -->
+    <!-- How it works -->
     <section class="how-it-works" id="how-it-works">
         <style>
             /* -------- Design tokens -------- */
@@ -670,7 +671,7 @@
         </div>
     </section>
 
-        <!-- Clients -->
+    <!-- Clients -->
     <section id="our-clients" class="section">
         <div class="our-clients-container container">
             <h3 class="our-clients-headline">Trusted by Top Clients</h3>
@@ -851,8 +852,10 @@
                 <li><a href="pages/about.html">About</a></li>
                 <li><a href="#cta">Contact</a></li>
                 <li><a href="pages/privacypolicy.html">Privacy Policy</a></li>
+                <a href="#" id="rt-open-consent">Cookie preferences</a>
             </ul>
         </div>
+        
     </footer>
 
     <!-- Scripts -->
@@ -930,7 +933,23 @@
             window.addEventListener('resize', () => { if (window.innerWidth >= 992) closeMenu(); });
         });
     </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.umd.min.js"></script>
+
+    <div id="rt-cookie-banner"
+        style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#0e1117;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);">
+        <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:260px;">
+                We use cookies for analytics and advertising. See our
+                <a href="/pages/privacypolicy.html" style="color:#235789;text-decoration:underline;">Privacy Policy</a>.
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button id="rt-consent-reject" class="btn btn-outline-light btn-sm">Reject</button>
+                <button id="rt-consent-accept" class="btn btn-primary btn-sm">Accept</button>
+            </div>
+        </div>
+    </div>
+
 
 </body>
 
