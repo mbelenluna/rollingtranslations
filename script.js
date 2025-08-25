@@ -1,12 +1,8 @@
-
-// Rolling Translations — site JS (safe, minimal)
 document.addEventListener('DOMContentLoaded', () => {
   // ===== Cookie Banner + Google Consent Mode v2 =====
   // Estado por defecto: denied (se eleva a granted al aceptar)
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
-
-
 
   (function initConsent() {
     // Default (antes de cargar GTM)
@@ -82,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (banner) banner.style.display = 'block';
   }
 
-
   // ===== Header shadow on scroll (safe) =====
   const header = document.getElementById('site-header');
   if (header) {
@@ -111,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===== Contact form (EmailJS) =====
+  // Ya manejado vía submit del formulario (evita doble envío por click del botón)
   const form = document.getElementById('contact-form');
   const submitBtn = document.getElementById('submit-button');
 
@@ -169,5 +165,114 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
   }
-});
 
+  // ======== LEGACY HOVER HANDLERS (added back, exposed globally) ========
+  // Nota: buscamos los elementos dentro de cada handler para no depender
+  // de variables globales (exp/qual/clients/...), y las exponemos en window
+  // porque about.html las llama por nombre (functionIn1, etc.).
+
+  window.functionIn1 = function () {
+    const el = document.querySelector('.exp');
+    if (el) el.innerHTML = "Our team comprises highly skilled translators, linguists, and subject matter experts with deep domain knowledge in various industries, ensuring accurate and contextually appropriate translations.";
+  };
+  window.functionOut1 = function () {
+    const el = document.querySelector('.exp');
+    if (el) el.innerHTML = "1. Expertise and Specialization";
+  };
+
+  window.functionIn2 = function () {
+    const el = document.querySelector('.qual');
+    if (el) el.innerHTML = "Quality is at the heart of our operations. We have stringent quality assurance processes in place to ensure that every translation undergoes thorough review and linguistic validation.";
+  };
+  window.functionOut2 = function () {
+    const el = document.querySelector('.qual');
+    if (el) el.innerHTML = "2. Uncompromising Quality";
+  };
+
+  window.functionIn3 = function () {
+    const el = document.querySelector('.clients');
+    if (el) el.innerHTML = "We are proud to serve a diverse range of clients, including multinational corporations, government agencies, educational institutions, and small to medium-sized enterprises.";
+  };
+  window.functionOut3 = function () {
+    const el = document.querySelector('.clients');
+    if (el) el.innerHTML = "3. Diverse and Loyal Client Base";
+  };
+
+  window.functionIn4 = function () {
+    const el = document.querySelector('.reach');
+    if (el) el.innerHTML = "With an extensive network of professional translators and resources in multiple languages, we have the capability to provide translation services for a wide range of language pairs.";
+  };
+  window.functionOut4 = function () {
+    const el = document.querySelector('.reach');
+    if (el) el.innerHTML = "4. Global Reach and Language Capabilities";
+  };
+
+  window.functionIn5 = function () {
+    const el = document.querySelector('.tech');
+    if (el) el.innerHTML = "We embrace cutting-edge translation technologies, including advanced CAT (Computer-Assisted Translation) tools, to enhance our efficiency and accuracy.";
+  };
+  window.functionOut5 = function () {
+    const el = document.querySelector('.tech');
+    if (el) el.innerHTML = "5. Technological Advancements";
+  };
+
+  window.functionIn6 = function () {
+    const el = document.querySelector('.imp');
+    if (el) el.innerHTML = "By embracing innovation and continuously improving our processes, we strive to provide our clients with the most efficient and effective translation solutions available.";
+  };
+  window.functionOut6 = function () {
+    const el = document.querySelector('.imp');
+    if (el) el.innerHTML = "6. Continuous Improvement and Innovation";
+  };
+
+  // ======== Header slide-down (from your snippet) ========
+  (function () {
+    const fixedHeader = document.querySelector('.fixed-header');
+    if (!fixedHeader) return;
+    let lastScrollPosition = 0;
+    window.addEventListener('scroll', function () {
+      if (window.innerWidth > 768) {
+        const current = window.scrollY;
+        if (current > lastScrollPosition) {
+          fixedHeader.classList.add('slide-down');
+        } else {
+          fixedHeader.classList.remove('slide-down');
+        }
+        lastScrollPosition = current;
+      }
+    }, { passive: true });
+  })();
+
+  // ======== Mobile hamburger & sticky (from your snippet, guarded) ========
+  (function () {
+    const menu_btn = document.querySelector(".hamburger");
+    const mobile_menu = document.querySelector('.mobile-nav');
+    if (menu_btn && mobile_menu) {
+      menu_btn.addEventListener('click', function () {
+        menu_btn.classList.toggle('is-active');
+        mobile_menu.classList.toggle('is-active');
+      });
+
+      // Sticky behavior
+      const navbar = mobile_menu;
+      const sticky = navbar.offsetTop;
+      function stick() {
+        if (window.scrollY >= sticky) {
+          navbar.classList.add("sticky");
+        } else {
+          navbar.classList.remove("sticky");
+        }
+      }
+      window.addEventListener('scroll', stick, { passive: true });
+    }
+  })();
+
+  // ===== Helper: update helper text for values (mirror of your onload) =====
+  (function () {
+    const values = document.querySelector(".hover");
+    if (values && window.innerWidth < 768) {
+      values.innerHTML = "Click on each value to learn more.";
+    }
+  })();
+
+}); // END DOMContentLoaded
