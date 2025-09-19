@@ -796,6 +796,30 @@ textarea {
 
 /* Footer */
 
+.footer-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.footer-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    margin-top: 3px;
+    /* keeps icons aligned nicely with text */
+}
+
+.footer-info {
+    line-height: 1.4;
+}
+
+.our-offices {
+    font-size: 19px;
+    padding-bottom: 0%;
+}
+
+
 footer {
     display: grid;
     grid-template-areas: "logo info sitemap";
