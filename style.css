@@ -821,13 +821,113 @@ textarea {
 
 
 footer {
-    display: grid;
-    grid-template-areas: "logo info sitemap";
-    grid-template-columns: repeat(1fr) !important;
     align-items: center;
     padding: 4rem 0 4rem 0;
     color: #000000;
 }
+
+#info .contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#info .contact-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+#info .contact-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin-top: 3px;
+    /* keeps icon aligned with first text line */
+}
+
+
+#info .contact-title {
+    margin: 0 0 6px 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: inherit;
+    /* uses same color as surrounding text */
+}
+
+#info .offices p,
+#info .contact-content {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: inherit;
+    /* ensures same gray tone as phone/email */
+}
+
+#info .offices p strong {
+    font-weight: 600;
+    color: inherit;
+    /* bold but same color */
+}
+
+
+#info .contact-content {
+    line-height: 1.5;
+}
+
+footer.container.section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 0 60px; /* adds equal space left & right */
+}
+
+
+#logo-footer,
+#info,
+.footer-navigation {
+  flex: 1;
+}
+
+.footer-navigation {
+  text-align: right;
+  padding-right: 20px; /* pulls it away from the edge */
+}
+
+
+
+
+#info {
+  text-align: center;
+}
+#info .contact-list {
+  display: inline-block; /* keeps content compact while centered */
+  text-align: left; /* addresses stay neatly aligned */
+}
+
+
+.footer-navigation {
+    color: inherit;
+}
+
+#info .contact-title {
+    margin: 0 0 6px 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+#info .offices {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#info .offices p {
+    margin: 0;
+    /* prevents weird extra spacing */
+}
+
 
 #logo-footer {
     grid-area: logo;
@@ -3121,18 +3221,6 @@ footer.container {
 
 
 
-/* Versión responsive: columnas apiladas en móvil */
-@media (max-width: 900px) {
-
-    footer,
-    footer.container {
-        grid-template-areas:
-            "logo"
-            "info"
-            "sitemap";
-        grid-template-columns: 1fr;
-    }
-}
 
 /* (opcional) remarcar el inicio del footer */
 footer {

@@ -528,53 +528,292 @@
 
 
 
-    <footer class="container">
-        <div id="logo-footer">
-            <img class="logo" src="../images/logo.png" alt="Logo">
+    <footer class="rt-footer">
+    <div class="rt-footer__inner">
+        <div class="rt-footer__col rt-footer__left" id="logo-footer">
+            <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
             <p class="small-text">Copyright © 2023 Rolling Translations LLC. All rights reserved.</p>
-            <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming and
-                California.</p>
-            <a href="https://www.linkedin.com/company/rolling-translations/"><img class="socialmedia"
-                    src="../images/icons8-linkedin-30.png" alt="LinkedIn account"></a>
-            <a href="https://www.instagram.com/rollingtranslations/"><img class="socialmedia"
-                    src="../images/icons8-instagram-50.png" alt="Instagram account"></a>
-            <a href="https://www.facebook.com/rollingtranslations"><img class="socialmedia"
-                    src="../images/facebook-circle.svg" alt="Facebook account"></a>
+            <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming,
+                California, Colorado, and Florida.</p>
+
+            <div class="rt-socials">
+                <a href="https://www.linkedin.com/company/rolling-translations/">
+                    <img class="socialmedia" src="../images/icons8-linkedin-30.png" alt="LinkedIn account">
+                </a>
+                <a href="https://www.instagram.com/rollingtranslations/">
+                    <img class="socialmedia" src="../images/icons8-instagram-50.png" alt="Instagram account">
+                </a>
+                <a href="https://www.facebook.com/rollingtranslations">
+                    <img class="socialmedia" src="../images/facebook-circle.svg" alt="Facebook account">
+                </a>
+            </div>
         </div>
-        <div id="info">
-            <ul>
-                <li class="footer-item">
-                    <img src="images/icons8-address-50.png" alt="Our Offices" class="footer-icon">
-                    <div class="footer-info">
-                        <div class="our-offices">Our Offices</div><br>
-                        <span><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</span>
-                        <span><strong>Orlando:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</span><br>
-                        <span><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</span><br>
+
+        <div class="rt-footer__col rt-footer__center" id="info">
+            <ul class="contact-list">
+                <li class="contact-row">
+                    <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+                    <div class="contact-content">
+                        <h4 class="contact-title">Our Offices</h4>
+                        <div class="offices">
+                            <p><strong>Orlando:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
+                            <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
+                            <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
+                        </div>
                     </div>
                 </li>
-                <li class="footer-item">
-                    <img src="images/icons8-phone-50.png" alt="phone" class="footer-icon">
-                    <span>+1 (866) 319-6739</span>
+
+                <li class="contact-row">
+                    <img src="../images/icons8-phone-50.png" alt="Phone" class="contact-icon">
+                    <div class="contact-content">+1 (866) 319-6739</div>
                 </li>
-                <li class="footer-item">
-                    <img src="images/icons8-email-50.png" alt="email" class="footer-icon">
-                    <div class="footer-info">
+
+                <li class="contact-row">
+                    <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                    <div class="contact-content">
                         info@rolling-translations.com<br>
                         connor@rolling-translations.com
                     </div>
                 </li>
             </ul>
         </div>
-        <div class="footer-navigation">
-            <ul>
-                <li><a href="../index.html">Home</a></li>
-                <li><a href="services.html">Our Services</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="#cta">Contact</a></li>
-                <li><a href="privacypolicy.html">Privacy Policy</a></li>
+
+        <nav class="rt-footer__col rt-footer__right footer-navigation">
+            <ul class="rt-nav">
+                <li><a href="../pages/services.html">Services</a></li>
+                <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+                <li><a href="../pages/about.html">About</a></li>
+                <li><a href="../index.html#cta">Contact</a></li>
+                <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+                <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
             </ul>
-        </div>
-    </footer>
+        </nav>
+    </div>
+</footer>
+
+<style>
+    /* ===== Rolling Translations footer (scoped) ===== */
+/* ===== Rolling Translations footer (scoped) ===== */
+/* ===== Rolling Translations footer (scoped) ===== */
+.rt-footer * {
+    box-sizing: border-box;
+}
+
+.rt-footer #logo-footer,
+.rt-footer #info,
+.rt-footer .footer-navigation {
+    /* New: Use inline-block for side-by-side layout without flex-grow */
+    display: inline-block;
+    vertical-align: top;
+    float: none !important;
+    position: static !important;
+    text-align: left;
+}
+
+.rt-footer {
+    width: 100%;
+    padding: 24px 0;
+    /* New: Center the entire footer content */
+    text-align: center;
+}
+
+.rt-footer__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: block; /* New: Remove flex */
+}
+
+.rt-footer__col {
+    /* New: Adjust width as needed for spacing */
+    width: 30%;
+    margin: 0 1.5%;
+    min-width: 0;
+}
+
+/* Texto base del footer: hereda color del sitio */
+.rt-footer,
+.rt-footer p,
+.rt-footer li,
+.rt-footer a {
+    color: inherit;
+}
+
+/* Social */
+.rt-socials {
+    display: flex;
+    justify-content: center;
+}
+
+.rt-socials a {
+    margin: 0 5px;
+}
+
+/* Contact rows */
+.contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.contact-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.contact-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin-top: 3px;
+}
+
+.contact-content {
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.contact-title {
+    margin: 0 0 6px 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.offices {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.offices p {
+    margin: 0;
+}
+
+.offices p strong {
+    font-weight: 600;
+}
+
+/* Navegación derecha */
+.rt-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.rt-nav li {
+    margin-bottom: 6px;
+}
+
+/* Tipitos pequeños */
+.small-text {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin: 6px 0;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .rt-footer__col {
+        display: block;
+        width: 100%;
+        margin: 15px 0;
+        text-align: center;
+    }
+
+    .rt-footer__left,
+    .rt-footer__center,
+    .rt-footer__right {
+        text-align: center;
+    }
+
+    .contact-list {
+        display: inline-block;
+        text-align: left;
+    }
+
+    .contact-row {
+        justify-content: center;
+    }
+}
+
+    .contact-icon {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        margin-top: 3px;
+    }
+
+    .contact-content {
+        line-height: 1.5;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .contact-title {
+        margin: 0 0 6px 0;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .offices {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .offices p {
+        margin: 0;
+    }
+
+    .offices p strong {
+        font-weight: 600;
+    }
+
+    /* Navegación derecha */
+    .rt-nav {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .rt-nav li {
+        margin-bottom: 6px;
+    }
+
+    .rt-footer__right .rt-nav {
+        text-align: center;
+    }
+
+    /* Tipitos pequeños */
+    .small-text {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin: 6px 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .rt-footer__inner {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .rt-footer__right .rt-nav,
+        .rt-footer__center,
+        .rt-footer__left {
+            text-align: center;
+        }
+
+        .contact-list {
+            display: inline-block;
+            text-align: left;
+        }
+    }
+</style>
+
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
     </script>
     <script type="text/javascript">
