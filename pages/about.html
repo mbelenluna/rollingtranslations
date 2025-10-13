@@ -471,8 +471,11 @@
             built over the years foster a strong partnership with our clients, ensuring that each translation is of
             superior quality and meets their expectations. Moreover, we are proud to mention that we are
             <b>ISO-compliant (<a href="https://www.iso.org/standard/59149.html">ISO 17100:2015</a>)</b>, and our
-            workflow fully complies with its stringent standards. <br><br>Additionally, we have completed <b>HIPAA compliance training for Business Associates</b> and follow all required safeguards to ensure the confidentiality and security of protected health information (PHI). </b> 
-            Together, our ISO and HIPAA compliance reinforce our commitment to delivering accurate, reliable, and secure translations while adhering to internationally recognized quality and privacy standards.
+            workflow fully complies with its stringent standards. <br><br>Additionally, we have completed <b>HIPAA
+                compliance training for Business Associates</b> and follow all required safeguards to ensure the
+            confidentiality and security of protected health information (PHI). </b>
+            Together, our ISO and HIPAA compliance reinforce our commitment to delivering accurate, reliable, and secure
+            translations while adhering to internationally recognized quality and privacy standards.
         </p>
     </section>
 
@@ -515,8 +518,14 @@
                             <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
                                 data-bs-parent="#accordionExample">
                                 <div class="accordion-body">
-                                    Getting a translation quote from Rolling Translations is simple. You can visit our Instant Quote tool to obtain a quote for your project instantly. You will need to fill out the form with details about your project, such as
-                                    the source and target languages, the type of content, timeline, and any specific requirements. You will be able to pay online if you decide to proceed with the translation request. Otherwise, you may fill out the form on the bottom of our website with your project details, and our team will review your request and provide you
+                                    Getting a translation quote from Rolling Translations is simple. You can visit our
+                                    Instant Quote tool to obtain a quote for your project instantly. You will need to
+                                    fill out the form with details about your project, such as
+                                    the source and target languages, the type of content, timeline, and any specific
+                                    requirements. You will be able to pay online if you decide to proceed with the
+                                    translation request. Otherwise, you may fill out the form on the bottom of our
+                                    website with your project details, and our team will review your request and provide
+                                    you
                                     with a detailed quote and turnaround time.</div>
                             </div>
                         </div>
@@ -803,328 +812,463 @@
     <section id="cta" name="cta" class="section">
         <div class="cta container">
             <h4>Don't have a project yet? Send us an email.</h4>
-            <p class="cta-text">If you don't have a project or are not ready to pay yet, fill out the form and we’ll get
-                back to you
-                within minutes.</p>
-            <form class="contact-form" id="contact-form">
+            <p class="cta-text">
+                If you don't have a project or are not ready to pay yet, fill out the form and we’ll get
+                back to you within minutes.
+            </p>
+
+            <form class="contact-form" id="contact-form" novalidate>
+                <!-- ✅ Honeypot (bots will fill this) -->
+                <div class="hp-row" aria-hidden="true">
+                    <label for="company">Company</label>
+                    <input type="text" id="company" name="company" autocomplete="off" tabindex="-1">
+                </div>
+
+                <!-- ✅ Time trap (filled on load) -->
+                <input type="text" id="form_ready_at" name="form_ready_at" value="" class="hp-row" aria-hidden="true"
+                    tabindex="-1">
+
                 <div class="form-row">
                     <label for="fullname">Full name:</label>
                     <input type="text" id="fullname" placeholder="e.g., John Doe" name="fullname" required>
                 </div>
+
                 <div class="form-row">
                     <label for="email">Email address:</label>
                     <input type="email" id="email" placeholder="e.g., hello@live.com" name="email" required>
                 </div>
+
                 <div class="form-row">
                     <label for="phonenumber">Phone number: <i>(optional)</i></label>
                     <input type="text" id="phonenumber" placeholder="+1 (111) 111-1111" name="phonenumber">
                 </div>
+
                 <div class="form-row">
                     <label for="sourcelanguage">Source language(s):</label>
-                    <textarea placeholder="e.g., English" name="sourcelanguage" id="sourcelanguage"></textarea>
+                    <textarea placeholder="e.g., English" name="sourcelanguage" id="sourcelanguage" required></textarea>
                 </div>
+
                 <div class="form-row">
                     <label for="targetlanguage">Target language(s):</label>
-                    <textarea placeholder="e.g., Spanish and Korean" name="targetlanguage"
-                        id="targetlanguage"></textarea>
+                    <textarea placeholder="e.g., Spanish and Korean" name="targetlanguage" id="targetlanguage"
+                        required></textarea>
                 </div>
+
                 <div class="form-row">
                     <label for="message">Message:</label>
                     <textarea name="message" id="message"
-                        placeholder="Tell us about your project (volume, deadlines, special requirements)"></textarea>
+                        placeholder="Tell us about your project (volume, deadlines, special requirements)"
+                        required></textarea>
                 </div>
+
                 <div class="form-row">
                     <button class="contact-button" type="submit" id="submit-button">SUBMIT</button>
                 </div>
+
+                <p id="form-status" style="margin-top:.5rem;font-size:.9rem;"></p>
             </form>
         </div>
     </section>
 
-    <footer class="rt-footer">
-    <div class="rt-footer__inner">
-        <div class="rt-footer__col rt-footer__left" id="logo-footer">
-            <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
-            <p class="small-text">Copyright © 2025 Rolling Translations LLC. All rights reserved.</p>
-            <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming,
-                California, Colorado, and Florida.</p>
-
-            <div class="rt-socials">
-                <a href="https://www.linkedin.com/company/rolling-translations/">
-                    <img class="socialmedia" src="../images/icons8-linkedin-30.png" alt="LinkedIn account">
-                </a>
-                <a href="https://www.instagram.com/rollingtranslations/">
-                    <img class="socialmedia" src="../images/icons8-instagram-50.png" alt="Instagram account">
-                </a>
-                <a href="https://www.facebook.com/rollingtranslations">
-                    <img class="socialmedia" src="../images/facebook-circle.svg" alt="Facebook account">
-                </a>
-            </div>
-        </div>
-
-        <div class="rt-footer__col rt-footer__center" id="info">
-            <ul class="contact-list">
-                <li class="contact-row">
-                    <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
-                    <div class="contact-content">
-                        <h4 class="contact-title">Our Offices</h4>
-                        <div class="offices">
-                            <p><strong>Orlando:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
-                            <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
-                            <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
-                        </div>
-                    </div>
-                </li>
-
-                <li class="contact-row">
-                    <img src="../images/icons8-phone-50.png" alt="Phone" class="contact-icon">
-                    <div class="contact-content">(407) 610-7310</div>
-                </li>
-
-                <li class="contact-row">
-                    <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
-                    <div class="contact-content">
-                        info@rolling-translations.com<br>
-                        connor@rolling-translations.com
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <nav class="rt-footer__col rt-footer__right footer-navigation">
-            <ul class="rt-nav">
-                <li><a href="../pages/services.html">Services</a></li>
-                <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                <li><a href="../pages/about.html">About</a></li>
-                <li><a href="../index.html#cta">Contact</a></li>
-                <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
-                <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
-            </ul>
-        </nav>
-    </div>
-</footer>
-
-<style>
-    /* ===== Rolling Translations footer (scoped) ===== */
-/* ===== Rolling Translations footer (scoped) ===== */
-/* ===== Rolling Translations footer (scoped) ===== */
-.rt-footer * {
-    box-sizing: border-box;
-}
-
-.rt-footer #logo-footer,
-.rt-footer #info,
-.rt-footer .footer-navigation {
-    /* New: Use inline-block for side-by-side layout without flex-grow */
-    display: inline-block;
-    vertical-align: top;
-    float: none !important;
-    position: static !important;
-    text-align: left;
-}
-
-.rt-footer {
-    width: 100%;
-    padding: 24px 0;
-    /* New: Center the entire footer content */
-    text-align: center;
-}
-
-.rt-footer__inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: block; /* New: Remove flex */
-}
-
-.rt-footer__col {
-    /* New: Adjust width as needed for spacing */
-    width: 30%;
-    margin: 0 1.5%;
-    min-width: 0;
-}
-
-/* Texto base del footer: hereda color del sitio */
-.rt-footer,
-.rt-footer p,
-.rt-footer li,
-.rt-footer a {
-    color: inherit;
-}
-
-/* Social */
-.rt-socials {
-    display: flex;
-    justify-content: center;
-}
-
-.rt-socials a {
-    margin: 0 5px;
-}
-
-/* Contact rows */
-.contact-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.contact-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.contact-icon {
-    width: 20px;
-    height: 20px;
-    flex: 0 0 20px;
-    margin-top: 3px;
-}
-
-.contact-content {
-    line-height: 1.5;
-    font-size: 0.9rem;
-}
-
-.contact-title {
-    margin: 0 0 6px 0;
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.offices {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.offices p {
-    margin: 0;
-}
-
-.offices p strong {
-    font-weight: 600;
-}
-
-/* Navegación derecha */
-.rt-nav {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    text-align: left;
-}
-
-.rt-nav li {
-    margin-bottom: 6px;
-}
-
-/* Tipitos pequeños */
-.small-text {
-    font-size: 0.85rem;
-    opacity: 0.85;
-    margin: 6px 0;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-    .rt-footer__col {
-        display: block;
-        width: 100%;
-        margin: 15px 0;
-        text-align: center;
-    }
-
-    .rt-footer__left,
-    .rt-footer__center,
-    .rt-footer__right {
-        text-align: center;
-    }
-
-    .contact-list {
-        display: inline-block;
-        text-align: left;
-    }
-
-    .contact-row {
-        justify-content: center;
-    }
-}
-
-    .contact-icon {
-        width: 20px;
-        height: 20px;
-        flex: 0 0 20px;
-        margin-top: 3px;
-    }
-
-    .contact-content {
-        line-height: 1.5;
-        font-size: 0.9rem;
-        text-align: left;
-    }
-
-    .contact-title {
-        margin: 0 0 6px 0;
-        font-weight: 600;
-        font-size: 0.95rem;
-    }
-
-    .offices {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .offices p {
-        margin: 0;
-    }
-
-    .offices p strong {
-        font-weight: 600;
-    }
-
-    /* Navegación derecha */
-    .rt-nav {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .rt-nav li {
-        margin-bottom: 6px;
-    }
-
-    .rt-footer__right .rt-nav {
-        text-align: center;
-    }
-
-    /* Tipitos pequeños */
-    .small-text {
-        font-size: 0.85rem;
-        opacity: 0.85;
-        margin: 6px 0;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-        .rt-footer__inner {
-            flex-direction: column;
-            gap: 20px;
+    <style>
+        /* Hide honeypot without using type="hidden" */
+        .hp-row {
+            position: absolute !important;
+            left: -9999px !important;
+            width: 1px !important;
+            height: 1px !important;
+            overflow: hidden !important;
         }
 
-        .rt-footer__right .rt-nav,
-        .rt-footer__center,
-        .rt-footer__left {
+        .error {
+            color: #c62828;
+        }
+
+        .ok {
+            color: #2e7d32;
+        }
+    </style>
+
+    <script>
+        (function () {
+            const form = document.getElementById('contact-form');
+            const statusEl = document.getElementById('form-status');
+            const readyAt = document.getElementById('form_ready_at');
+            readyAt.value = Date.now().toString();
+
+            function setStatus(msg, ok = false) {
+                statusEl.textContent = msg;
+                statusEl.className = ok ? 'ok' : 'error';
+            }
+
+            function tooFastSubmit(startTs, minMs = 5000) {
+                const t = parseInt(startTs, 10) || 0;
+                return (Date.now() - t) < minMs;
+            }
+
+            function looksLikeGibberish(str) {
+                if (!str) return true;
+                const noSpaces = str.replace(/\s+/g, '');
+                const nonAlphaRatio = (noSpaces.match(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g) || []).length / noSpaces.length;
+                const repeated = /(.)\1{3,}/.test(str);
+                return nonAlphaRatio > 0.45 || repeated;
+            }
+
+            function hasURLs(str) {
+                return /(https?:\/\/|www\.)/i.test(str);
+            }
+
+            function badKeywords(str) {
+                const list = [
+                    'viagra', 'bitcoin', 'loan', 'casino', 'forex', 'seo services', 'guest post',
+                    'work from home', 'investment scheme', 'telegram', 'whatsapp me'
+                ];
+                const s = str.toLowerCase();
+                return list.some(k => s.includes(k));
+            }
+
+            function validName(n) {
+                return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ'’.\- ]{2,}$/.test(n.trim());
+            }
+
+            function validEmail(e) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+            }
+
+            function validPhone(p) {
+                if (!p) return true;
+                return /^[\d()+\-.\s]{7,}$/.test(p.trim());
+            }
+
+            function rateLimited(ms = 120000) {
+                const last = parseInt(localStorage.getItem('lastContactSubmitTs') || '0', 10);
+                const now = Date.now();
+                if (now - last < ms) return true;
+                localStorage.setItem('lastContactSubmitTs', now.toString());
+                return false;
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                setStatus('');
+
+                const data = {
+                    company: document.getElementById('company').value,
+                    fullname: document.getElementById('fullname').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phonenumber').value,
+                    source: document.getElementById('sourcelanguage').value,
+                    target: document.getElementById('targetlanguage').value,
+                    message: document.getElementById('message').value,
+                    readyAt: readyAt.value
+                };
+
+                // 🔒 Anti-spam checks
+                if (data.company && data.company.trim().length > 0) return setStatus('Submission blocked. (honeypot hit)');
+                if (tooFastSubmit(data.readyAt)) return setStatus('Please take a few seconds to complete the form.');
+                if (!validName(data.fullname)) return setStatus('Please enter a valid full name.');
+                if (!validEmail(data.email)) return setStatus('Please enter a valid email.');
+                if (!validPhone(data.phone)) return setStatus('Invalid phone number.');
+                if (!data.source.trim() || !data.target.trim() || !data.message.trim()) return setStatus('All fields are required.');
+                if (hasURLs(data.message) || badKeywords(data.message)) return setStatus('Links or promotional content are not allowed.');
+                if (data.message.trim().length < 20) return setStatus('Please add at least 20 characters.');
+                if (looksLikeGibberish(`${data.fullname} ${data.source} ${data.target} ${data.message}`))
+                    return setStatus('Your message looks like spam. Please rephrase.');
+                if (rateLimited()) return setStatus('Please wait a moment before submitting again.');
+
+                // ✅ All checks passed — redirect to success page
+                window.location.href = '../success.html';
+            });
+        })();
+    </script>
+
+
+    <footer class="rt-footer">
+        <div class="rt-footer__inner">
+            <div class="rt-footer__col rt-footer__left" id="logo-footer">
+                <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
+                <p class="small-text">Copyright © 2025 Rolling Translations LLC. All rights reserved.</p>
+                <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming,
+                    California, Colorado, and Florida.</p>
+
+                <div class="rt-socials">
+                    <a href="https://www.linkedin.com/company/rolling-translations/">
+                        <img class="socialmedia" src="../images/icons8-linkedin-30.png" alt="LinkedIn account">
+                    </a>
+                    <a href="https://www.instagram.com/rollingtranslations/">
+                        <img class="socialmedia" src="../images/icons8-instagram-50.png" alt="Instagram account">
+                    </a>
+                    <a href="https://www.facebook.com/rollingtranslations">
+                        <img class="socialmedia" src="../images/facebook-circle.svg" alt="Facebook account">
+                    </a>
+                </div>
+            </div>
+
+            <div class="rt-footer__col rt-footer__center" id="info">
+                <ul class="contact-list">
+                    <li class="contact-row">
+                        <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+                        <div class="contact-content">
+                            <h4 class="contact-title">Our Offices</h4>
+                            <div class="offices">
+                                <p><strong>Orlando:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
+                                <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
+                                <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="contact-row">
+                        <img src="../images/icons8-phone-50.png" alt="Phone" class="contact-icon">
+                        <div class="contact-content">(407) 610-7310</div>
+                    </li>
+
+                    <li class="contact-row">
+                        <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <div class="contact-content">
+                            info@rolling-translations.com<br>
+                            connor@rolling-translations.com
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <nav class="rt-footer__col rt-footer__right footer-navigation">
+                <ul class="rt-nav">
+                    <li><a href="../pages/services.html">Services</a></li>
+                    <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li><a href="../pages/about.html">About</a></li>
+                    <li><a href="../index.html#cta">Contact</a></li>
+                    <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+                    <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <style>
+        /* ===== Rolling Translations footer (scoped) ===== */
+        /* ===== Rolling Translations footer (scoped) ===== */
+        /* ===== Rolling Translations footer (scoped) ===== */
+        .rt-footer * {
+            box-sizing: border-box;
+        }
+
+        .rt-footer #logo-footer,
+        .rt-footer #info,
+        .rt-footer .footer-navigation {
+            /* New: Use inline-block for side-by-side layout without flex-grow */
+            display: inline-block;
+            vertical-align: top;
+            float: none !important;
+            position: static !important;
+            text-align: left;
+        }
+
+        .rt-footer {
+            width: 100%;
+            padding: 24px 0;
+            /* New: Center the entire footer content */
             text-align: center;
         }
 
+        .rt-footer__inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: block;
+            /* New: Remove flex */
+        }
+
+        .rt-footer__col {
+            /* New: Adjust width as needed for spacing */
+            width: 30%;
+            margin: 0 1.5%;
+            min-width: 0;
+        }
+
+        /* Texto base del footer: hereda color del sitio */
+        .rt-footer,
+        .rt-footer p,
+        .rt-footer li,
+        .rt-footer a {
+            color: inherit;
+        }
+
+        /* Social */
+        .rt-socials {
+            display: flex;
+            justify-content: center;
+        }
+
+        .rt-socials a {
+            margin: 0 5px;
+        }
+
+        /* Contact rows */
         .contact-list {
-            display: inline-block;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            margin-top: 3px;
+        }
+
+        .contact-content {
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .contact-title {
+            margin: 0 0 6px 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .offices {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .offices p {
+            margin: 0;
+        }
+
+        .offices p strong {
+            font-weight: 600;
+        }
+
+        /* Navegación derecha */
+        .rt-nav {
+            list-style: none;
+            margin: 0;
+            padding: 0;
             text-align: left;
         }
-    }
-</style>
+
+        .rt-nav li {
+            margin-bottom: 6px;
+        }
+
+        /* Tipitos pequeños */
+        .small-text {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin: 6px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .rt-footer__col {
+                display: block;
+                width: 100%;
+                margin: 15px 0;
+                text-align: center;
+            }
+
+            .rt-footer__left,
+            .rt-footer__center,
+            .rt-footer__right {
+                text-align: center;
+            }
+
+            .contact-list {
+                display: inline-block;
+                text-align: left;
+            }
+
+            .contact-row {
+                justify-content: center;
+            }
+        }
+
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            margin-top: 3px;
+        }
+
+        .contact-content {
+            line-height: 1.5;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .contact-title {
+            margin: 0 0 6px 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .offices {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .offices p {
+            margin: 0;
+        }
+
+        .offices p strong {
+            font-weight: 600;
+        }
+
+        /* Navegación derecha */
+        .rt-nav {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .rt-nav li {
+            margin-bottom: 6px;
+        }
+
+        .rt-footer__right .rt-nav {
+            text-align: center;
+        }
+
+        /* Tipitos pequeños */
+        .small-text {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin: 6px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .rt-footer__inner {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .rt-footer__right .rt-nav,
+            .rt-footer__center,
+            .rt-footer__left {
+                text-align: center;
+            }
+
+            .contact-list {
+                display: inline-block;
+                text-align: left;
+            }
+        }
+    </style>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
     </script>
