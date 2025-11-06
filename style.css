@@ -1461,6 +1461,8 @@ ul {
 
 /* Blog */
 
+
+
 #hero-blog {
     background-image: url(images/Background-hero-blog.png);
     padding: 1.5rem 0 0 0;
@@ -1550,6 +1552,19 @@ ul {
 #article-container h2 {
     color: #000000;
     font-size: 35px;
+    padding-top: 2rem;
+}
+
+#article-container h3 {
+    color: #000000;
+    font-size: 25px;
+    padding-top: 2rem;
+    font-weight: bold;
+}
+
+#article-container li {
+    color: #000000;
+    padding-right: 3rem;
 }
 
 #article-container img {
