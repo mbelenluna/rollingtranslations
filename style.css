@@ -1,4 +1,10 @@
 /* Fonts */
+html,
+body {
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
 
 @font-face {
     font-family: inter-regular;
@@ -73,7 +79,7 @@ h4 {
 #hero.has-embed {
     height: auto !important;
     /* sobreescribe altura fija anterior */
-    background: linear-gradient(to bottom, #d1e2f3, white);
+    background: linear-gradient(to left, #c9e3fd, rgb(196, 247, 240));
     padding: 4rem 0 3rem 0;
 }
 
@@ -558,7 +564,7 @@ h6 {
 }
 
 .logos img {
-    width: 40%;
+    width: 55%;
     text-align: center;
     margin: auto;
 }
@@ -567,84 +573,6 @@ h6 {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
 }
-
-
-/* Services section */
-
-.services {
-    display: grid;
-    grid-template-areas: "s1 s2 s3"
-        "s4 s5 s6";
-    padding: 4rem 0 4rem 0;
-    color: white;
-}
-
-.services p {
-    font-family: inter-regular;
-    color: white;
-    font-size: 17px;
-}
-
-.services h5 {
-    font-weight: 1000;
-}
-
-#services {
-    background-color: #235789;
-}
-
-#s1 {
-    grid-area: s1;
-}
-
-#s2 {
-    grid-area: s2;
-}
-
-#s3 {
-    grid-area: s3;
-}
-
-#s4 {
-    grid-area: s4;
-}
-
-#s5 {
-    grid-area: s5;
-}
-
-#s6 {
-    grid-area: s6;
-}
-
-#services img {
-    width: 23px;
-    height: 23px;
-}
-
-.services a {
-    color: white;
-}
-
-.icon-title-container {
-    display: flex;
-    align-content: center;
-    margin: 1rem;
-}
-
-.service-title {
-    margin: 0 1rem 0 1rem;
-}
-
-h1 h2 h3 h4 h5 h6 {
-    margin-bottom: 0 !important;
-}
-
-.service-square {
-    margin: 1rem;
-}
-
-
 
 
 /* Testimonials */
@@ -837,6 +765,7 @@ footer {
     align-items: flex-start;
     gap: 10px;
     margin: 10px 0;
+    color: black;
 }
 
 #info .contact-icon {
@@ -876,34 +805,39 @@ footer {
 }
 
 footer.container.section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-  padding: 0 60px; /* adds equal space left & right */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 0 60px;
+    /* adds equal space left & right */
 }
 
 
 #logo-footer,
 #info,
 .footer-navigation {
-  flex: 1;
+    flex: 1;
 }
 
 .footer-navigation {
-  text-align: right;
-  padding-right: 20px; /* pulls it away from the edge */
+    text-align: right;
+    padding-right: 20px;
+    /* pulls it away from the edge */
 }
 
 
 
 
 #info {
-  text-align: center;
+    text-align: center;
 }
+
 #info .contact-list {
-  display: inline-block; /* keeps content compact while centered */
-  text-align: left; /* addresses stay neatly aligned */
+    display: inline-block;
+    /* keeps content compact while centered */
+    text-align: left;
+    /* addresses stay neatly aligned */
 }
 
 
@@ -1543,6 +1477,52 @@ ul {
     color: #235789;
 }
 
+/*Stats */
+.rt-stats {
+    background: linear-gradient(to left, #c9e3fd, rgb(196, 247, 240));
+    border-block: 1px solid #e5e7eb;
+    padding: 28px 0;
+}
+
+.round-div {
+    background-color: white;
+    margin: 0 3rem;
+    border-radius: 1rem;
+    padding: 3rem 5rem;
+}
+
+.rt-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.rt-stat {
+    text-align: center;
+}
+
+.rt-stat__number {
+    display: block;
+    font-size: clamp(28px, 2.6vw, 36px);
+    font-weight: 900;
+    color: #235789;
+    line-height: 1.05;
+}
+
+.rt-stat__label {
+    display: block;
+    font-size: 14px;
+    color: #4F4F4F;
+}
+
+@media (max-width:768px) {
+    .rt-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+        row-gap: 24px;
+    }
+}
+
+
 /*Article */
 
 #article-container {
@@ -1826,6 +1806,9 @@ ul {
     #hero-services p {
         font-size: 16px;
     }
+
+
+
 
     #hero-about h1 {
         font-size: 38px;
@@ -3089,7 +3072,7 @@ footer.container {
     border-top: 1px solid var(--hairline);
     /* línea clara */
     /* leve ‘tinte’ hacia arriba para separar del resto de la página */
-    background-image: linear-gradient(to bottom, rgba(17, 24, 39, .02), rgba(255, 255, 255, 0) 60%);
+    background-color: linear-gradient(to left, #c9e3fd, rgb(196, 247, 240));
 }
 
 footer.container::before {
@@ -3117,7 +3100,7 @@ footer.container::before {
 }
 
 #logo-footer .small-text {
-    color: var(--muted);
+    color: #000;
     margin: .25rem 0;
 }
 
@@ -3137,7 +3120,6 @@ footer.container::before {
     display: flex;
     align-items: center;
     gap: .5rem;
-    color: var(--muted);
 }
 
 #info li img {
@@ -3240,7 +3222,7 @@ footer.container {
 /* (opcional) remarcar el inicio del footer */
 footer {
     border-top: 1px solid rgba(0, 0, 0, .08);
-    background-image: linear-gradient(to bottom, rgba(17, 24, 39, .02), rgba(255, 255, 255, 0) 60%);
+    background: linear-gradient(to left, #c9e3fd, rgb(196, 247, 240));
 }
 
 /* ======= HAMBURGER ======= */
@@ -3742,4 +3724,271 @@ img.logo {
 
 #instant-h1 {
     padding-top: 3rem;
+}
+
+/* === SERVICES: robust, Bootstrap-safe, responsive === */
+#services {
+    background: #235789;
+    /* keeps your dark band */
+    padding: 3.5rem 0;
+}
+
+#services .services {
+    /* drop areas; use an auto-fit grid for simplicity */
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+#services .service-square {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+#services .service-square:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .22);
+}
+
+#services .icon-title-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 6px 0;
+}
+
+#services .icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    filter: brightness(1.15) saturate(1.05);
+}
+
+#services .service-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: .2px;
+}
+
+#services .service-title a {
+    color: #fff;
+    text-decoration: none;
+}
+
+#services .service-title a:hover {
+    text-decoration: underline;
+}
+
+/* small tweaks for tighter screens */
+@media (max-width: 576px) {
+    #services {
+        padding: 2.5rem 0;
+    }
+
+    #services .service-square {
+        padding: 16px;
+    }
+
+    #services .icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+
+.rt-services {
+    background: #ffffff;
+    color: #000;
+    padding: 56px 0;
+}
+
+.rt-services__title {
+    text-align: center;
+    font-size: 34px;
+    margin: 0 0 6px;
+    color: white;
+}
+
+.rt-services__sub {
+    text-align: center;
+    margin: 0 0 22px;
+    color: white;
+}
+
+.rt-services__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.rt-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+.rt-card h3 {
+    margin: .25rem 0 .5rem;
+    font-size: 20px;
+}
+
+.rt-card p {
+    font-size: 16px;
+    color: #000;
+}
+
+.rt-card__link {
+    display: inline-block;
+    margin-top: .5rem;
+    font-weight: 700;
+    color: #235789;
+    text-decoration: none;
+}
+
+.rt-card__link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+    .rt-services__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === SERVICES: highlight bloom behind text === */
+.rt-card {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+    transition: transform .25s ease;
+    z-index: 0;
+    /* establish stacking context */
+}
+
+/* ensure text & link stay above the highlight */
+.rt-card * {
+    position: relative;
+    z-index: 2;
+}
+
+.rt-card:hover {
+    transform: translateY(-4px);
+}
+
+/* highlight bloom layer BEHIND content */
+.rt-card::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -40%;
+    width: 220%;
+    height: 220%;
+    background: radial-gradient(circle at top right,
+            rgba(130, 190, 255, 0.85) 0%,
+            rgba(130, 190, 255, 0.35) 35%,
+            rgba(255, 255, 255, 0) 70%);
+    transform: scale(0);
+    transform-origin: top right;
+    transition: transform 0.55s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+.rt-card:hover::before {
+    transform: scale(1);
+}
+
+/* SECTION BACKGROUND THEMES (non-destructive additions) */
+
+/* Default page background */
+body {
+    background: #f8fafc;
+    /* light neutral */
+}
+
+/* White section - no visual change unless you apply it */
+.rt-section--white {
+    background: #ffffff;
+}
+
+/* Soft brand tint section */
+.rt-section--tint {
+    background: linear-gradient(135deg, rgba(58, 164, 223, .12), rgba(77, 187, 122, .12));
+}
+
+/* Strong brand gradient block (like the Contact Us example) */
+.rt-section--brand {
+    color: #ffffff;
+    background: linear-gradient(135deg, #3aa4df, #4dbb7a);
+}
+
+/* Decorative circle on the right (optional) */
+.rt-section--circle {
+    position: relative;
+    overflow: clip;
+}
+
+.rt-section--circle::after {
+    content: "";
+    position: absolute;
+    right: -18vw;
+    top: -12vw;
+    width: 70vw;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 60% 40%, #fff 0 60%, transparent 61%);
+    opacity: .9;
+    pointer-events: none;
+}
+
+/* Top Announcement Banner */
+.rt-top-banner {
+    background: black;
+    /* brand blue (change if needed) */
+    color: #ffffff;
+    text-align: center;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.rt-top-banner a {
+    color: #ffffff;
+    text-decoration: underline;
+    margin-left: 6px;
+    transition: opacity .2s ease;
+}
+
+.rt-top-banner a:hover {
+    opacity: 0.75;
+}
+
+.see-all-services {
+    color: white;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    font-size: larger;
+}
+
+.see-all-services:hover {
+    color: #000;
 }
