@@ -3714,7 +3714,10 @@ img.logo {
     overflow: hidden;
 }
 
-
+.box-btns {
+    display: flex;
+    align-items: center;
+}
 
 #mobileNav.is-open {
     transform: translateY(0);
