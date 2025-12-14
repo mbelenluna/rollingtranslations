@@ -438,6 +438,8 @@
                         <a class="contact-button" href="rolling-professional/professional.html"><i
                                 class="fa-solid fa-bolt"></i>&nbsp; Get
                             instant quote</a>
+                            <a class="contact-button" href="#schedule-interpretation"><i
+                                class="fa-solid fa-calendar-check"></i>&nbsp; Schedule Interpretation</a>
                         <a class="return" style="margin-left:.5rem" href="#services">Learn more</a>
                     </div>
 
@@ -720,6 +722,135 @@
             </div>
         </div>
     </section>
+
+    <section id="schedule-interpretation" class="rt-schedule">
+        <div class="rt-schedule__container">
+
+            <header class="rt-schedule__header">
+                <h2 class="rt-schedule__title">Schedule an Interpretation Session</h2>
+                <p class="rt-schedule__subtitle">
+                    Book simultaneous or consecutive interpretation services directly with our team.
+                </p>
+            </header>
+
+            <div class="rt-schedule__grid">
+                <div class="rt-schedule__info">
+                    <p>
+                        Select a date and time that works for you. Once selected, you’ll be asked to provide:
+                    </p>
+
+                    <ul>
+                        <li>Contact information</li>
+                        <li>Language requested</li>
+                        <li>Type of assignment (simultaneous or consecutive)</li>
+                        <li>Estimated duration (number of hours)</li>
+                    </ul>
+
+                    <div class="rt-schedule__tip">
+                        <strong>Note:</strong> If your session is time-sensitive or involves multiple speakers, please
+                        include any relevant context in the booking notes.
+                    </div>
+                </div>
+
+                <div class="rt-schedule__widgetCard">
+                    <!-- Calendly inline widget begin -->
+                    <div class="calendly-inline-widget"
+                        data-url="https://calendly.com/info-jse/interpretation-session?hide_event_type_details=1"
+                        style="min-width:320px;height:560px;"></div>
+                    <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js"
+                        async></script>
+                    <!-- Calendly inline widget end -->
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <style>
+        .rt-schedule {
+            padding: 3rem 0;
+            background: #ffffff;
+        }
+
+        .rt-schedule__container {
+            width: min(1080px, 92%);
+            margin: 0 auto;
+        }
+
+        .rt-schedule__header {
+            margin-bottom: 1.25rem;
+        }
+
+        .rt-schedule__title {
+            font-size: 1.75rem;
+            margin: 0 0 0.4rem 0;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #0f172a;
+        }
+
+        .rt-schedule__subtitle {
+            margin: 0;
+            max-width: 60ch;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .rt-schedule__grid {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .rt-schedule__info {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 1.25rem;
+            background: #fafafa;
+            font-size: 0.95rem;
+            color: #1f2937;
+        }
+
+        .rt-schedule__info ul {
+            margin: 0.75rem 0 0;
+            padding-left: 1.1rem;
+            line-height: 1.7;
+        }
+
+        .rt-schedule__tip {
+            margin-top: 1rem;
+            padding: 0.75rem 0.9rem;
+            border-left: 3px solid #1d4ed8;
+            /* Rolling blue accent */
+            background: #ffffff;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .rt-schedule__widgetCard {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 0.5rem;
+            background: #ffffff;
+            max-width: 520px;
+            /* THIS is what removes the huge blank space */
+        }
+
+        /* Mobile */
+        @media (max-width: 900px) {
+            .rt-schedule__grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rt-schedule__widgetCard {
+                max-width: 100%;
+            }
+        }
+    </style>
+
 
     <!-- Clients -->
     <section id="our-clients" class="section">
