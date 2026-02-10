@@ -3727,6 +3727,11 @@ img.logo {
     }
 }
 
+.links-nav {
+    color: black;
+    text-align: center;
+}
+
 .no-scroll {
     overflow: hidden;
 }

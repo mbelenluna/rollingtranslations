@@ -442,6 +442,101 @@
         </main>
     </section>
 
+    <!-- Trust Capsule -->
+    <section class="rt-trustCapsule" aria-label="Trust and Compliance Highlights">
+        <div class="rt-trustCapsule__outer">
+            <div class="rt-trustCapsule__grid">
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🛡️</span>
+                    <span>ISO-Aligned Quality &amp; Secure Workflow</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🏛️</span>
+                    <span>Trusted U.S. Government &amp; Public Sector Vendor</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">✔️</span>
+                    <span>USCIS-Compliant Translations</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🔒</span>
+                    <span>Trusted, Private, and Secure</span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <style>
+        /* ===== Trust Capsule ===== */
+        .rt-trustCapsule {
+            padding: 3.5rem 0 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .rt-trustCapsule__outer {
+            background: linear-gradient(135deg, #0b1b3a, #0a1630);
+            border-radius: 999px;
+            padding: 1.2rem 1.6rem;
+            box-shadow:
+                0 30px 60px rgba(15, 23, 42, 0.45),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+
+        .rt-trustCapsule__grid {
+            display: grid;
+            grid-auto-flow: column;
+            gap: 1.4rem;
+            align-items: center;
+        }
+
+        .rt-trustCapsule__item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .rt-trustCapsule__icon {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        /* Hover polish */
+        @media (hover:hover) {
+            .rt-trustCapsule__item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateY(-1px);
+                transition: all 160ms ease;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 980px) {
+            .rt-trustCapsule__grid {
+                grid-auto-flow: row;
+            }
+
+            .rt-trustCapsule__outer {
+                border-radius: 28px;
+                padding: 1rem;
+            }
+        }
+    </style>
+    
     <section>
         <main id="our-services">
             <div class="service-container container">
@@ -873,10 +968,11 @@
             </div>
 
             <nav class="rt-footer__col rt-footer__right footer-navigation">
-                <ul class="rt-nav">
+                <ul class="links-nav">
                     <li><a href="../pages/services.html">Services</a></li>
                     <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
                     <li><a href="../pages/about.html">About</a></li>
+                    <li><a href="../pages/blog.html">Blog</a></li>
                     <li><a href="../index.html#cta">Contact</a></li>
                     <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
                     <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
