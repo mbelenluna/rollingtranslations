@@ -438,7 +438,7 @@
                         <a class="contact-button" href="rolling-professional/professional.html"><i
                                 class="fa-solid fa-bolt"></i>&nbsp; Get
                             instant quote</a>
-                            <a class="contact-button" href="#schedule-interpretation"><i
+                        <a class="contact-button" href="#schedule-interpretation"><i
                                 class="fa-solid fa-calendar-check"></i>&nbsp; Schedule Interpretation</a>
                         <a class="return" style="margin-left:.5rem" href="#services">Learn more</a>
                     </div>
@@ -461,15 +461,15 @@
     <section class="rt-stats" aria-label="Company metrics">
         <div class="round-div">
             <div class="rt-stats__grid">
-                <div class="rt-stat"><span class="rt-stat__number">10+</span><span class="rt-stat__label">Years in
+                <div class="rt-stat"><span class="rt-stat__number">15+</span><span class="rt-stat__label">Years in
                         Business</span></div>
-                <div class="rt-stat"><span class="rt-stat__number">100+</span><span
+                <div class="rt-stat"><span class="rt-stat__number">160+</span><span
                         class="rt-stat__label">Languages</span>
                 </div>
-                <div class="rt-stat"><span class="rt-stat__number">150+</span><span
+                <div class="rt-stat"><span class="rt-stat__number">3,000+</span><span
                         class="rt-stat__label">Clients</span>
                 </div>
-                <div class="rt-stat"><span class="rt-stat__number">30 million+</span><span class="rt-stat__label">Words
+                <div class="rt-stat"><span class="rt-stat__number">2 billion+</span><span class="rt-stat__label">Words
                         Translated</span></div>
             </div>
         </div>
@@ -736,7 +736,11 @@
             <div class="rt-schedule__grid">
                 <div class="rt-schedule__info">
                     <p>
-                        Select the date and time of the assignment and provide the additional details requested. Based on your assignment details, you will receive a quote shortly thereafter. If approved, we will secure one of our qualified interpreters. A team of two interpreters may be needed if the duration of the meeting is longer than two hours. You will need to provide the following information on the next screen:
+                        Select the date and time of the assignment and provide the additional details requested. Based
+                        on your assignment details, you will receive a quote shortly thereafter. If approved, we will
+                        secure one of our qualified interpreters. A team of two interpreters may be needed if the
+                        duration of the meeting is longer than two hours. You will need to provide the following
+                        information on the next screen:
                     </p>
 
                     <ul>
@@ -746,7 +750,7 @@
                         <li>Estimated duration (number of hours)</li>
                     </ul>
 
-    
+
 
                     <div class="rt-schedule__tip">
                         <strong>Note:</strong> If your session is time-sensitive or involves multiple speakers, please
@@ -852,6 +856,102 @@
             }
         }
     </style>
+
+    <!-- Trust Capsule -->
+    <section class="rt-trustCapsule" aria-label="Trust and Compliance Highlights">
+        <div class="rt-trustCapsule__outer">
+            <div class="rt-trustCapsule__grid">
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🛡️</span>
+                    <span>ISO-Aligned Quality &amp; Secure Workflow</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🏛️</span>
+                    <span>Trusted U.S. Government &amp; Public Sector Vendor</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">✔️</span>
+                    <span>USCIS-Compliant Translations</span>
+                </div>
+
+                <div class="rt-trustCapsule__item">
+                    <span class="rt-trustCapsule__icon">🔒</span>
+                    <span>Trusted, Private, and Secure</span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <style>
+        /* ===== Trust Capsule ===== */
+        .rt-trustCapsule {
+            padding: 3.5rem 0 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .rt-trustCapsule__outer {
+            background: linear-gradient(135deg, #0b1b3a, #0a1630);
+            border-radius: 999px;
+            padding: 1.2rem 1.6rem;
+            box-shadow:
+                0 30px 60px rgba(15, 23, 42, 0.45),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+
+        .rt-trustCapsule__grid {
+            display: grid;
+            grid-auto-flow: column;
+            gap: 1.4rem;
+            align-items: center;
+        }
+
+        .rt-trustCapsule__item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .rt-trustCapsule__icon {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        /* Hover polish */
+        @media (hover:hover) {
+            .rt-trustCapsule__item:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateY(-1px);
+                transition: all 160ms ease;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 980px) {
+            .rt-trustCapsule__grid {
+                grid-auto-flow: row;
+            }
+
+            .rt-trustCapsule__outer {
+                border-radius: 28px;
+                padding: 1rem;
+            }
+        }
+    </style>
+
 
 
     <!-- Clients -->
