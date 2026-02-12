@@ -3124,3 +3124,22 @@ button,
 .instant-quote-head {
     color: var(--navy);
 }
+
+.rt-trustCapsule__item {
+    font-size: 24px;
+}
+
+.rt-trustCapsule__grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 683px) {
+  .rt-trustCapsule__item {
+    font-size: 14px;
+  }
+  
+  
+}
