@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+<script>(function () { var s = localStorage.getItem('rt-theme'); document.documentElement.setAttribute('data-theme', s === 'dark' ? 'dark' : 'light'); })()</script>
 
 <head>
   <meta charset="utf-8" />
@@ -14,6 +15,7 @@
   <link rel="stylesheet" href="../style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <meta http-equiv="Permissions-Policy" content="payment=(self)">
   <style>
     :root {
@@ -53,6 +55,113 @@
       color: #6b7280;
       font-size: .9rem
     }
+
+    /* ── Light theme overrides for this page ── */
+    [data-theme="light"] body.bg-gray-50 {
+      background: #f8fafc;
+    }
+
+    [data-theme="light"] .instant-quote-head {
+      color: #0f172a;
+    }
+
+    [data-theme="light"] .field label {
+      color: #1e293b;
+    }
+
+    [data-theme="light"] .field input,
+    [data-theme="light"] .field select,
+    [data-theme="light"] .field textarea {
+      background: #fff;
+      color: #0f172a;
+      border-color: #d1d5db;
+    }
+
+    [data-theme="light"] p.muted,
+    [data-theme="light"] .muted {
+      color: #6b7280;
+    }
+
+    [data-theme="light"] #quoteBox {
+      background: #fff;
+      border-color: #e5e7eb;
+    }
+
+    [data-theme="light"] #btnPreview {
+      background: #e5e7eb;
+      color: #1e293b;
+    }
+
+    [data-theme="light"] #btnPay {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    /* ── Dark theme overrides for this page ── */
+    [data-theme="dark"] body.bg-gray-50 {
+      background: var(--navy, #0f1a2e);
+    }
+
+    [data-theme="dark"] .instant-quote-head {
+      color: #fff;
+    }
+
+    [data-theme="dark"] .field label {
+      color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .field input,
+    [data-theme="dark"] .field select,
+    [data-theme="dark"] .field textarea {
+      background: #1c2b47;
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    [data-theme="dark"] .field input:focus,
+    [data-theme="dark"] .field select:focus,
+    [data-theme="dark"] .field textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    [data-theme="dark"] .field input::placeholder,
+    [data-theme="dark"] .field textarea::placeholder {
+      color: #64748b;
+    }
+
+    [data-theme="dark"] p.muted,
+    [data-theme="dark"] .muted {
+      color: #94a3b8;
+    }
+
+    [data-theme="dark"] main.max-w-5xl {
+      color: #e2e8f0;
+    }
+
+    [data-theme="dark"] #quoteBox {
+      background: #162036;
+      border-color: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+    }
+
+    [data-theme="dark"] #quoteBox h2 {
+      color: #fff;
+    }
+
+    [data-theme="dark"] #btnPreview {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+    }
+
+    [data-theme="dark"] #btnPay {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    [data-theme="dark"] #fileList {
+      color: #e2e8f0;
+    }
   </style>
 </head>
 
@@ -68,8 +177,8 @@
 
       <nav class="rt-nav__menu" aria-label="Main">
         <ul class="rt-nav__list" id="menu-items">
-          <li class="active-menu-item"><a href="../index.html">Home</a></li>
-          <li class="items"><a href="../professional.html">Instant Quote</a></li>
+          <li class="items"><a href="../index.html">Home</a></li>
+          <li class="active-menu-item"><a href="../professional.html">Instant Quote</a></li>
           <li class="items"><a href="../pages/services.html">Services</a></li>
           <li class="items"><a href="../pages/about.html">About</a></li>
           <li class="items"><a href="../pages/blog.html">Blog</a></li>
@@ -82,6 +191,10 @@
         </ul>
       </nav>
 
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+        <i class="fa-solid fa-sun theme-icon-light"></i>
+        <i class="fa-solid fa-moon theme-icon-dark"></i>
+      </button>
       <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
         <span></span>
       </button>
@@ -131,9 +244,9 @@
   </script>
 
 
-
   <main class="max-w-5xl mx-auto px-4 pb-24">
-    <h1 class="text-3xl font-extrabold tracking-tight instant-quote-head" id="instant-h1">Instant Quote for Translation Services</h1>
+    <h1 class="text-3xl font-extrabold tracking-tight instant-quote-head" id="instant-h1">Instant Quote for Translation
+      Services</h1>
     <p class="muted mt-2">Upload your files, pick languages and options. We’ll estimate instantly and you can pay
       securely.</p>
 
@@ -365,8 +478,12 @@
               </div>
             </div>
           </li>
-          <li class="contact-row"><img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
-            <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com</div>
+          <li class="contact-row">
+            <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+            <div class="contact-content">
+              info@rolling-translations.com<br>
+              connor@rolling-translations.com
+            </div>
           </li>
         </ul>
       </div>
@@ -383,6 +500,27 @@
       </nav>
     </div>
   </footer>
+  <script>
+    /* ── Theme Toggle ── */
+    (function () {
+      var toggle = document.getElementById('themeToggle');
+      var root = document.documentElement;
+      var saved = localStorage.getItem('rt-theme');
+      if (saved === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+      } else {
+        root.setAttribute('data-theme', 'light');
+      }
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          var current = root.getAttribute('data-theme');
+          var next = current === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', next);
+          localStorage.setItem('rt-theme', next);
+        });
+      }
+    })();
+  </script>
 
 
 

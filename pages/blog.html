@@ -98,7 +98,9 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TFB6RP7Z" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
+    <div class="rt-top-banner">
+        <div>Get <b>15% off</b> your first project with us. <a href="../index.html#cta">Contact us today →</a></div>
+    </div>
     <header class="rt-nav" id="site-header">
 
 
@@ -109,11 +111,11 @@
 
             <nav class="rt-nav__menu" aria-label="Main">
                 <ul class="rt-nav__list" id="menu-items">
-                    <li class="active-menu-item"><a href="../index.html">Home</a></li>
+                    <li class="items"><a href="../index.html">Home</a></li>
                     <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
                     <li class="items"><a href="services.html">Services</a></li>
                     <li class="items"><a href="about.html">About</a></li>
-                    <li class="items"><a href="blog.html">Blog</a></li>
+                    <li class="active-menu-item"><a href="blog.html">Blog</a></li>
                     <li class="items"><a href="../index.html#cta">Contact</a></li>
                     <li class="contact-menu-item">
                         <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank"
@@ -124,6 +126,10 @@
                 </ul>
             </nav>
 
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <i class="fa-solid fa-sun theme-icon-light"></i>
+                <i class="fa-solid fa-moon theme-icon-dark"></i>
+            </button>
             <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
                 <span></span>
             </button>
@@ -200,10 +206,11 @@
 
 
                     <li class="contact-row">
-                    <li class="contact-row"><img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
-                        <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com
+                        <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <div class="contact-content">
+                            info@rolling-translations.com<br>
+                            connor@rolling-translations.com
                         </div>
-                    </li>
                     </li>
                 </ul>
             </div>
@@ -223,7 +230,7 @@
     </footer>
 
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js">
     </script>
     <script type="text/javascript">
@@ -246,6 +253,28 @@
     <script src="articles.js"></script>
     <script src="../script.js"></script>
     <!-- MDB -->
+
+    <script>
+    /* ── Theme Toggle ── */
+    (function () {
+        var toggle = document.getElementById('themeToggle');
+        var root = document.documentElement;
+        var saved = localStorage.getItem('rt-theme');
+        if (saved === 'dark') {
+            root.setAttribute('data-theme', 'dark');
+        } else {
+            root.setAttribute('data-theme', 'light');
+        }
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                var current = root.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('rt-theme', next);
+            });
+        }
+    })();
+</script>
 
     <div id="rt-cookie-banner"
         style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#162036;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,0.08);">

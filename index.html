@@ -164,6 +164,10 @@
                                 alt="Whatsapp"> Chat Now</a></li>
                 </ul>
             </nav>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <i class="fa-solid fa-sun theme-icon-light"></i>
+                <i class="fa-solid fa-moon theme-icon-dark"></i>
+            </button>
             <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu"
                 aria-expanded="false"><span></span></button>
         </div>
@@ -468,8 +472,11 @@
                             </div>
                         </div>
                     </li>
-                    <li class="contact-row"><img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
-                        <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com
+                    <li class="contact-row">
+                        <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <div class="contact-content">
+                            info@rolling-translations.com<br>
+                            connor@rolling-translations.com
                         </div>
                     </li>
                 </ul>
@@ -488,7 +495,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">(function () { emailjs.init("53Mb68rS7ENJ7t_lr"); })();</script>
     <script src="script.js"></script>
@@ -522,6 +529,28 @@
                 if (gibberish(`${d.fullname} ${d.source} ${d.target} ${d.message}`)) return setStatus('Your message looks like spam. Please rephrase.');
                 if (rateL()) return setStatus('Please wait a moment before submitting again.');
                 window.location.href = 'success.html';
+            });
+        })();
+    </script>
+
+
+    <script>
+        /* ── Theme Toggle ── */
+        (function () {
+            const toggle = document.getElementById('themeToggle');
+            const root = document.documentElement;
+            const saved = localStorage.getItem('rt-theme');
+            // Default is light
+            if (saved === 'dark') {
+                root.setAttribute('data-theme', 'dark');
+            } else {
+                root.setAttribute('data-theme', 'light');
+            }
+            toggle.addEventListener('click', function () {
+                const current = root.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('rt-theme', next);
             });
         })();
     </script>

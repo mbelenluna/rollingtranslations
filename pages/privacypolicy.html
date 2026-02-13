@@ -96,7 +96,9 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TFB6RP7Z" height="0" width="0"
             style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
+    <div class="rt-top-banner">
+        <div>Get <b>15% off</b> your first project with us. <a href="#cta">Contact us today →</a></div>
+    </div>
     <header class="rt-nav" id="site-header">
         
 
@@ -107,7 +109,7 @@
 
             <nav class="rt-nav__menu" aria-label="Main">
                 <ul class="rt-nav__list" id="menu-items">
-                    <li class="active-menu-item"><a href="#hero">Home</a></li>
+                    <li class="items"><a href="#hero">Home</a></li>
                     <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
                     <li class="items"><a href="services.html">Services</a></li>
                     <li class="items"><a href="about.html">About</a></li>
@@ -122,6 +124,10 @@
                 </ul>
             </nav>
 
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <i class="fa-solid fa-sun theme-icon-light"></i>
+                <i class="fa-solid fa-moon theme-icon-dark"></i>
+            </button>
             <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
                 <span></span>
             </button>
@@ -289,13 +295,13 @@
                     </div>
                 </li>
 
-                <li class="contact-row">
-                    <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
-                    <div class="contact-content">
-                        <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="31585f575e71435e5d5d585f561c4543505f425d5045585e5f421f525e5c">[email&#160;protected]</a><br>
-                        <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2c4f434242435e6c5e43404045424b01585e4d425f404d584543425f024f4341">[email&#160;protected]</a>
-                    </div>
-                </li>
+                    <li class="contact-row">
+                        <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <div class="contact-content">
+                            info@rolling-translations.com<br>
+                            connor@rolling-translations.com
+                        </div>
+                    </li>
             </ul>
         </div>
 
@@ -337,5 +343,26 @@
                 style="background:#2563eb;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;box-shadow:0 4px 15px rgba(37,99,235,0.3);">Accept</button>
         </div>
     </div>
+<script>
+    /* ── Theme Toggle ── */
+    (function () {
+        var toggle = document.getElementById('themeToggle');
+        var root = document.documentElement;
+        var saved = localStorage.getItem('rt-theme');
+        if (saved === 'dark') {
+            root.setAttribute('data-theme', 'dark');
+        } else {
+            root.setAttribute('data-theme', 'light');
+        }
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                var current = root.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('rt-theme', next);
+            });
+        }
+    })();
+</script>
 </body>
 </html>
