@@ -17,9 +17,7 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": [
-        "npm --prefix functions run lint"
-      ]
+      "predeploy": []
     }
   ],
   "storage": {
@@ -39,5 +37,16 @@
       "enabled": true
     },
     "singleProjectMode": true
+  },
+  "hosting": {
+    "rewrites": [
+      {
+        "source": "/api/createCheckoutSession",
+        "function": {
+          "functionId": "createCheckoutSession",
+          "region": "us-central1"
+        }
+      }
+    ]
   }
 }

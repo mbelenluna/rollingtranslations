@@ -14,12 +14,12 @@ const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const EMAIL_USER = defineSecret("EMAIL_USER");
 const EMAIL_PASS = defineSecret("EMAIL_PASS");
 
-exports.health = onRequest({invoker: "public"}, (req, res) => {
+exports.health = onRequest((req, res) => {
   res.status(200).send("OK");
 });
 
 exports.createCheckoutSession = onRequest(
-  {secrets: [STRIPE_SECRET_KEY], invoker: "public"},
+  {secrets: [STRIPE_SECRET_KEY]},
   (req, res) => {
     cors(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -99,7 +99,6 @@ exports.createCheckoutSession = onRequest(
 exports.stripeWebhook = onRequest(
   {
     secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, EMAIL_USER, EMAIL_PASS],
-    invoker: "public",
   },
   async (req, res) => {
     try {
