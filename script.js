@@ -275,4 +275,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
+  // ===== Tutorial Video Modal =====
+  (function () {
+    const tab = document.getElementById('tutorialTab');
+    const overlay = document.getElementById('tutorialOverlay');
+    const closeBtn = document.getElementById('tutorialClose');
+    const iframe = document.getElementById('tutorialIframe');
+
+    // ⬇️ REPLACE this with your actual YouTube embed URL
+    const VIDEO_URL = 'https://youtube.com/embed/e5_MkVktJSA';
+
+    function openVideo() {
+      if (!overlay) return;
+      iframe.src = VIDEO_URL;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('no-scroll');
+    }
+
+    function closeVideo() {
+      if (!overlay) return;
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('no-scroll');
+      // Stop video playback
+      iframe.src = '';
+    }
+
+    if (tab) tab.addEventListener('click', openVideo);
+    if (closeBtn) closeBtn.addEventListener('click', closeVideo);
+
+    // Close on backdrop click
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeVideo();
+      });
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) {
+        closeVideo();
+      }
+    });
+  })();
+
 }); // END DOMContentLoaded

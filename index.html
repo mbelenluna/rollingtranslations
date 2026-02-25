@@ -476,8 +476,8 @@
                     <li class="contact-row">
                         <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
                         <div class="contact-content">
-                            info@rolling-translations.com<br>
-                            connor@rolling-translations.com
+                            <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="92fbfcf4fdd2e0fdfefefbfcf5bfe6e0f3fce1fef3e6fbfdfce1bcf1fdff">[email&#160;protected]</a><br>
+                            <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="24474b4a4a4b5664564b48484d4a43095056454a574845504d4b4a570a474b49">[email&#160;protected]</a>
                         </div>
                     </li>
                 </ul>
@@ -496,7 +496,7 @@
         </div>
     </footer>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script type="text/javascript">(function () { emailjs.init("53Mb68rS7ENJ7t_lr"); })();</script>
     <script src="script.js"></script>
@@ -557,12 +557,42 @@
     </script>
 
 
-    <div id="rt-cookie-banner" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#162036;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,0.08);">
+    <!-- ═══ Tutorial Video Floating Tab + Modal ═══ -->
+    <button class="rt-tutorial-tab" id="tutorialTab" aria-label="Watch tutorial video">
+        <i class="fa-solid fa-circle-play"></i>
+        <span>Watch Tutorial</span>
+    </button>
+
+    <div class="rt-video-overlay" id="tutorialOverlay" aria-hidden="true">
+        <div class="rt-video-modal">
+            <button class="rt-video-close" id="tutorialClose" aria-label="Close video">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="rt-video-wrapper">
+
+                <iframe id="tutorialIframe"
+                    src=""
+                    title="Rolling Translations — Instant Quote Tutorial"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+            <p class="rt-video-caption">Learn how to use our Instant Quote tool in under one minute.</p>
+        </div>
+    </div>
+
+    <div id="rt-cookie-banner"
+        style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#162036;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,0.08);">
         <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-            <div class="cookies-text" style="flex:1;min-width:260px;">We use cookies for analytics and advertising. See our <a href="/pages/privacypolicy.html" style="color:#60a5fa;text-decoration:underline;">Privacy Policy</a>.</div>
-            <button id="rt-consent-reject" style="background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.15);padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Reject</button>
-            <button id="rt-consent-accept" style="background:#2563eb;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;box-shadow:0 4px 15px rgba(37,99,235,0.3);">Accept</button>
+            <div class="cookies-text" style="flex:1;min-width:260px;">We use cookies for analytics and advertising. See our
+                <a href="privacypolicy.html" style="color:#60a5fa;text-decoration:underline;">Privacy Policy</a>.
+            </div>
+            <button id="rt-consent-reject"
+                style="background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.15);padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Reject</button>
+            <button id="rt-consent-accept"
+                style="background:#2563eb;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;box-shadow:0 4px 15px rgba(37,99,235,0.3);">Accept</button>
         </div>
     </div>
 </body>
+
 </html>

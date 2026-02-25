@@ -500,6 +500,30 @@
       </nav>
     </div>
   </footer>
+
+  <!-- ═══ Tutorial Video Floating Tab + Modal ═══ -->
+    <button class="rt-tutorial-tab" id="tutorialTab" aria-label="Watch tutorial video">
+        <i class="fa-solid fa-circle-play"></i>
+        <span>Watch Tutorial</span>
+    </button>
+
+    <div class="rt-video-overlay" id="tutorialOverlay" aria-hidden="true">
+        <div class="rt-video-modal">
+            <button class="rt-video-close" id="tutorialClose" aria-label="Close video">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="rt-video-wrapper">
+
+                <iframe id="tutorialIframe"
+                    src=""
+                    title="Rolling Translations — Instant Quote Tutorial"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+            <p class="rt-video-caption">Learn how to use our Instant Quote tool in under one minute.</p>
+        </div>
+    </div>
   <script>
     /* ── Theme Toggle ── */
     (function () {
@@ -522,7 +546,7 @@
     })();
   </script>
 
-
+  <script src="../script.js"></script>
 
   <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
   <script type="module" src="professional.js?v=6e"></script>

@@ -39,14 +39,22 @@
     "singleProjectMode": true
   },
   "hosting": {
-    "rewrites": [
-      {
-        "source": "/api/createCheckoutSession",
-        "function": {
-          "functionId": "createCheckoutSession",
-          "region": "us-central1"
-        }
+  "public": "public",
+  "rewrites": [
+    {
+      "source": "/api/createCheckoutSession",
+      "function": {
+        "functionId": "createCheckoutSession",
+        "region": "us-central1"
       }
-    ]
-  }
+    },
+    {
+      "source": "/api/stripeWebhook",
+      "function": {
+        "functionId": "stripeWebhook",
+        "region": "us-central1"
+      }
+    }
+  ]
+}
 }
