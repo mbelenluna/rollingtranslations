@@ -192,7 +192,14 @@
 
         const deliverableList = Array.isArray(p.deliverables) && p.deliverables.length ? p.deliverables : (p.deliverable ? [p.deliverable] : []);
         const deliverableHtml = deliverableList.length
-          ? deliverableList.map((d, i) => `<p class="mb-2"><button class="btn-download px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700" data-filename="${(d.filename || '').replace(/"/g, '&quot;')}">Download ${d.filename || 'file'}</button></p>`).join('')
+          ? deliverableList.map((d) => {
+              const fn = d.filename || 'file';
+              const escaped = fn.replace(/"/g, '&quot;');
+              return `<div class="flex flex-col sm:flex-row sm:items-center gap-2 py-2 border-b border-gray-100 last:border-0 last:pb-0">
+                <span class="text-sm text-gray-600 truncate min-w-0" title="${escaped}">${fn}</span>
+                <button class="btn-download px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium flex-shrink-0 w-fit" data-filename="${escaped}">Download</button>
+              </div>`;
+            }).join('')
           : '<p class="text-gray-500">Not available yet</p>';
 
         content.innerHTML = `
@@ -224,8 +231,8 @@
             </div>
 
             <div class="p-6 border-t">
-              <h2 class="font-semibold text-gray-900 mb-2">Deliverable</h2>
-              ${deliverableHtml}
+              <h2 class="font-semibold text-gray-900 mb-3">Deliverable</h2>
+              <div class="space-y-1">${deliverableHtml}</div>
             </div>
 
             <div class="p-6 border-t">

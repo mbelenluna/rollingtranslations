@@ -79,12 +79,15 @@ const bucket = admin.storage().bucket();
 
 const Stripe = require("stripe");
 const sgMail = require("@sendgrid/mail");
+// Disable click tracking so links stay as-is (SendGrid rewrites to url651.rolling-translations.com which doesn't resolve)
+const SENDGRID_NO_CLICK_TRACKING = {
+  trackingSettings: { clickTracking: { enable: false, enableText: false } },
+};
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
 const ADMIN_EMAILS = defineString("ADMIN_EMAILS", { default: "" });
 const PORTAL_BASE_URL = defineString("PORTAL_BASE_URL", { default: "https://rolling-translations.com/portal" });
-const CF_VERIFY_EMAIL_URL = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net/verifyEmail";
 
 const CHECKOUT_ORIGIN = process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || "https://mbelenluna.github.io/rolling-portal";
 const ALLOWED_ORIGINS = [
@@ -436,12 +439,14 @@ exports.stripeWebhook = onRequest(
 
         const msgs = [];
         if (clientEmail) msgs.push({
+          ...SENDGRID_NO_CLICK_TRACKING,
           to: clientEmail,
           from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
           subject: `Order ${requestId || sessionLike.id} confirmed — Rolling Translations`,
           html
         });
         msgs.push({
+          ...SENDGRID_NO_CLICK_TRACKING,
           to: "info@rolling-translations.com",
           from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
           subject: `New paid order — ${requestId || sessionLike.id}`,
@@ -587,12 +592,14 @@ exports.resendConfirmation = onRequest(
 
       const msgs = [];
       if (clientEmail) msgs.push({
+        ...SENDGRID_NO_CLICK_TRACKING,
         to: clientEmail,
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: `Order ${requestId || sessionId} confirmed — Rolling Translations`,
         html
       });
       msgs.push({
+        ...SENDGRID_NO_CLICK_TRACKING,
         to: "info@rolling-translations.com",
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: `Re-send paid order — ${requestId || sessionId}`,
@@ -695,6 +702,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
       const messages = [];
       if (clientEmail) {
         messages.push({
+          ...SENDGRID_NO_CLICK_TRACKING,
           to: clientEmail,
           from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
           subject: `We received your request — ${requestId}`,
@@ -702,6 +710,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
         });
       }
       messages.push({
+        ...SENDGRID_NO_CLICK_TRACKING,
         to: ["info@rolling-translations.com", "connor@rolling-translations.com"],
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: `New translation request — ${requestId}`,
@@ -835,6 +844,7 @@ exports.sendTestEmail = onRequest(
       }
       sgMail.setApiKey(key);
       await sgMail.send({
+        ...SENDGRID_NO_CLICK_TRACKING,
         to: "info@rolling-translations.com",
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: "SendGrid test — Rolling Translations",
@@ -939,12 +949,14 @@ exports.sendVerificationEmail = onRequest(
       const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
       const tokensRef = db.collection("verificationTokens");
       await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      // Use API redirect URL so verification happens server-side (avoids client fetch timeout)
-      const verifyUrl = `${CF_VERIFY_EMAIL_URL}?token=${encodeURIComponent(token)}&redirect=1`;
+      // Link to portal page; page auto-submits form to API (avoids fetch timeout)
+      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
+      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
       sgMail.setApiKey(SENDGRID_API_KEY.value());
       logger.info("sendVerificationEmail: sending", { to: userEmail, uid });
       try {
         await sgMail.send({
+          ...SENDGRID_NO_CLICK_TRACKING,
           to: userEmail,
           from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
           subject: "Verify your email — Rolling Translations Client Portal",
@@ -1066,9 +1078,11 @@ exports.resendVerificationEmail = onRequest(
       const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
       const tokensRef = db.collection("verificationTokens");
       await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      const verifyUrl = `${CF_VERIFY_EMAIL_URL}?token=${encodeURIComponent(token)}&redirect=1`;
+      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
+      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
       sgMail.setApiKey(SENDGRID_API_KEY.value());
       await sgMail.send({
+        ...SENDGRID_NO_CLICK_TRACKING,
         to: userEmail,
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: "Verify your email — Rolling Translations Client Portal",
@@ -1195,16 +1209,18 @@ exports.updateProjectStatus = onRequest(
           status === "Delivered"
             ? `Your translation is ready — ${requestId}`
             : `Status update — ${requestId}`;
+        const portalUrl = (PORTAL_BASE_URL.value() || "https://rolling-translations.com/portal").replace(/\/$/, "") + "/";
         const html = `
           <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
             <h2>Project status updated</h2>
             <p>Your project <b>${requestId}</b> is now: <b>${status}</b>.</p>
             ${status === "Delivered" ? "<p>Your deliverable is ready to download in the Client Portal.</p>" : ""}
-            <p><a href="https://rolling-translations.com/portal/">View in Client Portal</a></p>
+            <p><a href="${portalUrl}">View in Client Portal</a></p>
           </div>
         `;
         try {
           await sgMail.send({
+            ...SENDGRID_NO_CLICK_TRACKING,
             to: userData.email,
             from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
             subject,

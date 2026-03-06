@@ -20,7 +20,10 @@
       </div>
       <h1 class="text-2xl font-bold text-gray-900 mb-2">Email verified!</h1>
       <p class="text-gray-600 mb-6">Your account is now active. You can log in and access the portal.</p>
-      <a href="index.html" class="inline-block px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">Log in</a>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="dashboard.html" class="inline-block px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">Go to My Projects</a>
+        <a href="index.html" class="inline-block px-6 py-2 rounded-lg bg-gray-200 text-gray-800 font-medium hover:bg-gray-300">Log in</a>
+      </div>
     </div>
 
     <div id="error" class="hidden bg-white rounded-xl shadow-lg p-8 text-center">
@@ -36,36 +39,52 @@
     </div>
   </div>
 
-  <script type="module">
-    import { verifyEmailToken } from './auth.js';
+  <!-- Form auto-submits to API (full-page navigation, no fetch timeout) -->
+  <form id="verify-form" method="GET" action="https://us-central1-rolling-crowdsourcing.cloudfunctions.net/verifyEmail" style="display:none">
+    <input type="hidden" name="token" id="form-token" value="">
+    <input type="hidden" name="redirect" value="1">
+  </form>
 
-    const loading = document.getElementById('loading');
-    const success = document.getElementById('success');
-    const error = document.getElementById('error');
-    const errorMsg = document.getElementById('error-msg');
+  <script>
+    (function() {
+      const loading = document.getElementById('loading');
+      const success = document.getElementById('success');
+      const error = document.getElementById('error');
+      const errorMsg = document.getElementById('error-msg');
+      const form = document.getElementById('verify-form');
+      const formToken = document.getElementById('form-token');
 
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
+      const params = new URLSearchParams(location.search);
+      const verified = params.get('verified');
+      const errParam = params.get('error');
+      const message = params.get('message');
+      const token = params.get('token');
 
-    async function run() {
-      if (!token || token.length < 10) {
-        loading.classList.add('hidden');
-        error.classList.remove('hidden');
-        errorMsg.textContent = 'No valid verification token was provided.';
-        return;
-      }
-      try {
-        await verifyEmailToken(token);
+      // Result from API redirect: ?verified=1 or ?error=1&message=...
+      if (verified === '1') {
         loading.classList.add('hidden');
         success.classList.remove('hidden');
-      } catch (ex) {
+        return;
+      }
+      if (errParam === '1') {
         loading.classList.add('hidden');
         error.classList.remove('hidden');
-        errorMsg.textContent = ex.message || 'Verification failed. The link may have expired.';
+        errorMsg.textContent = message || 'Verification failed. The link may have expired.';
+        return;
       }
-    }
 
-    run();
+      // Has token: submit form to API (full-page GET, then API redirects back)
+      if (token && token.length >= 10) {
+        formToken.value = token;
+        form.submit();
+        return;
+      }
+
+      // No token
+      loading.classList.add('hidden');
+      error.classList.remove('hidden');
+      errorMsg.textContent = 'No valid verification token was provided.';
+    })();
   </script>
 </body>
 </html>

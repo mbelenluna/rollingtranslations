@@ -160,8 +160,20 @@
         try {
           await sendVerificationEmail();
         } catch (sendEx) {
-          console.warn('sendVerificationEmail failed:', sendEx?.message || sendEx);
-          // Still redirect - user can request resend from verification-required page
+          console.error('sendVerificationEmail failed:', sendEx?.message || sendEx);
+          err.textContent = 'Account created, but we couldn\'t send the verification email: ' + (sendEx?.message || 'Unknown error') + '. You can try "Resend verification email" on the next page.';
+          err.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = 'Create account';
+          if (!document.getElementById('go-verification-link')) {
+            const goLink = document.createElement('a');
+            goLink.id = 'go-verification-link';
+            goLink.href = 'verification-required.html?registered=1';
+            goLink.className = 'block mt-2 text-blue-600 hover:underline';
+            goLink.textContent = 'Continue to verification page →';
+            err.after(goLink);
+          }
+          return;
         }
         await new Promise((r) => setTimeout(r, 400));
         window.location.replace('verification-required.html?registered=1');
