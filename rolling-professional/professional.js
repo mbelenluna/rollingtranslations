@@ -55,7 +55,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 let currentUser = null;
-onAuthStateChanged(auth, (u)=> currentUser = u || null);
+function updateContactFieldsForAuth(user) {
+  const $contactFields = document.querySelector("#contactFields");
+  const $loggedInNotice = document.querySelector("#loggedInNotice");
+  const $loggedInName = document.querySelector("#loggedInName");
+  const $loggedInEmail = document.querySelector("#loggedInEmail");
+  const loggedIn = user && user.email && !user.isAnonymous;
+  if ($contactFields) $contactFields.classList.toggle("hidden", !!loggedIn);
+  if ($loggedInNotice) $loggedInNotice.classList.toggle("hidden", !loggedIn);
+  if (loggedIn) {
+    if ($loggedInName) $loggedInName.textContent = user.displayName || user.email || "—";
+    if ($loggedInEmail) $loggedInEmail.textContent = user.email || "";
+  }
+  if ($fullName) $fullName.required = !loggedIn;
+  if ($email) $email.required = !loggedIn;
+}
+onAuthStateChanged(auth, (u)=> {
+  currentUser = u || null;
+  updateContactFieldsForAuth(currentUser);
+});
 
 const CF_BASE = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net";
 const CURRENCY = "usd";
@@ -118,7 +136,37 @@ function readBoolFlexible(el){
   return !!v;
 }
 function fileKey(f){ return `${f.name}::${f.size}::${f.lastModified||0}`; }
-function requestId(){ return `PRO-${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
+function slugify(s){
+  if (!s || typeof s !== 'string') return '';
+  return s.trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9.-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40)
+    .toLowerCase() || '';
+}
+function getInitials(fullName, email){
+  const name = String(fullName || '').trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase().slice(0, 2);
+    if (parts[0]) return parts[0].slice(0, 2).toUpperCase();
+  }
+  const local = (email || '').split('@')[0] || '';
+  return local.slice(0, 2).toUpperCase() || 'XX';
+}
+function requestId(opts = {}){
+  const now = new Date();
+  const ymd = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+  const initials = getInitials(opts.fullName, opts.email);
+  const filePart = opts.firstFileName ? slugify(opts.firstFileName) : '';
+  const rand = Math.random().toString(36).slice(2, 6);
+  const parts = ['PRO', ymd, initials];
+  if (filePart) parts.push(filePart);
+  parts.push(rand);
+  return parts.join('-');
+}
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g,' '); }
 function titleize(s){ return s.split(' ').map(w=> w==='and'||w==='of' ? w : (w[0]? w[0].toUpperCase()+w.slice(1) : '')).join(' '); }
 
@@ -356,7 +404,11 @@ function buildQuoteMarkup(words, totalCents){
       <ul class="divide-y divide-gray-200 text-sm md:text-base">${fileItems || '<li class="py-2 text-gray-500">No files</li>'}</ul>
     </div>
 
-    <div class="mt-8 flex flex-col md:flex-row gap-3">
+    ${!(currentUser && currentUser.email && !currentUser.isAnonymous) ? `<p class="mt-6 text-sm text-gray-600 bg-blue-50 border border-blue-100 rounded-lg p-3">
+      Want to track your request in our Client Portal and see status updates in real time? Please <a href="../portal/" class="text-blue-600 underline font-medium">register and log in</a> before ordering. <em>(Optional)</em>
+    </p>` : ''}
+
+    <div class="mt-6 flex flex-col md:flex-row gap-3">
       <button id="btnEdit" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Edit selection</button>
       <button id="btnPayQuote" class="px-5 py-3 rounded-xl bg-blue-600 text-white text-base font-semibold disabled:opacity-50">Pay now</button>
     </div>
@@ -391,22 +443,20 @@ async function uploadAndQuote(file, uid){
   return { name:file.name, gsPath: relPath, words: q.words|0 };
 }
 async function ensureAuth(_email){
-  // Si ya hay sesión, listo
-  if (currentUser) return currentUser;
-
-  // Sesión anónima siempre (robusta frente a bloqueos/restricciones)
+  // If user is logged in with email (portal), use them for uploads
+  if (currentUser && currentUser.email) return currentUser;
+  // Otherwise use anonymous for guest uploads
+  if (currentUser && currentUser.isAnonymous) return currentUser;
   try {
     const anon = await signInAnonymously(auth);
     currentUser = anon.user;
     return currentUser;
   } catch (e) {
-    // Si por alguna razón falla, reintentamos una vez (por si la persistencia cayó a inMemory)
     try {
       const anon2 = await signInAnonymously(auth);
       currentUser = anon2.user;
       return currentUser;
     } catch (e2) {
-      // Como último recurso, seguimos sin auth (el upload fallará y mostraremos error amigable)
       return null;
     }
   }
@@ -441,9 +491,11 @@ async function previewQuote(){
 async function startPayment(){
   const words = sumWords();
   if (!(words>0 && lastQuoteCents>0)) { alert("Generate your quote first."); return; }
-  const email = ($email?.value || "").trim(); if (!email){ alert("We need an email for the receipt."); return; }
+  const loggedInUser = currentUser && currentUser.email && !currentUser.isAnonymous ? currentUser : null;
+  const email = loggedInUser ? (loggedInUser.email || "").trim() : ($email?.value || "").trim();
+  if (!email){ alert("We need an email for the receipt."); return; }
 
-  const fullName = (document.querySelector("#fullName")?.value || "").trim();
+  const fullName = loggedInUser ? (loggedInUser.displayName || "").trim() : (document.querySelector("#fullName")?.value || "").trim();
   const rTok = rushToken();
   const certified = readBoolFlexible($certified);
   const subject = ($subject?.value || "").toLowerCase();
@@ -452,7 +504,12 @@ async function startPayment(){
   const pairs = targets.map(tgt => ({ sourceLang, targetLang: tgt }));
   const notes = ($notes?.value || "").trim();
 
-  const reqId = requestId();
+  const firstFile = Array.from(selectedFiles.values()).find(e => e.uploaded);
+  const reqId = requestId({
+    fullName,
+    email,
+    firstFileName: firstFile?.uploaded?.name || firstFile?.file?.name
+  });
   const basePath = (() => { try { return new URL('.', location.href).href; } catch { return location.origin + location.pathname.replace(/[^/]*$/, ''); } })();
   const successUrl = `${basePath}success.html?session_id={CHECKOUT_SESSION_ID}&requestId=${encodeURIComponent(reqId)}`;
   const cancelUrl  = `${basePath}cancel.html?requestId=${encodeURIComponent(reqId)}`;
@@ -466,11 +523,21 @@ async function startPayment(){
     subject && subject!=='general' ? subject : null,
   ].filter(Boolean).join(" · ");
 
+  const originalFiles = Array.from(selectedFiles.values())
+    .filter((e) => e.uploaded)
+    .map((e) => ({ filename: e.uploaded.name, storagePath: e.uploaded.gsPath }));
+
+  const headers = { "Content-Type": "application/json" };
+  if (loggedInUser) {
+    const token = await loggedInUser.getIdToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
   const $pay = document.querySelector("#btnPayQuote");
   if ($pay){ $pay.disabled = true; $pay.textContent = "Creating payment session…"; }
   try {
     const r = await fetch(`${CF_BASE}/createCheckoutSession`, {
-      method:"POST", headers:{ "Content-Type":"application/json" },
+      method:"POST", headers,
       body: JSON.stringify({
         requestId: reqId,
         email,
@@ -480,8 +547,9 @@ async function startPayment(){
         rush: rTok,
         certified: String(certified),
         subject,
-        notes,                // 👈 ahora enviamos notas
+        notes,
         pairs,
+        originalFiles,
         successUrl,
         cancelUrl
       })
@@ -489,7 +557,8 @@ async function startPayment(){
     const raw = await r.text().catch(()=> ""); if (!r.ok) throw new Error(raw.slice(0,200)||"Failed");
     const data = JSON.parse(raw); if (data?.url) location.href = data.url; else throw new Error("No URL from server");
   } catch(e){
-    alert("We couldn't start the payment. Please try again.");
+    console.error("Pay now error:", e?.message || e, e?.response);
+    alert("We couldn't start the payment. Please try again.\n\n(Open DevTools → Console to see the error details)");
   } finally {
     if ($pay){ $pay.disabled = false; $pay.textContent = "Pay now"; }
   }

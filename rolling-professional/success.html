@@ -8,22 +8,23 @@
 </head>
 <body class="bg-gray-50">
   <div class="max-w-2xl mx-auto px-6 py-16 text-center">
-    <h1 class="text-3xl font-extrabold mb-3">Thank you! 🎉</h1>
-    <p class="text-gray-700">Your payment was successful. We’ve received your files and details.</p>
-    <p class="text-gray-700 mt-2">A project manager will email you shortly with timelines and next steps.</p>
-    <a href="/" class="inline-block mt-6 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold">Back to site</a>
+    <h1 class="text-3xl font-extrabold mb-3">Thank you! Payment received. 🎉</h1>
+    <p class="text-gray-600 mt-2">Redirecting to your portal…</p>
   </div>
   <script>
   (function(){
     const p = new URLSearchParams(location.search);
     const sessionId = p.get('session_id');
     const requestId = p.get('requestId');
-    if (!sessionId && !requestId) return;
-    fetch("https://us-central1-rolling-crowdsourcing.cloudfunctions.net/resendConfirmation", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ sessionId, requestId })
-    }).catch(()=>{});
+    if (sessionId || requestId) {
+      fetch("https://us-central1-rolling-crowdsourcing.cloudfunctions.net/resendConfirmation", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ sessionId, requestId })
+      }).catch(()=>{});
+    }
+    const portalUrl = new URL("../portal/", location.href).href;
+    setTimeout(function(){ location.href = portalUrl; }, 3000);
   })();
 </script>
 

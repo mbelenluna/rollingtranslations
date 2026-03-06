@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Projects — Client Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="rt-top-banner">
+    <div>Get <b>15% off</b> your first project with us. <a href="../index.html#cta">Contact us today →</a></div>
+  </div>
+  <header class="rt-nav" id="site-header">
+    <div class="rt-nav__bar">
+      <a class="rt-nav__logo" href="../index.html" aria-label="Rolling Translations Home"><img class="rt-logo" src="../images/logo.png" alt="Rolling Translations Logo"></a>
+      <nav class="rt-nav__menu" aria-label="Main">
+        <ul class="rt-nav__list" id="menu-items">
+          <li class="items"><a href="../index.html">Home</a></li>
+          <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+          <li class="items"><a href="../pages/services.html">Services</a></li>
+          <li class="items"><a href="../pages/about.html">About</a></li>
+          <li class="items"><a href="../pages/blog.html">Blog</a></li>
+          <li class="items"><a href="../index.html#cta">Contact</a></li>
+          <li class="items"><a href="dashboard.html" class="active-menu-item">My Projects</a></li>
+          <li class="items"><a href="settings.html">Settings</a></li>
+          <li class="contact-menu-item"><a class="rt-nav__cta" href="../rolling-professional/professional.html"><img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
+        </ul>
+      </nav>
+      <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+        <i class="fa-solid fa-sun theme-icon-light"></i>
+        <i class="fa-solid fa-moon theme-icon-dark"></i>
+      </button>
+      <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false"><span></span></button>
+    </div>
+  </header>
+  <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
+    <a class="rt-nav__mobile-link" href="../index.html">Home</a>
+    <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
+    <a class="rt-nav__mobile-link" href="../pages/services.html">Services</a>
+    <a class="rt-nav__mobile-link" href="../pages/about.html">About</a>
+    <a class="rt-nav__mobile-link" href="../pages/blog.html">Blog</a>
+    <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+    <a class="rt-nav__mobile-link active" href="dashboard.html">My Projects</a>
+    <a class="rt-nav__mobile-link" href="settings.html">Settings</a>
+    <div id="mobile-logged-in" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+    <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html"><img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8" style="background:var(--navy);color:var(--gray-300);min-height:60vh">
+    <h1 class="text-2xl font-bold mb-6" style="color:var(--white)">My Projects</h1>
+
+    <div id="loading" style="color:var(--gray-300)">Loading projects…</div>
+    <div id="error" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
+      <p class="text-red-800 dark:text-red-200 font-medium mb-2">Could not load projects</p>
+      <p id="error-msg" class="text-sm text-red-700 dark:text-red-300 mb-4"></p>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">If you see "Failed to fetch", check your internet connection or try again. Some browsers or extensions may block requests.</p>
+      <button id="retry-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Try again</button>
+    </div>
+    <div id="empty" class="hidden text-gray-600 bg-white rounded-lg border p-8 text-center">
+      <p class="mb-4">You don't have any projects yet.</p>
+      <p class="text-sm">Place an order on the <a href="../rolling-professional/professional.html" class="text-blue-600 underline">Instant Quote</a> page to get started.</p>
+    </div>
+    <div id="projects" class="hidden space-y-4"></div>
+  </main>
+
+  <footer class="rt-footer">
+    <div class="rt-footer__inner">
+      <div class="rt-footer__col rt-footer__left" id="logo-footer">
+        <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
+        <p class="small-text">Copyright &copy; <span id="y">2025</span> Rolling Translations LLC. All rights reserved.</p>
+        <div class="rt-socials">
+          <div class="footer-social">
+            <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in fa-fw"></i></a>
+            <a href="https://www.instagram.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram fa-fw"></i></a>
+            <a href="https://www.facebook.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f fa-fw"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="rt-footer__col rt-footer__center" id="info">
+        <ul class="contact-list">
+          <li class="contact-row">
+            <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+            <div class="contact-content">
+              <h4 class="contact-title">Our Offices</h4>
+              <div class="offices">
+                <p><strong>Florida:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
+                <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
+                <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
+                <p><strong>Colorado:</strong> 6635 S Dayton St Ste 310, Greenwood Village, CO 80111</p>
+              </div>
+            </div>
+          </li>
+          <li class="contact-row">
+            <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+            <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com</div>
+          </li>
+        </ul>
+      </div>
+      <nav class="rt-footer__col rt-footer__right footer-navigation">
+        <h4 class="rt-footer__nav-title">Quick Links</h4>
+        <ul class="links-nav">
+          <li><a href="../pages/services.html">Services</a></li>
+          <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+          <li><a href="../pages/about.html">About</a></li>
+          <li><a href="../pages/blog.html">Blog</a></li>
+          <li><a href="../index.html#cta">Contact</a></li>
+          <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <script src="../script.js"></script>
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const root = document.documentElement;
+      const saved = localStorage.getItem('rt-theme');
+      if (saved === 'dark') root.setAttribute('data-theme', 'dark');
+      else root.setAttribute('data-theme', 'light');
+      if (toggle) toggle.addEventListener('click', function () {
+        const current = root.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('rt-theme', next);
+      });
+    })();
+  </script>
+  <script type="module" src="../header-auth.js"></script>
+  <script type="module">
+    import { onAuth, apiCall, currentUser, checkServerReachable } from './auth.js';
+
+    const loading = document.getElementById('loading');
+    const empty = document.getElementById('empty');
+    const projects = document.getElementById('projects');
+    const errorDiv = document.getElementById('error');
+    const errorMsg = document.getElementById('error-msg');
+    const retryBtn = document.getElementById('retry-btn');
+
+    function fmtDate(ts) {
+      if (!ts) return '—';
+      let d;
+      if (ts?.toDate && typeof ts.toDate === 'function') {
+        d = ts.toDate();
+      } else if (typeof ts?.seconds === 'number') {
+        d = new Date(ts.seconds * 1000);
+      } else if (typeof ts?._seconds === 'number') {
+        d = new Date(ts._seconds * 1000);
+      } else {
+        d = new Date(ts);
+      }
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function fmtMoney(amount, currency = 'USD') {
+      if (amount == null) return '—';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    }
+
+    async function loadProjects() {
+      const user = currentUser();
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      // Redirect unverified users to verification-required page
+      try {
+        const profile = await apiCall('/getUserProfile');
+        if (profile?.emailVerified === false && profile?.role !== 'admin') {
+          window.location.replace('verification-required.html');
+          return;
+        }
+      } catch (e) {
+        if (e?.errorCode === 'email_not_verified' || (e?.message && e.message.includes('verify'))) {
+          window.location.replace('verification-required.html');
+          return;
+        }
+        if (e?.status === 401) {
+          window.location.href = 'index.html';
+          return;
+        }
+      }
+      loading.classList.remove('hidden');
+      if (errorDiv) errorDiv.classList.add('hidden');
+      try {
+        const list = await apiCall('/getMyProjects');
+        loading.classList.add('hidden');
+        if (!list || list.length === 0) {
+          empty.classList.remove('hidden');
+          return;
+        }
+        projects.classList.remove('hidden');
+        const portalBase = (() => {
+          const p = location.pathname;
+          const m = p.match(/(.*\/portal)\/?/);
+          return location.origin + (m ? m[1] : '/portal').replace(/\/?$/, '/');
+        })();
+        projects.innerHTML = list.map((p) => {
+          const projId = p.id || p.requestId || '';
+          const projectUrl = new URL('project.html', portalBase);
+          projectUrl.searchParams.set('id', projId);
+          projectUrl.hash = encodeURIComponent(projId);
+          const files = Array.isArray(p.originalFiles) ? p.originalFiles.map((f) => f.filename || f.name).join(', ') : '—';
+          return `
+            <a href="${projectUrl.href}" class="block bg-white rounded-lg border p-4 hover:border-blue-300 hover:shadow transition">
+              <div class="flex justify-between items-start">
+                <div>
+                  <span class="font-semibold text-gray-900">${p.id}</span>
+                  <span class="ml-2 px-2 py-0.5 text-xs rounded-full ${p.status === 'Delivered' ? 'bg-green-100 text-green-800' : p.status === 'paid' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">${p.status || '—'}</span>
+                </div>
+                <span class="text-gray-500 text-sm">${fmtDate(p.checkoutCreatedAt || p.paidAt)}</span>
+              </div>
+              <div class="mt-2 text-sm text-gray-600">
+                ${files || 'No files'}
+              </div>
+              <div class="mt-2 text-sm text-gray-500">
+                ${fmtMoney(p.amountPaid || p.estimatedTotal)} ${p.dueDate ? ' · Due ' + fmtDate(p.dueDate) : ''}
+              </div>
+            </a>
+          `;
+        }).join('');
+      } catch (e) {
+        loading.classList.add('hidden');
+        if (errorDiv) {
+          errorDiv.classList.remove('hidden');
+          let msg = e.message || 'Failed to load';
+          if (msg === 'Failed to fetch') {
+            const isFileProtocol = location.protocol === 'file:';
+            const reachable = isFileProtocol ? false : await checkServerReachable();
+            msg = isFileProtocol
+              ? 'Opening the site from a file (file://) blocks requests. Use a local server (e.g. npx serve) or deploy the site.'
+              : reachable
+                ? 'Auth may have expired — try logging out and back in.'
+                : 'Cannot reach server. Deploy functions: cd rolling-professional/functions && firebase deploy --only functions. Check your connection and try disabling browser extensions.';
+          }
+          if (errorMsg) errorMsg.textContent = msg;
+        }
+        if (e.message && e.message.includes('401')) {
+          window.location.href = 'index.html';
+        }
+      }
+    }
+
+    function showLoading() {
+      loading.classList.remove('hidden');
+      if (errorDiv) errorDiv.classList.add('hidden');
+      loading.textContent = 'Loading projects…';
+    }
+
+    retryBtn?.addEventListener('click', () => {
+      showLoading();
+      loadProjects();
+    });
+
+    onAuth((user) => {
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      loadProjects();
+    });
+  </script>
+</body>
+</html>

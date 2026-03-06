@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "crowdRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "checkoutCreatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crowdRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "checkoutCreatedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

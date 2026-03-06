@@ -2,7 +2,7 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { setGlobalOptions } = require("firebase-functions/v2");
-const { defineSecret } = require("firebase-functions/params");
+const { defineSecret, defineString } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const pdfParse = require("pdf-parse");
@@ -82,6 +82,8 @@ const sgMail = require("@sendgrid/mail");
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
+const ADMIN_EMAILS = defineString("ADMIN_EMAILS", { default: "" });
+const PORTAL_BASE_URL = defineString("PORTAL_BASE_URL", { default: "https://rolling-translations.com/portal" });
 
 const CHECKOUT_ORIGIN = process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || "https://mbelenluna.github.io/rolling-portal";
 const ALLOWED_ORIGINS = [
@@ -89,6 +91,14 @@ const ALLOWED_ORIGINS = [
   "https://mbelenluna.github.io/rolling-portal",
   "https://rolling-translations.com",
   "https://www.rolling-translations.com",
+  "http://localhost",
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "http://localhost:8080",
+  "http://127.0.0.1",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5000",
+  "http://127.0.0.1:8080",
 ];
 
 const MIN_TOTAL_USD = 1.0;
@@ -139,7 +149,7 @@ function countWordsGeneric(text) {
   return parts[0] === "" ? 0 : parts.length;
 }
 async function fileTypeFromBufferSafe(buf) {
-  try { return await fileTypeLib.fileTypeFromBuffer(buf); } catch { return null; }
+  try { return await fileTypeLib.fileTypeFromBuffer(buf); } catch (e) { return null; }
 }
 async function extractTextFromBuffer(buf, filename) {
   const ft = await fileTypeFromBufferSafe(buf);
@@ -215,9 +225,13 @@ exports.createCheckoutSession = onRequest(
 
       let {
         requestId, totalWords = 0, email, fullName, description,
-        rush, certified, subject, notes,                      // 👈 notes
-        sourceLang, targetLang, pairs, successUrl, cancelUrl
+        rush, certified, subject, notes,
+        sourceLang, targetLang, pairs, successUrl, cancelUrl,
+        originalFiles
       } = req.body || {};
+      let userId = null;
+      const decoded = await verifyAuth(req);
+      if (decoded) userId = decoded.uid;
       if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
       logger.info("createCheckoutSession:start", {
@@ -282,10 +296,11 @@ exports.createCheckoutSession = onRequest(
 
       const humanRush = (r) => r === "h24" ? "24 hours" : (r === "2bd" ? "2 business days" : "Standard");
 
-      await admin.firestore().collection("crowdRequests").doc(requestId).set({
+      const docData = {
         requestId,
         email: email || null,
         fullName: fullName || null,
+        clientEmail: email || null,
         sourceLang: arrPairs[0]?.sourceLang || sourceLang || "—",
         targetLang: (arrPairs.length > 1)
           ? `Multiple (${arrPairs.length}): ${arrPairs.map(p=>p.targetLang).join(", ")}`
@@ -293,9 +308,9 @@ exports.createCheckoutSession = onRequest(
         pairs: arrPairs,
         subject: subject || "general",
         rush: String(rush || "standard"),
-        turnaroundLabel: humanRush(String(rush || "standard")), // 👈 label legible
+        turnaroundLabel: humanRush(String(rush || "standard")),
         certified: (certified === "true" || certified === true) ? true : false,
-        notes: notes || null,                                    // 👈 guardamos notas
+        notes: notes || null,
         totalWords: wordsServer,
         estimatedTotal: amountUsd,
         rate: effRate ?? null,
@@ -304,8 +319,17 @@ exports.createCheckoutSession = onRequest(
         checkoutCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
         status: "pending_payment",
         description: name,
-        pairsSummary
-      }, { merge: false });
+        pairsSummary,
+        userId: userId || null,
+        originalFiles: Array.isArray(originalFiles) ? originalFiles : [],
+        statusHistory: [{
+          at: admin.firestore.Timestamp.now(),
+          from: "—",
+          to: "pending_payment",
+          by: "system",
+        }],
+      };
+      await admin.firestore().collection("crowdRequests").doc(requestId).set(docData, { merge: false });
 
       logger.info("createCheckoutSession:ok", { requestId, sessionId: session.id });
       return res.json({ url: session.url });
@@ -435,6 +459,13 @@ exports.stripeWebhook = onRequest(
         }
 
         if (requestId) {
+          const statusHistory = Array.isArray(docData.statusHistory) ? [...docData.statusHistory] : [];
+          statusHistory.push({
+            at: admin.firestore.Timestamp.now(),
+            from: docData.status || "pending_payment",
+            to: "paid",
+            by: "system",
+          });
           await docRef.set({
             status: "paid",
             paidAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -442,7 +473,8 @@ exports.stripeWebhook = onRequest(
             amountPaid: amountTotal != null ? amountTotal : (docData.amountPaid ?? null),
             confirmationEmailSentAt: admin.firestore.FieldValue.serverTimestamp(),
             confirmationEmailSessionId: sessionLike.id || null,
-            confirmationEmailEventId: eventId || null
+            confirmationEmailEventId: eventId || null,
+            statusHistory,
           }, { merge: true });
           logger.info("sendConfirmation:firestore updated", { requestId, eventId });
         }
@@ -669,7 +701,7 @@ exports.emailOnRequestCreated = onDocumentCreated(
         });
       }
       messages.push({
-        to: "info@rolling-translations.com",
+        to: ["info@rolling-translations.com", "connor@rolling-translations.com"],
         from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
         subject: `New translation request — ${requestId}`,
         html: htmlInternal,
@@ -700,7 +732,624 @@ exports.diag = onRequest(
   }
 );
 
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
+const cors = require("cors");
+
+const corsHandler = cors({
+  origin: true,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+});
+
+function runCors(req, res) {
+  return new Promise((resolve, reject) => {
+    corsHandler(req, res, (err) => (err ? reject(err) : resolve()));
+  });
+}
+
+function parseBody(req) {
+  if (req.body && typeof req.body === "object") return;
+  const ct = (req.headers["content-type"] || "").toLowerCase();
+  if (ct.includes("application/json")) {
+    try {
+      const raw = req.rawBody || req.body;
+      if (Buffer.isBuffer(raw)) req.body = JSON.parse(raw.toString());
+      else if (typeof raw === "string") req.body = JSON.parse(raw);
+    } catch {}
+  }
+  if (!req.body) req.body = {};
+}
+
+/** Wraps portal/admin handlers with CORS, OPTIONS, and body parsing */
+function withPortalCors(handler) {
+  return async (req, res) => {
+    await runCors(req, res);
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method === "POST") parseBody(req);
+    return handler(req, res);
+  };
+}
+
+// ===== Portal / Admin helpers =====
+function getAdminEmails() {
+  try {
+    return (ADMIN_EMAILS.value() || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function isAdmin(email) {
+  if (!email) return false;
+  const list = getAdminEmails();
+  return list.includes(String(email).trim().toLowerCase());
+}
+
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  const token = authHeader.slice(7);
+  try {
+    return await admin.auth().verifyIdToken(token);
+  } catch {
+    return null;
+  }
+}
+
+/** Returns user profile from Firestore; null if not found. Used for email verification check. */
+async function getUserProfileByUid(uid) {
+  const snap = await admin.firestore().collection("users").doc(uid).get();
+  return snap.exists ? snap.data() : null;
+}
+
+/** Returns true if user can access portal (admin, verified, or legacy user without field). */
+function canAccessPortal(profile, email) {
+  if (!profile) return false;
+  if (isAdmin(email)) return true;
+  // Explicitly unverified: block access
+  if (profile.emailVerified === false) return false;
+  // Legacy users (no emailVerified field) or explicitly verified: allow
+  return true;
+}
+
+// ===== 5b) Health check (no auth, for connectivity testing) =====
+exports.healthCheck = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    return res.json({ ok: true, ts: Date.now() });
+  })
+);
+
+// ===== 6) Ensure user profile (portal auth) =====
+exports.ensureUserProfile = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const { email, fullName, company } = req.body || {};
+      const uid = decoded.uid;
+      const userEmail = email || decoded.email || "";
+      const db = admin.firestore();
+      const userRef = db.collection("users").doc(uid);
+      const snap = await userRef.get();
+      if (snap.exists) {
+        const data = snap.data();
+        const updates = {};
+        if (fullName != null && fullName !== data.fullName) updates.fullName = fullName;
+        if (company != null && company !== data.company) updates.company = company;
+        const role = isAdmin(userEmail) ? "admin" : "user";
+        if (role !== data.role) updates.role = role;
+        if (Object.keys(updates).length) {
+          updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+          await userRef.update(updates);
+        }
+        return res.json({ ...data, ...updates });
+      }
+      const role = isAdmin(userEmail) ? "admin" : "user";
+      // New users start unverified; admins skip verification
+      const emailVerified = role === "admin";
+      const newData = {
+        email: userEmail,
+        notificationsEnabled: true,
+        role,
+        emailVerified,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      if (fullName) newData.fullName = fullName;
+      if (company) newData.company = company;
+      await userRef.set(newData);
+      return res.json(newData);
+    } catch (err) {
+      logger.error("ensureUserProfile error", err?.message || err, err?.stack);
+      return res.status(500).json({
+        error: "Server error",
+        message: err?.message || String(err),
+      });
+    }
+  })
+);
+
+// ===== 6b) Send verification email (portal, after registration) =====
+exports.sendVerificationEmail = onRequest(
+  { region: "us-central1", cors: true, secrets: [SENDGRID_API_KEY] },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const uid = decoded.uid;
+      const userEmail = decoded.email || "";
+      const db = admin.firestore();
+      const userRef = db.collection("users").doc(uid);
+      const userSnap = await userRef.get();
+      if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
+      const userData = userSnap.data();
+      if (userData.emailVerified === true) {
+        return res.status(400).json({ error: "already_verified", message: "Your email is already verified." });
+      }
+      if (isAdmin(userEmail)) return res.status(400).json({ error: "Admin accounts do not require verification." });
+      const crypto = require("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
+      const tokensRef = db.collection("verificationTokens");
+      await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
+      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
+      sgMail.setApiKey(SENDGRID_API_KEY.value());
+      await sgMail.send({
+        to: userEmail,
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: "Verify your email — Rolling Translations Client Portal",
+        html: `
+          <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
+            <h2>Verify your email address</h2>
+            <p>Thanks for signing up for the Rolling Translations Client Portal. Please click the link below to verify your email and activate your account.</p>
+            <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;">Verify my email</a></p>
+            <p style="color:#6b7280;font-size:14px;">This link expires in 24 hours. If you didn't create an account, you can ignore this email.</p>
+            <p style="color:#6b7280;font-size:12px;">Or copy this link: ${verifyUrl}</p>
+          </div>
+        `,
+      });
+      return res.json({ ok: true, message: "Verification email sent." });
+    } catch (err) {
+      logger.error("sendVerificationEmail error", err?.message || err, err?.stack);
+      return res.status(500).json({
+        error: "Server error",
+        message: err?.message || String(err),
+      });
+    }
+  })
+);
+
+// ===== 6c) Verify email (public, token in query) =====
+exports.verifyEmail = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const token = (req.query.token || req.body?.token || "").trim();
+      if (!token) return res.status(400).json({ error: "Missing token", success: false });
+      const db = admin.firestore();
+      const tokenDoc = await db.collection("verificationTokens").doc(token).get();
+      if (!tokenDoc.exists) {
+        return res.status(400).json({ error: "Invalid or expired token", success: false });
+      }
+      const data = tokenDoc.data();
+      const expiresAt = data.expiresAt?.toMillis ? data.expiresAt.toMillis() : data.expiresAt;
+      if (Date.now() > expiresAt) {
+        await tokenDoc.ref.delete();
+        return res.status(400).json({ error: "Token has expired", success: false });
+      }
+      const uid = data.uid;
+      const userRef = db.collection("users").doc(uid);
+      const userSnap = await userRef.get();
+      if (!userSnap.exists) {
+        await tokenDoc.ref.delete();
+        return res.status(400).json({ error: "User not found", success: false });
+      }
+      await userRef.update({
+        emailVerified: true,
+        emailVerifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      await tokenDoc.ref.delete();
+      return res.json({ success: true, message: "Email verified successfully." });
+    } catch (err) {
+      logger.error("verifyEmail error", err?.message || err, err?.stack);
+      return res.status(500).json({
+        error: "Server error",
+        message: err?.message || String(err),
+        success: false,
+      });
+    }
+  })
+);
+
+// ===== 6d) Resend verification email (portal, authenticated) =====
+exports.resendVerificationEmail = onRequest(
+  { region: "us-central1", cors: true, secrets: [SENDGRID_API_KEY] },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const uid = decoded.uid;
+      const userEmail = decoded.email || "";
+      const db = admin.firestore();
+      const userRef = db.collection("users").doc(uid);
+      const userSnap = await userRef.get();
+      if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
+      const userData = userSnap.data();
+      if (userData.emailVerified === true) {
+        return res.json({ ok: true, message: "Your email is already verified." });
+      }
+      if (isAdmin(userEmail)) return res.json({ ok: true, message: "Admin accounts do not require verification." });
+      const crypto = require("crypto");
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
+      const tokensRef = db.collection("verificationTokens");
+      await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
+      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
+      sgMail.setApiKey(SENDGRID_API_KEY.value());
+      await sgMail.send({
+        to: userEmail,
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: "Verify your email — Rolling Translations Client Portal",
+        html: `
+          <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
+            <h2>Verify your email address</h2>
+            <p>Please click the link below to verify your email and activate your account.</p>
+            <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;">Verify my email</a></p>
+            <p style="color:#6b7280;font-size:14px;">This link expires in 24 hours.</p>
+            <p style="color:#6b7280;font-size:12px;">Or copy this link: ${verifyUrl}</p>
+          </div>
+        `,
+      });
+      return res.json({ ok: true, message: "Verification email sent." });
+    } catch (err) {
+      logger.error("resendVerificationEmail error", err?.message || err, err?.stack);
+      return res.status(500).json({
+        error: "Server error",
+        message: err?.message || String(err),
+      });
+    }
+  })
+);
+
+// ===== 7) Get my projects (portal) =====
+exports.getMyProjects = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const profile = await getUserProfileByUid(decoded.uid);
+      if (!canAccessPortal(profile, decoded.email)) {
+        return res.status(403).json({ error: "email_not_verified", message: "Please verify your email to access the portal." });
+      }
+      const db = admin.firestore();
+      const snap = await db
+        .collection("crowdRequests")
+        .where("userId", "==", decoded.uid)
+        .orderBy("checkoutCreatedAt", "desc")
+        .get();
+      const projects = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      return res.json(projects);
+    } catch (err) {
+      logger.error("getMyProjects error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 8) Get single project (portal or admin) =====
+exports.getProject = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const profile = await getUserProfileByUid(decoded.uid);
+      if (!canAccessPortal(profile, decoded.email)) {
+        return res.status(403).json({ error: "email_not_verified", message: "Please verify your email to access the portal." });
+      }
+      const requestId = req.query.id || req.query.requestId;
+      if (!requestId) return res.status(400).json({ error: "Missing id" });
+      const db = admin.firestore();
+      const doc = await db.collection("crowdRequests").doc(requestId).get();
+      if (!doc.exists) return res.status(404).json({ error: "Not found" });
+      const data = doc.data();
+      const isAdminUser = isAdmin(decoded.email);
+      const isOwner = data.userId === decoded.uid;
+      if (!isAdminUser && !isOwner) return res.status(403).json({ error: "Forbidden" });
+      return res.json({ id: doc.id, ...data });
+    } catch (err) {
+      logger.error("getProject error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 9) Update project status (admin only) =====
+exports.updateProjectStatus = onRequest(
+  { region: "us-central1", cors: true, secrets: [SENDGRID_API_KEY] },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      if (!isAdmin(decoded.email)) return res.status(403).json({ error: "Forbidden" });
+      const body = req.body || {};
+      const requestId = body.requestId || body.id;
+      const { status, internalNotes } = body;
+      if (!requestId || !status) return res.status(400).json({ error: "Missing requestId or status" });
+      const db = admin.firestore();
+      const docRef = db.collection("crowdRequests").doc(requestId);
+      const snap = await docRef.get();
+      if (!snap.exists) return res.status(404).json({ error: "Not found" });
+      const data = snap.data();
+      const prevStatus = data.status || "New";
+      let statusHistory = Array.isArray(data.statusHistory) ? [...data.statusHistory] : [];
+      if (status !== prevStatus) {
+        statusHistory.push({
+          at: admin.firestore.Timestamp.now(),
+          from: prevStatus,
+          to: status,
+          by: decoded.email,
+        });
+      }
+      const update = {
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      if (status !== prevStatus) update.status = status;
+      if (status !== prevStatus) update.statusHistory = statusHistory;
+      if (internalNotes !== undefined) update.internalNotes = internalNotes;
+      await docRef.update(update);
+      const userSnap = data.userId ? await db.collection("users").doc(data.userId).get() : null;
+      const userData = userSnap?.exists ? userSnap.data() : null;
+      const shouldEmail =
+        data.userId &&
+        userData?.notificationsEnabled !== false &&
+        status !== prevStatus;
+      if (shouldEmail && userData?.email) {
+        const sgMail = require("@sendgrid/mail");
+        sgMail.setApiKey(SENDGRID_API_KEY.value());
+        const subject =
+          status === "Delivered"
+            ? `Your translation is ready — ${requestId}`
+            : `Status update — ${requestId}`;
+        const html = `
+          <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
+            <h2>Project status updated</h2>
+            <p>Your project <b>${requestId}</b> is now: <b>${status}</b>.</p>
+            ${status === "Delivered" ? "<p>Your deliverable is ready to download in the Client Portal.</p>" : ""}
+            <p><a href="https://rolling-translations.com/portal/">View in Client Portal</a></p>
+          </div>
+        `;
+        try {
+          await sgMail.send({
+            to: userData.email,
+            from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+            subject,
+            html,
+          });
+        } catch (e) {
+          logger.error("updateProjectStatus:sendgrid", e?.message || e);
+        }
+      }
+      return res.json({ ok: true });
+    } catch (err) {
+      logger.error("updateProjectStatus error", err?.message || err, err?.stack);
+      return res.status(500).json({
+        error: "Server error",
+        message: err?.message || String(err),
+      });
+    }
+  })
+);
+
+// ===== 10) Upload deliverable (admin only) =====
+exports.uploadDeliverable = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      if (!isAdmin(decoded.email)) return res.status(403).json({ error: "Forbidden" });
+      const { requestId, filename, contentBase64 } = req.body || {};
+      if (!requestId || !filename || !contentBase64) {
+        return res.status(400).json({ error: "Missing requestId, filename, or contentBase64" });
+      }
+      const buf = Buffer.from(contentBase64, "base64");
+      const storagePath = `crowd/deliverables/${requestId}/${filename}`;
+      const file = bucket.file(storagePath);
+      await file.save(buf, { contentType: "application/octet-stream" });
+      const db = admin.firestore();
+      const data = (await db.collection("crowdRequests").doc(requestId).get()).data() || {};
+      const prevStatus = data?.status || "In Progress";
+      const statusHistory = Array.isArray(data?.statusHistory) ? [...data.statusHistory] : [];
+      statusHistory.push({
+        at: admin.firestore.Timestamp.now(),
+        from: prevStatus,
+        to: "Delivered",
+        by: decoded.email,
+      });
+      let deliverables = Array.isArray(data?.deliverables) ? [...data.deliverables] : [];
+      if (data?.deliverable && !deliverables.some((d) => d.filename === data.deliverable.filename)) {
+        deliverables = [data.deliverable, ...deliverables];
+      }
+      const newEntry = {
+        filename,
+        storagePath,
+        uploadedAt: admin.firestore.Timestamp.now(),
+      };
+      if (deliverables.some((d) => d.filename === filename)) {
+        deliverables = deliverables.map((d) => (d.filename === filename ? { ...d, ...newEntry } : d));
+      } else {
+        deliverables.push(newEntry);
+      }
+      await db.collection("crowdRequests").doc(requestId).update({
+        deliverables,
+        deliverable: deliverables[0],
+        status: "Delivered",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        statusHistory,
+      });
+      return res.json({ ok: true, storagePath });
+    } catch (err) {
+      logger.error("uploadDeliverable error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 11) Get deliverable download URL (signed, 15 min) =====
+exports.getDeliverableDownloadUrl = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const profile = await getUserProfileByUid(decoded.uid);
+      if (!canAccessPortal(profile, decoded.email)) {
+        return res.status(403).json({ error: "email_not_verified", message: "Please verify your email to access the portal." });
+      }
+      const requestId = req.query.requestId || req.body?.requestId;
+      if (!requestId) return res.status(400).json({ error: "Missing requestId" });
+      const filename = req.query.filename || req.body?.filename;
+      const db = admin.firestore();
+      const doc = await db.collection("crowdRequests").doc(requestId).get();
+      if (!doc.exists) return res.status(404).json({ error: "Not found" });
+      const data = doc.data();
+      const isAdminUser = isAdmin(decoded.email);
+      const isOwner = data.userId === decoded.uid;
+      if (!isAdminUser && !isOwner) return res.status(403).json({ error: "Forbidden" });
+      let target = null;
+      if (Array.isArray(data?.deliverables) && data.deliverables.length) {
+        target = filename ? data.deliverables.find((d) => d.filename === filename) : data.deliverables[0];
+      }
+      if (!target && data?.deliverable) target = (!filename || data.deliverable.filename === filename) ? data.deliverable : null;
+      if (!target?.storagePath) return res.status(404).json({ error: "Deliverable not ready" });
+      const file = bucket.file(target.storagePath);
+      const [url] = await file.getSignedUrl({
+        action: "read",
+        expires: Date.now() + 15 * 60 * 1000,
+      });
+      return res.json({ url, filename: target.filename });
+    } catch (err) {
+      logger.error("getDeliverableDownloadUrl error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 11b) Get original file download URL (admin only) =====
+exports.getOriginalFileDownloadUrl = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      if (!isAdmin(decoded.email)) return res.status(403).json({ error: "Forbidden" });
+      const requestId = req.query.requestId || req.body?.requestId;
+      const storagePath = req.query.storagePath || req.body?.storagePath;
+      if (!requestId || !storagePath) return res.status(400).json({ error: "Missing requestId or storagePath" });
+      const db = admin.firestore();
+      const doc = await db.collection("crowdRequests").doc(requestId).get();
+      if (!doc.exists) return res.status(404).json({ error: "Not found" });
+      const data = doc.data();
+      const originalFiles = Array.isArray(data?.originalFiles) ? data.originalFiles : [];
+      const match = originalFiles.find((f) => (f.storagePath || f.gsPath) === storagePath);
+      if (!match) return res.status(404).json({ error: "File not found in project" });
+      if (!storagePath.startsWith("crowd/uploads/")) return res.status(400).json({ error: "Invalid path" });
+      const file = bucket.file(storagePath);
+      const [url] = await file.getSignedUrl({
+        action: "read",
+        expires: Date.now() + 15 * 60 * 1000,
+      });
+      return res.json({ url, filename: match.filename || match.name });
+    } catch (err) {
+      logger.error("getOriginalFileDownloadUrl error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 12) Get user profile (for settings) =====
+exports.getUserProfile = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const db = admin.firestore();
+      const userSnap = await db.collection("users").doc(decoded.uid).get();
+      if (!userSnap.exists) return res.status(404).json({ error: "User not found" });
+      return res.json(userSnap.data());
+    } catch (err) {
+      logger.error("getUserProfile error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 13) Update user profile (notifications toggle) =====
+exports.updateUserProfile = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      const { notificationsEnabled } = req.body || {};
+      const db = admin.firestore();
+      await db.collection("users").doc(decoded.uid).update({
+        notificationsEnabled: notificationsEnabled !== false,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return res.json({ ok: true });
+    } catch (err) {
+      logger.error("updateUserProfile error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
+
+// ===== 14) Admin: list all projects =====
+exports.adminListProjects = onRequest(
+  { region: "us-central1", cors: true },
+  withPortalCors(async (req, res) => {
+    try {
+      const decoded = await verifyAuth(req);
+      if (!decoded) return res.status(401).json({ error: "Unauthorized" });
+      if (!isAdmin(decoded.email)) return res.status(403).json({ error: "Forbidden" });
+      const status = req.query.status;
+      const search = (req.query.search || "").trim().toLowerCase();
+      let q = admin.firestore().collection("crowdRequests").orderBy("checkoutCreatedAt", "desc");
+      if (status) q = q.where("status", "==", status);
+      const snap = await q.get();
+      let projects = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+      if (search) {
+        projects = projects.filter(
+          (p) =>
+            (p.requestId || p.id || "").toLowerCase().includes(search) ||
+            (p.email || "").toLowerCase().includes(search) ||
+            (p.fullName || "").toLowerCase().includes(search)
+        );
+      }
+      return res.json(projects);
+    } catch (err) {
+      logger.error("adminListProjects error", err?.message || err);
+      return res.status(500).json({ error: "Server error", message: err?.message });
+    }
+  })
+);
 
 // This function acts as a proxy to serve professional.html with the correct headers
 exports.professionalHtmlProxy = onRequest(async (req, res) => {

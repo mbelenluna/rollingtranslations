@@ -324,27 +324,29 @@
         </style>
 
         <div class="rt-nav__bar">
-            <a class="rt-nav__logo" href="index.html" aria-label="Rolling Translations Home">
+            <a class="rt-nav__logo" href="../index.html" aria-label="Rolling Translations Home">
                 <img class="rt-logo" src="../images/logo.png" alt="Rolling Translations Logo">
             </a>
 
             <nav class="rt-nav__menu" aria-label="Main">
                 <ul class="rt-nav__list" id="menu-items">
                     <li class="active-menu-item"><a href="../index.html">Home</a></li>
-                    <li class="items"><a href="../index.html">Instant Quote</a></li>
+                    <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
                     <li class="items"><a href="services.html">Services</a></li>
                     <li class="items"><a href="about.html">About</a></li>
                     <li class="items"><a href="blog.html">Blog</a></li>
                     <li class="items"><a href="#cta">Contact</a></li>
+                    <li class="items" id="nav-login-li"><a href="../portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="../portal/#register">Register</a></li>
                     <li class="contact-menu-item">
-                        <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank"
-                            rel="noopener">
-                            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+                        <a class="rt-nav__cta" href="../rolling-professional/professional.html">
+                            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
                         </a>
                     </li>
                 </ul>
             </nav>
 
+            <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
             <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
                 <span></span>
             </button>
@@ -358,39 +360,17 @@
     <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
         <a class="rt-nav__mobile-link" href="../index.html">Home</a>
         <a class="rt-nav__mobile-link" href="services.html">Services</a>
-        <a class="rt-nav__mobile-link" href="../index.html">Instant Quote</a>
+        <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
         <a class="rt-nav__mobile-link" href="about.html">About</a>
         <a class="rt-nav__mobile-link" href="blog.html">Blog</a>
-        <a class="rt-nav__mobile-link" href="#cta">Contact</a>
-        <a class="rt-nav__mobile-cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
-            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+        <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="../portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="../portal/#register">Register</a>
+        <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+        <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html">
+            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
         </a>
     </nav>
-
-    <script>
-        const header = document.getElementById('site-header');
-        const navToggle = document.getElementById('navToggle');
-        const mobileNav = document.getElementById('mobileNav');
-
-        const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 2);
-        onScroll();
-        window.addEventListener('scroll', onScroll, { passive: true });
-
-        navToggle.addEventListener('click', () => {
-            const open = navToggle.getAttribute('aria-expanded') === 'true';
-            navToggle.setAttribute('aria-expanded', String(!open));
-            mobileNav.classList.toggle('is-open', !open);
-            document.body.classList.toggle('no-scroll', !open);
-        });
-
-        mobileNav.querySelectorAll('a').forEach(a => {
-            a.addEventListener('click', () => {
-                navToggle.setAttribute('aria-expanded', 'false');
-                mobileNav.classList.remove('is-open');
-                document.body.classList.remove('no-scroll');
-            });
-        });
-    </script>
 
     <section id="hero">
         <main class="container">
@@ -786,12 +766,13 @@
             </div>
 
             <nav class="rt-footer__col rt-footer__right footer-navigation">
-                <ul class="rt-nav">
-                    <li><a href="../pages/services.html">Services</a></li>
+                <h4 class="rt-footer__nav-title">Quick Links</h4>
+                <ul class="links-nav">
+                    <li><a href="services.html">Services</a></li>
                     <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                    <li><a href="../pages/about.html">About</a></li>
+                    <li><a href="about.html">About</a></li>
                     <li><a href="../index.html#cta">Contact</a></li>
-                    <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+                    <li><a href="privacypolicy.html">Privacy Policy</a></li>
                     <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
                 </ul>
             </nav>
@@ -1030,7 +1011,8 @@
         })();
     </script>
 
-    <script src="script.js"></script>
+    <script src="../script.js"></script>
+    <script type="module" src="../header-auth.js"></script>
     <!-- MDB -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 

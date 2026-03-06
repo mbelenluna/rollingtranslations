@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Client Portal — Rolling Translations</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div id="app" class="w-full max-w-md">
+    <!-- Login/Register form (shown when not logged in) -->
+    <div id="auth-form" class="bg-white rounded-xl shadow-lg p-8">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Client Portal</h1>
+      <p class="text-gray-600 mb-6">Sign in to track your projects and see status updates.</p>
+
+      <div id="auth-tabs" class="flex gap-2 mb-4">
+        <button id="tab-login" class="px-4 py-2 rounded-lg font-medium bg-blue-600 text-white">Log in</button>
+        <button id="tab-register" class="px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100">Register</button>
+      </div>
+
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="login-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="you@example.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+        <div id="login-error" class="text-red-600 text-sm hidden"></div>
+        <button type="submit" class="w-full py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">Log in</button>
+      </form>
+
+      <form id="form-register" class="space-y-4 hidden">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+          <input type="text" id="register-fullname" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Jane Smith">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Company <span class="text-gray-500 font-normal">(optional)</span></label>
+          <input type="text" id="register-company" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Acme Inc.">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+          <input type="email" id="register-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="you@example.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="register-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="••••••••">
+          <p class="mt-1 text-xs text-gray-500">At least 8 characters, including 1 uppercase, 1 lowercase, 1 number, and 1 special character (!@#$%^&* etc.)</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+          <input type="password" id="register-confirm" required class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="••••••••">
+        </div>
+        <div id="register-error" class="text-red-600 text-sm hidden"></div>
+        <button type="submit" class="w-full py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">Create account</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onAuth, login, register, apiCall, sendVerificationEmail } from './auth.js';
+
+    /** Redirect verified users to dashboard/admin. Unverified users go to verification-required. */
+    async function redirectAfterAuth() {
+      try {
+        const profile = await apiCall('/getUserProfile');
+        if (profile?.role === 'admin') {
+          window.location.replace('../admin/');
+        } else if (profile?.emailVerified === false) {
+          window.location.replace('verification-required.html');
+        } else {
+          window.location.replace('dashboard.html');
+        }
+      } catch {
+        window.location.replace('dashboard.html');
+      }
+    }
+
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+
+    function showTab(tab) {
+      const isLogin = tab === 'login';
+      formLogin.classList.toggle('hidden', !isLogin);
+      formRegister.classList.toggle('hidden', isLogin);
+      tabLogin.classList.toggle('bg-blue-600', isLogin);
+      tabLogin.classList.toggle('text-white', isLogin);
+      tabLogin.classList.toggle('text-gray-600', !isLogin);
+      tabRegister.classList.toggle('bg-blue-600', !isLogin);
+      tabRegister.classList.toggle('text-white', !isLogin);
+      tabRegister.classList.toggle('text-gray-600', isLogin);
+    }
+
+    tabLogin.addEventListener('click', () => showTab('login'));
+    tabRegister.addEventListener('click', () => showTab('register'));
+
+    if (location.hash === '#register') showTab('register');
+
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('login-error');
+      const btn = formLogin.querySelector('button[type="submit"]');
+      err.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+      try {
+        await login(document.getElementById('login-email').value, document.getElementById('login-password').value);
+        await new Promise((r) => setTimeout(r, 400));
+        await redirectAfterAuth();
+      } catch (ex) {
+        err.textContent = ex.message || 'Login failed';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Log in';
+      }
+    });
+
+    function validatePassword(pw) {
+      if (pw.length < 8) return 'At least 8 characters required';
+      if (!/[A-Z]/.test(pw)) return 'At least 1 uppercase letter required';
+      if (!/[a-z]/.test(pw)) return 'At least 1 lowercase letter required';
+      if (!/[0-9]/.test(pw)) return 'At least 1 number required';
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) return 'At least 1 special character required (!@#$%^&* etc.)';
+      return null;
+    }
+
+    formRegister.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('register-error');
+      const btn = formRegister.querySelector('button[type="submit"]');
+      const password = document.getElementById('register-password').value;
+      const confirm = document.getElementById('register-confirm').value;
+      err.classList.add('hidden');
+      const pwErr = validatePassword(password);
+      if (pwErr) {
+        err.textContent = pwErr;
+        err.classList.remove('hidden');
+        return;
+      }
+      if (password !== confirm) {
+        err.textContent = 'Passwords do not match';
+        err.classList.remove('hidden');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Creating account…';
+      try {
+        await register({
+          email: document.getElementById('register-email').value,
+          password,
+          fullName: document.getElementById('register-fullname').value.trim(),
+          company: document.getElementById('register-company').value.trim() || null,
+        });
+        // Send verification email (ensureUserProfile creates user with emailVerified: false)
+        try {
+          await sendVerificationEmail();
+        } catch (sendEx) {
+          console.warn('sendVerificationEmail failed:', sendEx?.message || sendEx);
+          // Still redirect - user can request resend from verification-required page
+        }
+        await new Promise((r) => setTimeout(r, 400));
+        window.location.replace('verification-required.html?registered=1');
+      } catch (ex) {
+        err.textContent = ex.message || 'Registration failed';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Create account';
+      }
+    });
+
+    onAuth(async (user) => {
+      if (user && user.email) {
+        await redirectAfterAuth();
+      }
+    });
+  </script>
+</body>
+</html>

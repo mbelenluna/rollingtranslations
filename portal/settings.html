@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings — Client Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="rt-top-banner">
+    <div>Get <b>15% off</b> your first project with us. <a href="../index.html#cta">Contact us today →</a></div>
+  </div>
+  <header class="rt-nav" id="site-header">
+    <div class="rt-nav__bar">
+      <a class="rt-nav__logo" href="../index.html" aria-label="Rolling Translations Home"><img class="rt-logo" src="../images/logo.png" alt="Rolling Translations Logo"></a>
+      <nav class="rt-nav__menu" aria-label="Main">
+        <ul class="rt-nav__list" id="menu-items">
+          <li class="items"><a href="../index.html">Home</a></li>
+          <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+          <li class="items"><a href="../pages/services.html">Services</a></li>
+          <li class="items"><a href="../pages/about.html">About</a></li>
+          <li class="items"><a href="../pages/blog.html">Blog</a></li>
+          <li class="items"><a href="../index.html#cta">Contact</a></li>
+          <li class="items"><a href="dashboard.html">My Projects</a></li>
+          <li class="items"><a href="settings.html" class="active-menu-item">Settings</a></li>
+          <li class="contact-menu-item"><a class="rt-nav__cta" href="../rolling-professional/professional.html"><img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
+        </ul>
+      </nav>
+      <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+        <i class="fa-solid fa-sun theme-icon-light"></i>
+        <i class="fa-solid fa-moon theme-icon-dark"></i>
+      </button>
+      <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false"><span></span></button>
+    </div>
+  </header>
+  <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
+    <a class="rt-nav__mobile-link" href="../index.html">Home</a>
+    <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
+    <a class="rt-nav__mobile-link" href="../pages/services.html">Services</a>
+    <a class="rt-nav__mobile-link" href="../pages/about.html">About</a>
+    <a class="rt-nav__mobile-link" href="../pages/blog.html">Blog</a>
+    <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+    <a class="rt-nav__mobile-link" href="dashboard.html">My Projects</a>
+    <a class="rt-nav__mobile-link active" href="settings.html">Settings</a>
+    <div id="mobile-logged-in" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+    <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html"><img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-8" style="background:var(--navy);color:var(--gray-300);min-height:60vh">
+    <h1 class="text-2xl font-bold mb-6" style="color:var(--white)">Settings</h1>
+
+    <div id="loading" style="color:var(--gray-300)">Loading…</div>
+    <div id="content" class="hidden bg-white rounded-xl border shadow-sm p-6">
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="notifications" class="w-5 h-5 rounded border-gray-300 text-blue-600">
+        <span class="font-medium text-gray-900">Email me when status changes</span>
+      </label>
+      <p class="mt-2 text-sm text-gray-500">Receive an email when your project status is updated (e.g., In Progress, Delivered).</p>
+      <button id="btn-save" class="mt-4 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Save</button>
+      <span id="saved-msg" class="ml-3 text-green-600 text-sm hidden">Saved.</span>
+    </div>
+  </main>
+
+  <footer class="rt-footer">
+    <div class="rt-footer__inner">
+      <div class="rt-footer__col rt-footer__left" id="logo-footer">
+        <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
+        <p class="small-text">Copyright &copy; <span id="y">2025</span> Rolling Translations LLC. All rights reserved.</p>
+        <div class="rt-socials">
+          <div class="footer-social">
+            <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in fa-fw"></i></a>
+            <a href="https://www.instagram.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram fa-fw"></i></a>
+            <a href="https://www.facebook.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f fa-fw"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="rt-footer__col rt-footer__center" id="info">
+        <ul class="contact-list">
+          <li class="contact-row">
+            <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+            <div class="contact-content">
+              <h4 class="contact-title">Our Offices</h4>
+              <div class="offices">
+                <p><strong>Florida:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
+                <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
+                <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
+                <p><strong>Colorado:</strong> 6635 S Dayton St Ste 310, Greenwood Village, CO 80111</p>
+              </div>
+            </div>
+          </li>
+          <li class="contact-row">
+            <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+            <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com</div>
+          </li>
+        </ul>
+      </div>
+      <nav class="rt-footer__col rt-footer__right footer-navigation">
+        <h4 class="rt-footer__nav-title">Quick Links</h4>
+        <ul class="links-nav">
+          <li><a href="../pages/services.html">Services</a></li>
+          <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
+          <li><a href="../pages/about.html">About</a></li>
+          <li><a href="../pages/blog.html">Blog</a></li>
+          <li><a href="../index.html#cta">Contact</a></li>
+          <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <script src="../script.js"></script>
+  <script>
+    (function () {
+      const toggle = document.getElementById('themeToggle');
+      const root = document.documentElement;
+      const saved = localStorage.getItem('rt-theme');
+      if (saved === 'dark') root.setAttribute('data-theme', 'dark');
+      else root.setAttribute('data-theme', 'light');
+      if (toggle) toggle.addEventListener('click', function () {
+        const current = root.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('rt-theme', next);
+      });
+    })();
+  </script>
+  <script type="module" src="../header-auth.js"></script>
+  <script type="module">
+    import { onAuth, apiCall, currentUser } from './auth.js';
+
+    const loading = document.getElementById('loading');
+    const content = document.getElementById('content');
+    const notifications = document.getElementById('notifications');
+    const btnSave = document.getElementById('btn-save');
+    const savedMsg = document.getElementById('saved-msg');
+
+    async function loadSettings() {
+      const user = currentUser();
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      try {
+        const profile = await apiCall('/getUserProfile');
+        if (profile?.emailVerified === false && profile?.role !== 'admin') {
+          window.location.replace('verification-required.html');
+          return;
+        }
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+        notifications.checked = profile.notificationsEnabled !== false;
+      } catch (e) {
+        loading.textContent = 'Error: ' + (e.message || 'Failed to load');
+        if (e?.errorCode === 'email_not_verified' || (e?.message && e.message.includes('verify'))) {
+          window.location.replace('verification-required.html');
+        } else if (e.message && e.message.includes('401')) {
+          window.location.href = 'index.html';
+        }
+      }
+    }
+
+    btnSave.addEventListener('click', async () => {
+      try {
+        await apiCall('/updateUserProfile', {
+          method: 'POST',
+          body: JSON.stringify({ notificationsEnabled: notifications.checked }),
+        });
+        savedMsg.classList.remove('hidden');
+        setTimeout(() => savedMsg.classList.add('hidden'), 2000);
+      } catch (e) {
+        alert(e.message || 'Failed to save');
+      }
+    });
+
+    onAuth((user) => {
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      loadSettings();
+    });
+  </script>
+</body>
+</html>

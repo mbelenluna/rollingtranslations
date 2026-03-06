@@ -113,15 +113,17 @@
                     <li class="items"><a href="about.html">About</a></li>
                     <li class="active-menu-item"><a href="blog.html">Blog</a></li>
                     <li class="items"><a href="#cta">Contact</a></li>
+                    <li class="items" id="nav-login-li"><a href="../portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="../portal/#register">Register</a></li>
                     <li class="contact-menu-item">
-                        <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank"
-                            rel="noopener">
-                            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+                        <a class="rt-nav__cta" href="../rolling-professional/professional.html">
+                            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
                         </a>
                     </li>
                 </ul>
             </nav>
 
+            <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
                 <i class="fa-solid fa-sun theme-icon-light"></i>
                 <i class="fa-solid fa-moon theme-icon-dark"></i>
@@ -142,9 +144,12 @@
         <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
         <a class="rt-nav__mobile-link" href="about.html">About</a>
         <a class="rt-nav__mobile-link" href="blog.html">Blog</a>
-        <a class="rt-nav__mobile-link" href="#cta">Contact</a>
-        <a class="rt-nav__mobile-cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
-            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+        <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="../portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="../portal/#register">Register</a>
+        <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+        <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html">
+            <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
         </a>
     </nav>
 
@@ -172,15 +177,15 @@
                 <div class="rt-socials">
                     <div class="footer-social">
                         <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank">
-                            <i class="fa-brands fa-linkedin-in"></i>
+                            <i class="fa-brands fa-linkedin-in fa-fw"></i>
                         </a>
 
                         <a href="https://www.instagram.com/rollingtranslations" target="_blank">
-                            <i class="fa-brands fa-instagram"></i>
+                            <i class="fa-brands fa-instagram fa-fw"></i>
                         </a>
 
                         <a href="https://www.facebook.com/rollingtranslations" target="_blank">
-                            <i class="fa-brands fa-facebook-f"></i>
+                            <i class="fa-brands fa-facebook-f fa-fw"></i>
                         </a>
                     </div>
                 </div>
@@ -213,13 +218,14 @@
         </div>
 
         <nav class="rt-footer__col rt-footer__right footer-navigation">
+            <h4 class="rt-footer__nav-title">Quick Links</h4>
             <ul class="links-nav">
-                <li><a href="../pages/services.html">Services</a></li>
+                <li><a href="services.html">Services</a></li>
                 <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                <li><a href="../pages/about.html">About</a></li>
-                <li><a href="../pages/blog.html">Blog</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="blog.html">Blog</a></li>
                 <li><a href="../index.html#cta">Contact</a></li>
-                <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
+                <li><a href="privacypolicy.html">Privacy Policy</a></li>
                 <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
             </ul>
         </nav>
@@ -248,6 +254,7 @@
 
     <script src="article.js"></script>
     <script src="../script.js"></script>
+    <script type="module" src="../header-auth.js"></script>
     <!-- MDB -->
 
 <div id="rt-cookie-banner"

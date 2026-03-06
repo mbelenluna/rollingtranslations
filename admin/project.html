@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="./index.html" class="text-xl font-bold text-gray-900">Admin — Rolling Translations</a>
+      <nav class="flex gap-4">
+        <a href="./index.html" class="text-gray-600 hover:text-gray-900">Projects</a>
+        <button id="btn-logout" class="text-gray-600 hover:text-gray-900">Log out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <div id="loading" class="text-gray-500">Loading…</div>
+    <div id="content" class="hidden"></div>
+  </main>
+
+  <script type="module">
+    import { onAuth, apiCall, logout, currentUser } from '../portal/auth.js';
+
+    const params = new URLSearchParams(location.search);
+    let id = params.get('id');
+    if (!id && location.hash) {
+      try { id = decodeURIComponent(location.hash.slice(1)); } catch {}
+    }
+    const loading = document.getElementById('loading');
+    const content = document.getElementById('content');
+    const btnLogout = document.getElementById('btn-logout');
+
+    const STATUS_OPTIONS = ['New', 'In Review', 'In Progress', 'QA', 'Delivered', 'On Hold', 'Cancelled'];
+    let pendingDeliverableFiles = [];
+
+    function fmtDate(ts) {
+      if (!ts) return '—';
+      let d;
+      if (ts?.toDate && typeof ts.toDate === 'function') {
+        d = ts.toDate();
+      } else if (typeof ts?.seconds === 'number') {
+        d = new Date(ts.seconds * 1000);
+      } else if (typeof ts?._seconds === 'number') {
+        d = new Date(ts._seconds * 1000);
+      } else {
+        d = new Date(ts);
+      }
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function fmtMoney(amount) {
+      if (amount == null) return '—';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    }
+
+    btnLogout.addEventListener('click', async () => {
+      await logout();
+      window.location.replace('../');
+    });
+
+    async function loadProject() {
+      if (!id) {
+        loading.textContent = 'Missing project ID';
+        return;
+      }
+      try {
+        const p = await apiCall(`/getProject?id=${encodeURIComponent(id)}`);
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+
+        const history = Array.isArray(p.statusHistory) ? p.statusHistory : [];
+        const historyHtml = history.length
+          ? history.map((h) => `<li class="py-2 border-b last:border-0"><span class="text-gray-500">${fmtDate(h.at)}</span> ${h.from || '—'} → <strong>${h.to}</strong> ${h.by ? `(by ${h.by})` : ''}</li>`).join('')
+          : '<li class="text-gray-500">No history</li>';
+
+        content.innerHTML = `
+          <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div class="p-6 border-b">
+              <h1 class="text-2xl font-bold text-gray-900">${p.id}</h1>
+              <p class="text-gray-500 mt-1">${p.fullName || '—'} &lt;${p.email || '—'}&gt;</p>
+            </div>
+
+            <div class="p-6 space-y-6">
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Change status</h2>
+                <div class="flex gap-2 flex-wrap">
+                  <select id="new-status" class="px-3 py-2 border border-gray-300 rounded-lg">
+                    ${STATUS_OPTIONS.map((s) => `<option value="${s}" ${p.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                  </select>
+                  <button type="button" id="btn-status" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Update status</button>
+                </div>
+              </div>
+
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Internal notes</h2>
+                <textarea id="internal-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg">${(p.internalNotes || '').replace(/</g, '&lt;')}</textarea>
+                <button id="btn-notes" class="mt-2 px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300">Save notes</button>
+              </div>
+
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Upload deliverable</h2>
+                <div class="flex gap-2 items-center flex-wrap">
+                  <input type="file" id="deliverable-file" class="text-sm" multiple>
+                  <button type="button" id="btn-upload" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">Upload</button>
+                </div>
+                <ul id="deliverable-file-list" class="mt-2 space-y-1 text-sm"></ul>
+                <div id="deliverable-current" class="mt-2 space-y-1">${(Array.isArray(p.deliverables) && p.deliverables.length ? p.deliverables : (p.deliverable ? [p.deliverable] : [])).map((d) => `<p class="text-sm text-green-600">Current: ${d.filename} (uploaded ${fmtDate(d.uploadedAt)})</p>`).join('')}</div>
+              </div>
+
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Details</h2>
+                <dl class="grid grid-cols-2 gap-2 text-sm">
+                  <div><dt class="text-gray-500">Status</dt><dd>${p.status || '—'}</dd></div>
+                  <div><dt class="text-gray-500">Languages</dt><dd>${p.pairsSummary || p.sourceLang + ' → ' + p.targetLang || '—'}</dd></div>
+                  <div><dt class="text-gray-500">Words</dt><dd>${(p.totalWords || 0).toLocaleString()}</dd></div>
+                  <div><dt class="text-gray-500">Amount paid</dt><dd>${fmtMoney(p.amountPaid || p.estimatedTotal)}</dd></div>
+                  <div><dt class="text-gray-500">Created</dt><dd>${fmtDate(p.checkoutCreatedAt)}</dd></div>
+                </dl>
+              </div>
+
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Original files (submitted by client)</h2>
+                <ul class="text-sm space-y-2">
+                  ${Array.isArray(p.originalFiles) && p.originalFiles.length ? p.originalFiles.map((f) => {
+                    const fn = f.filename || f.name || '—';
+                    const sp = (f.storagePath || f.gsPath || '').replace(/"/g, '&quot;');
+                    return sp ? `<li class="flex items-center justify-between py-1"><span>${fn.replace(/</g, '&lt;')}</span><button type="button" class="btn-download-original px-3 py-1 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700" data-storage-path="${sp}" data-filename="${fn.replace(/"/g, '&quot;')}">Download</button></li>` : `<li>${fn.replace(/</g, '&lt;')} <span class="text-gray-400">(no path)</span></li>`;
+                  }).join('') : '<li class="text-gray-500">—</li>'}
+                </ul>
+              </div>
+
+              <div>
+                <h2 class="font-semibold text-gray-900 mb-2">Status history</h2>
+                <ul class="text-sm">${historyHtml}</ul>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('btn-status').addEventListener('click', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('btn-status');
+          const status = document.getElementById('new-status').value;
+          btn.disabled = true;
+          btn.textContent = 'Updating…';
+          try {
+            await apiCall('/updateProjectStatus', {
+              method: 'POST',
+              body: JSON.stringify({ requestId: id, status }),
+            });
+            btn.textContent = 'Updated!';
+            await new Promise((r) => setTimeout(r, 500));
+            loadProject();
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Update status';
+            let msg = err?.message || 'Failed to update';
+            try {
+              const j = JSON.parse(msg);
+              if (j?.message) msg = j.message;
+              else if (j?.error) msg = j.error;
+            } catch {}
+            alert(msg);
+          }
+        });
+
+        document.getElementById('btn-notes').addEventListener('click', async () => {
+          const internalNotes = document.getElementById('internal-notes').value;
+          try {
+            await apiCall('/updateProjectStatus', {
+              method: 'POST',
+              body: JSON.stringify({ requestId: id, status: p.status, internalNotes }),
+            });
+            alert('Notes saved');
+          } catch (e) {
+            alert(e.message || 'Failed to save');
+          }
+        });
+
+        function fileKey(f) { return f.name + '::' + f.size + '::' + (f.lastModified || 0); }
+        function renderDeliverableFileList() {
+          const ul = document.getElementById('deliverable-file-list');
+          if (!ul) return;
+          ul.innerHTML = pendingDeliverableFiles.map((f, i) => {
+            return `<li class="flex items-center justify-between py-1 px-2 rounded bg-gray-50"><span class="truncate">${f.name.replace(/</g, '&lt;')}</span><button type="button" class="ml-2 text-red-600 hover:text-red-800 text-lg leading-none" data-index="${i}" aria-label="Remove">×</button></li>`;
+          }).join('');
+          ul.querySelectorAll('button').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const idx = parseInt(btn.getAttribute('data-index'), 10);
+              pendingDeliverableFiles = pendingDeliverableFiles.filter((_, i) => i !== idx);
+              renderDeliverableFileList();
+            });
+          });
+        }
+        document.getElementById('deliverable-file').addEventListener('change', (e) => {
+          const files = Array.from(e.target.files || []);
+          for (const f of files) {
+            if (!pendingDeliverableFiles.some((p) => fileKey(p) === fileKey(f))) pendingDeliverableFiles.push(f);
+          }
+          e.target.value = '';
+          renderDeliverableFileList();
+        });
+        renderDeliverableFileList();
+        document.getElementById('btn-upload').addEventListener('click', async () => {
+          if (pendingDeliverableFiles.length === 0) {
+            alert('Please select at least one file');
+            return;
+          }
+          const btn = document.getElementById('btn-upload');
+          btn.disabled = true;
+          btn.textContent = 'Uploading…';
+          try {
+            for (const file of pendingDeliverableFiles) {
+              const base64 = await new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result.split(',')[1]);
+                r.onerror = reject;
+                r.readAsDataURL(file);
+              });
+              if (!base64) throw new Error('Failed to read file');
+              await apiCall('/uploadDeliverable', {
+                method: 'POST',
+                body: JSON.stringify({ requestId: id, filename: file.name, contentBase64: base64 }),
+              });
+            }
+            pendingDeliverableFiles = [];
+            renderDeliverableFileList();
+            loadProject();
+          } catch (e) {
+            alert(e.message || 'Upload failed');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Upload';
+          }
+        });
+
+        document.querySelectorAll('.btn-download-original').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const storagePath = btn.getAttribute('data-storage-path');
+            if (!storagePath) return;
+            try {
+              const res = await apiCall(`/getOriginalFileDownloadUrl?requestId=${encodeURIComponent(id)}&storagePath=${encodeURIComponent(storagePath)}`);
+              if (res.url) window.open(res.url, '_blank');
+            } catch (e) {
+              alert(e.message || 'Download failed');
+            }
+          });
+        });
+      } catch (e) {
+        loading.textContent = 'Error: ' + (e.message || 'Failed to load');
+        if (e.message && (e.message.includes('401') || e.message.includes('403'))) {
+          window.location.href = '../portal/';
+        }
+      }
+    }
+
+    onAuth((user) => {
+      if (!user || !user.email) {
+        window.location.href = '../portal/';
+        return;
+      }
+      loadProject();
+    });
+  </script>
+</body>
+</html>

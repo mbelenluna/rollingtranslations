@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Rolling Translations</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="index.html" class="text-xl font-bold text-gray-900">Admin — Rolling Translations</a>
+      <nav class="flex gap-4">
+        <a href="index.html" class="text-blue-600 font-medium">Projects</a>
+        <button id="btn-logout" class="text-gray-600 hover:text-gray-900">Log out</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div id="auth-required" class="hidden bg-white rounded-xl border p-8 text-center">
+      <p class="text-gray-600 mb-4">Admin access required. Please log in with an admin account.</p>
+      <a href="../portal/" class="text-blue-600 underline">Go to Client Portal to log in</a>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+      <div class="flex gap-4 mb-6">
+        <input type="text" id="search" placeholder="Search by ID, email, name…" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+        <select id="filter-status" class="px-3 py-2 border border-gray-300 rounded-lg">
+          <option value="">All statuses</option>
+          <option value="pending_payment">Pending payment</option>
+          <option value="paid">Paid</option>
+          <option value="New">New</option>
+          <option value="In Review">In Review</option>
+          <option value="In Progress">In Progress</option>
+          <option value="QA">QA</option>
+          <option value="Delivered">Delivered</option>
+          <option value="On Hold">On Hold</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <button id="btn-refresh" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Refresh</button>
+      </div>
+
+      <div id="loading" class="text-gray-500">Loading projects…</div>
+      <div id="projects" class="hidden space-y-4"></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { onAuth, apiCall, logout, currentUser } from '../portal/auth.js';
+
+    const authRequired = document.getElementById('auth-required');
+    const adminPanel = document.getElementById('admin-panel');
+    const loading = document.getElementById('loading');
+    const projects = document.getElementById('projects');
+    const search = document.getElementById('search');
+    const filterStatus = document.getElementById('filter-status');
+    const btnRefresh = document.getElementById('btn-refresh');
+    const btnLogout = document.getElementById('btn-logout');
+
+    function fmtDate(ts) {
+      if (!ts) return '—';
+      const d = ts?.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function fmtMoney(amount) {
+      if (amount == null) return '—';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    }
+
+    btnLogout.addEventListener('click', async () => {
+      await logout();
+      window.location.replace('../');
+    });
+
+    async function loadProjects() {
+      loading.classList.remove('hidden');
+      projects.classList.add('hidden');
+      try {
+        const status = filterStatus.value;
+        const q = new URLSearchParams();
+        if (status) q.set('status', status);
+        if (search.value.trim()) q.set('search', search.value.trim());
+        const list = await apiCall(`/adminListProjects?${q}`);
+        loading.classList.add('hidden');
+        projects.classList.remove('hidden');
+        const adminBase = (() => {
+          const p = location.pathname;
+          const m = p.match(/(.*\/admin)\/?/);
+          return location.origin + (m ? m[1] : '/admin').replace(/\/?$/, '/');
+        })();
+        projects.innerHTML = list.map((p) => {
+          const projId = p.id || p.requestId || '';
+          const projectUrl = new URL('project.html', adminBase);
+          projectUrl.searchParams.set('id', projId);
+          projectUrl.hash = encodeURIComponent(projId);
+          return `
+          <a href="${projectUrl.href}" class="block bg-white rounded-lg border p-4 hover:border-blue-300 hover:shadow transition">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="font-semibold text-gray-900">${p.id}</span>
+                <span class="ml-2 px-2 py-0.5 text-xs rounded-full ${p.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">${p.status || '—'}</span>
+              </div>
+              <span class="text-gray-500 text-sm">${fmtDate(p.checkoutCreatedAt)}</span>
+            </div>
+            <div class="mt-2 text-sm text-gray-600">${p.fullName || '—'} &lt;${p.email || '—'}&gt;</div>
+            <div class="mt-1 text-sm text-gray-500">${fmtMoney(p.amountPaid || p.estimatedTotal)}</div>
+          </a>
+        `;
+        }).join('');
+      } catch (e) {
+        loading.textContent = 'Error: ' + (e.message || 'Failed to load');
+      }
+    }
+
+    btnRefresh.addEventListener('click', loadProjects);
+    filterStatus.addEventListener('change', loadProjects);
+    search.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadProjects(); });
+
+    onAuth(async (user) => {
+      if (!user || !user.email) {
+        authRequired.classList.remove('hidden');
+        return;
+      }
+      try {
+        const list = await apiCall('/adminListProjects');
+        authRequired.classList.add('hidden');
+        adminPanel.classList.remove('hidden');
+        loadProjects();
+      } catch (e) {
+        if (e.message && e.message.includes('403')) {
+          authRequired.classList.remove('hidden');
+          adminPanel.classList.add('hidden');
+        } else {
+          loading.textContent = 'Error: ' + (e.message || 'Failed to load');
+          adminPanel.classList.remove('hidden');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

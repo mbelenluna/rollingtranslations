@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verify your email — Client Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div id="app" class="w-full max-w-md">
+    <div id="content" class="bg-white rounded-xl shadow-lg p-8">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 text-amber-600 mb-4">
+          <i class="fa-solid fa-envelope-open-text text-3xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Verify your email</h1>
+        <p id="main-message" class="text-gray-600">
+          Your account needs to be verified before you can access the portal. Please check your email and click the verification link.
+        </p>
+      </div>
+
+      <div id="resend-section" class="space-y-4">
+        <p class="text-sm text-gray-500">Didn't receive the email? Check your spam folder, then try resending.</p>
+        <button id="btn-resend" class="w-full py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          Resend verification email
+        </button>
+        <div id="resend-success" class="hidden text-center py-2 px-3 rounded-lg bg-green-50 text-green-800 text-sm">
+          <i class="fa-solid fa-check-circle mr-1"></i> Verification email sent. Check your inbox.
+        </div>
+        <div id="resend-error" class="hidden text-center py-2 px-3 rounded-lg bg-red-50 text-red-700 text-sm"></div>
+      </div>
+
+      <div class="mt-6 pt-6 border-t border-gray-200">
+        <a href="../index.html" class="block text-center text-blue-600 hover:underline font-medium">← Back to home</a>
+      </div>
+    </div>
+
+    <div id="loading" class="hidden bg-white rounded-xl shadow-lg p-8 text-center text-gray-600">
+      <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
+      <p>Loading…</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onAuth, currentUser, apiCall, resendVerificationEmail } from './auth.js';
+
+    const content = document.getElementById('content');
+    const loading = document.getElementById('loading');
+    const mainMessage = document.getElementById('main-message');
+    const btnResend = document.getElementById('btn-resend');
+    const resendSuccess = document.getElementById('resend-success');
+    const resendError = document.getElementById('resend-error');
+
+    const params = new URLSearchParams(location.search);
+    const justRegistered = params.get('registered') === '1';
+
+    if (justRegistered) {
+      mainMessage.textContent = "Thanks for registering! We've sent a verification link to your email. Please click it to activate your account and access the portal.";
+    }
+
+    async function checkAuth() {
+      const user = currentUser();
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      try {
+        const profile = await apiCall('/getUserProfile');
+        if (profile?.emailVerified !== false || profile?.role === 'admin') {
+          window.location.replace('dashboard.html');
+          return;
+        }
+      } catch (e) {
+        if (e?.status === 401) {
+          window.location.href = 'index.html';
+          return;
+        }
+      }
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+    }
+
+    onAuth((user) => {
+      if (!user || !user.email) {
+        window.location.href = 'index.html';
+        return;
+      }
+      checkAuth();
+    });
+
+    if (currentUser()) {
+      checkAuth();
+    } else {
+      loading.classList.remove('hidden');
+    }
+
+    btnResend.addEventListener('click', async () => {
+      resendSuccess.classList.add('hidden');
+      resendError.classList.add('hidden');
+      btnResend.disabled = true;
+      btnResend.textContent = 'Sending…';
+      try {
+        await resendVerificationEmail();
+        resendSuccess.classList.remove('hidden');
+        btnResend.textContent = 'Resend verification email';
+      } catch (ex) {
+        let msg = ex.message || 'Failed to resend';
+        if (ex?.errorCode === 'already_verified') {
+          msg = 'Your email is already verified. You can now log in.';
+          setTimeout(() => { window.location.replace('index.html'); }, 2000);
+        }
+        resendError.textContent = msg;
+        resendError.classList.remove('hidden');
+        btnResend.textContent = 'Resend verification email';
+      }
+      btnResend.disabled = false;
+    });
+  </script>
+</body>
+</html>

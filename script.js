@@ -86,22 +86,45 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  // ===== Mobile nav (use IDs present in index.html, guard nulls) =====
+  // ===== Mobile nav (hamburger: open/close, backdrop, Escape, aria-label, header class) =====
   const navToggle = document.getElementById('navToggle');
   const mobileNav = document.getElementById('mobileNav');
+  const siteHeader = document.getElementById('site-header');
+
+  function closeMobileNav() {
+    if (!navToggle || !mobileNav) return;
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'Open menu');
+    mobileNav.classList.remove('is-open');
+    document.body.classList.remove('no-scroll');
+    if (siteHeader) siteHeader.classList.remove('mobile-nav-open');
+  }
+
+  function openMobileNav() {
+    if (!navToggle || !mobileNav) return;
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', 'Close menu');
+    mobileNav.classList.add('is-open');
+    document.body.classList.add('no-scroll');
+    if (siteHeader) siteHeader.classList.add('mobile-nav-open');
+  }
+
   if (navToggle && mobileNav) {
     navToggle.addEventListener('click', () => {
       const open = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', String(!open));
-      mobileNav.classList.toggle('is-open', !open);
-      document.body.classList.toggle('no-scroll', !open);
+      if (open) closeMobileNav();
+      else openMobileNav();
     });
     mobileNav.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        navToggle.setAttribute('aria-expanded', 'false');
-        mobileNav.classList.remove('is-open');
-        document.body.classList.remove('no-scroll');
-      });
+      a.addEventListener('click', closeMobileNav);
+    });
+    // Backdrop click: close when clicking the mobile nav overlay (the nav itself)
+    mobileNav.addEventListener('click', (e) => {
+      if (e.target === mobileNav) closeMobileNav();
+    });
+    // Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileNav.classList.contains('is-open')) closeMobileNav();
     });
   }
 

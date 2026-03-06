@@ -70,21 +70,23 @@
 
             <nav class="rt-nav__menu" aria-label="Main">
                 <ul class="rt-nav__list" id="menu-items">
-                    <li class="active-menu-item"><a href="#hero">Home</a></li>
+                    <li class="active-menu-item"><a href="index.html">Home</a></li>
                     <li class="items"><a href="pages/services.html">Services</a></li>
-                    <li class="items"><a href="index.html">Instant Quote</a></li>
+                    <li class="items"><a href="rolling-professional/professional.html">Instant Quote</a></li>
                     <li class="items"><a href="pages/about.html">About</a></li>
                     <li class="items"><a href="pages/blog.html">Blog</a></li>
-                    <li class="items"><a href="#cta">Contact</a></li>
+                    <li class="items"><a href="index.html#cta">Contact</a></li>
+                    <li class="items" id="nav-login-li"><a href="portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="portal/#register">Register</a></li>
                     <li class="contact-menu-item">
-                        <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank"
-                            rel="noopener">
-                            <img class="whatsapp" src="images/whatsapp.png" alt="Whatsapp"> Chat Now
+                        <a class="rt-nav__cta" href="rolling-professional/professional.html">
+                            <img class="whatsapp" src="images/whatsapp.png" alt="Whatsapp"> Order Now
                         </a>
                     </li>
                 </ul>
             </nav>
 
+            <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
             <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false">
                 <span></span>
             </button>
@@ -96,14 +98,17 @@
 
     <!-- Mobile drawer -->
     <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
-        <a class="rt-nav__mobile-link" href="#hero">Home</a>
+        <a class="rt-nav__mobile-link" href="index.html">Home</a>
         <a class="rt-nav__mobile-link" href="pages/services.html">Services</a>
-        <a class="rt-nav__mobile-link" href="index.html">Instant Quote</a>
+        <a class="rt-nav__mobile-link" href="rolling-professional/professional.html">Instant Quote</a>
         <a class="rt-nav__mobile-link" href="pages/about.html">About</a>
         <a class="rt-nav__mobile-link" href="pages/blog.html">Blog</a>
-        <a class="rt-nav__mobile-link" href="#cta">Contact</a>
-        <a class="rt-nav__mobile-cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
-            <img class="whatsapp" src="images/whatsapp.png" alt="Whatsapp"> Chat Now
+        <a class="rt-nav__mobile-link" href="index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="portal/#register">Register</a>
+        <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+        <a class="rt-nav__mobile-cta" href="rolling-professional/professional.html">
+            <img class="whatsapp" src="images/whatsapp.png" alt="Whatsapp"> Order Now
         </a>
     </nav>
 
@@ -126,15 +131,17 @@
                     California, Colorado, and Florida.</p>
 
                 <div class="rt-socials">
-                    <a href="https://www.linkedin.com/company/rolling-translations/">
-                        <img class="socialmedia" src="images/icons8-linkedin-30.png" alt="LinkedIn account">
-                    </a>
-                    <a href="https://www.instagram.com/rollingtranslations/">
-                        <img class="socialmedia" src="images/icons8-instagram-50.png" alt="Instagram account">
-                    </a>
-                    <a href="https://www.facebook.com/rollingtranslations">
-                        <img class="socialmedia" src="images/facebook-circle.svg" alt="Facebook account">
-                    </a>
+                    <div class="footer-social">
+                        <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                            <i class="fa-brands fa-linkedin-in fa-fw"></i>
+                        </a>
+                        <a href="https://www.instagram.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Instagram">
+                            <i class="fa-brands fa-instagram fa-fw"></i>
+                        </a>
+                        <a href="https://www.facebook.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Facebook">
+                            <i class="fa-brands fa-facebook-f fa-fw"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -168,11 +175,12 @@
             </div>
 
             <nav class="rt-footer__col rt-footer__right footer-navigation">
-                <ul class="rt-nav">
+                <h4 class="rt-footer__nav-title">Quick Links</h4>
+                <ul class="links-nav">
                     <li><a href="pages/services.html">Services</a></li>
                     <li><a href="rolling-professional/professional.html">Instant Quote</a></li>
                     <li><a href="pages/about.html">About</a></li>
-                    <li><a href="#cta">Contact</a></li>
+                    <li><a href="index.html#cta">Contact</a></li>
                     <li><a href="pages/privacypolicy.html">Privacy Policy</a></li>
                     <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
                 </ul>
@@ -190,17 +198,10 @@
         })();
     </script>
 
-    <script src="script-success.js"></script>
-    <!-- MDB -->
-    
+    <script src="script.js"></script>
+    <script type="module" src="header-auth.js"></script>
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
-        int
-
-<script src="script.js"></script>
-
-<div id="rt-cookie-banner"
+    <div id="rt-cookie-banner"
         style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#162036;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,0.08);">
         <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
             <div style="flex:1;min-width:260px;">We use cookies for analytics and advertising. See our

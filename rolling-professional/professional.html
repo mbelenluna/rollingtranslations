@@ -178,19 +178,22 @@
       <nav class="rt-nav__menu" aria-label="Main">
         <ul class="rt-nav__list" id="menu-items">
           <li class="items"><a href="../index.html">Home</a></li>
-          <li class="active-menu-item"><a href="../professional.html">Instant Quote</a></li>
+          <li class="active-menu-item"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
           <li class="items"><a href="../pages/services.html">Services</a></li>
           <li class="items"><a href="../pages/about.html">About</a></li>
           <li class="items"><a href="../pages/blog.html">Blog</a></li>
           <li class="items"><a href="../index.html#cta">Contact</a></li>
+          <li class="items" id="nav-login-li"><a href="../portal/">Log in</a></li>
+          <li class="items" id="nav-register-li"><a href="../portal/#register">Register</a></li>
           <li class="contact-menu-item">
-            <a class="rt-nav__cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
-              <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+            <a class="rt-nav__cta" href="../rolling-professional/professional.html">
+              <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
             </a>
           </li>
         </ul>
       </nav>
 
+      <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
         <i class="fa-solid fa-sun theme-icon-light"></i>
         <i class="fa-solid fa-moon theme-icon-dark"></i>
@@ -209,39 +212,16 @@
     <a class="rt-nav__mobile-link" href="../index.html">Home</a>
     <a class="rt-nav__mobile-link" href="../pages/services.html">Services</a>
     <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
-    <a class="rt-nav__mobile-link" href="about.html">About</a>
-    <a class="rt-nav__mobile-link" href="blog.html">Blog</a>
-    <a class="rt-nav__mobile-link" href="#cta">Contact</a>
-    <a class="rt-nav__mobile-cta" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener">
-      <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Chat Now
+    <a class="rt-nav__mobile-link" href="../pages/about.html">About</a>
+    <a class="rt-nav__mobile-link" href="../pages/blog.html">Blog</a>
+    <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
+    <a class="rt-nav__mobile-link" id="mobile-login" href="../portal/">Log in</a>
+    <a class="rt-nav__mobile-link" id="mobile-register" href="../portal/#register">Register</a>
+    <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+    <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html">
+      <img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now
     </a>
   </nav>
-
-
-  <script>
-    const header = document.getElementById('site-header');
-    const navToggle = document.getElementById('navToggle');
-    const mobileNav = document.getElementById('mobileNav');
-
-    const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 2);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    navToggle.addEventListener('click', () => {
-      const open = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', String(!open));
-      mobileNav.classList.toggle('is-open', !open);
-      document.body.classList.toggle('no-scroll', !open);
-    });
-
-    mobileNav.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        navToggle.setAttribute('aria-expanded', 'false');
-        mobileNav.classList.remove('is-open');
-        document.body.classList.remove('no-scroll');
-      });
-    });
-  </script>
 
 
   <main class="max-w-5xl mx-auto px-4 pb-24">
@@ -251,13 +231,21 @@
       securely.</p>
 
     <form id="quoteForm" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-      <div class="field">
-        <label for="fullName">Full name</label>
-        <input id="fullName" type="text" placeholder="Jane Doe" required />
+      <div id="loggedInNotice" class="hidden col-span-full field p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+        <span class="text-sm font-medium text-sky-800 dark:text-sky-200">Logged in as </span>
+        <span id="loggedInName" class="font-semibold"></span>
+        <span class="text-sky-600 dark:text-sky-400"> · </span>
+        <span id="loggedInEmail" class="text-sm"></span>
       </div>
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" type="email" placeholder="you@example.com" required />
+      <div id="contactFields" class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="field">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" placeholder="Jane Doe" required />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@example.com" required />
+        </div>
       </div>
 
       <div class="field">
@@ -452,16 +440,16 @@
           Colorado, and Florida.</p>
         <div class="rt-socials">
           <div class="footer-social">
-            <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank">
-              <i class="fa-brands fa-linkedin-in"></i>
+            <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank" rel="noopener" aria-label="LinkedIn">
+              <i class="fa-brands fa-linkedin-in fa-fw"></i>
             </a>
 
-            <a href="https://www.instagram.com/rollingtranslations" target="_blank">
-              <i class="fa-brands fa-instagram"></i>
+            <a href="https://www.instagram.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Instagram">
+              <i class="fa-brands fa-instagram fa-fw"></i>
             </a>
 
-            <a href="https://www.facebook.com/rollingtranslations" target="_blank">
-              <i class="fa-brands fa-facebook-f"></i>
+            <a href="https://www.facebook.com/rollingtranslations" target="_blank" rel="noopener" aria-label="Facebook">
+              <i class="fa-brands fa-facebook-f fa-fw"></i>
             </a>
           </div>
         </div>
@@ -488,13 +476,14 @@
         </ul>
       </div>
       <nav class="rt-footer__col rt-footer__right footer-navigation">
+        <h4 class="rt-footer__nav-title">Quick Links</h4>
         <ul class="links-nav">
-          <li><a href="services.html">Services</a></li>
+          <li><a href="../pages/services.html">Services</a></li>
           <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="blog.html">Blog</a></li>
-          <li><a href="#cta">Contact</a></li>
-          <li><a href="privacypolicy.html">Privacy Policy</a></li>
+          <li><a href="../pages/about.html">About</a></li>
+          <li><a href="../pages/blog.html">Blog</a></li>
+          <li><a href="../index.html#cta">Contact</a></li>
+          <li><a href="../pages/privacypolicy.html">Privacy Policy</a></li>
           <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
         </ul>
       </nav>
@@ -547,6 +536,7 @@
   </script>
 
   <script src="../script.js"></script>
+  <script type="module" src="../header-auth.js"></script>
 
   <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
   <script type="module" src="professional.js?v=6e"></script>
