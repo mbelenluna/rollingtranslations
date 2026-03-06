@@ -3000,10 +3000,11 @@ footer {
 }
 
 .rt-nav__bar {
+    position: relative;
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 16px;
     background: var(--nav-bg);
     border: 1px solid var(--border);
@@ -3023,6 +3024,9 @@ footer {
     align-items: center;
     gap: 10px;
     text-decoration: none;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
 }
 
 .rt-nav__logo .rt-logo {
@@ -3035,22 +3039,37 @@ footer {
 }
 
 .rt-nav__menu {
-    display: block;
-    margin-left: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    z-index: 1;
 }
 
 .rt-nav__list {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     list-style: none;
     margin: 0;
     padding: 0;
+    flex-wrap: nowrap;
+}
+
+.rt-nav__right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-left: auto;
+    position: relative;
+    z-index: 2;
 }
 
 .rt-nav__logged-in-wrap {
-    margin-left: auto;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -3058,6 +3077,7 @@ footer {
 
 .rt-nav__bar .theme-toggle {
     flex-shrink: 0;
+    position: relative;
 }
 
 .rt-nav__list a {
@@ -3071,6 +3091,7 @@ footer {
     font-weight: 500;
     font-size: 0.9rem;
     transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
 }
 
 .rt-nav__list a:hover {
@@ -3080,6 +3101,10 @@ footer {
 
 .rt-nav__list .active-menu-item a {
     background: rgba(255, 255, 255, 0.08);
+}
+
+.rt-nav__list .contact-menu-item {
+    flex-shrink: 0;
 }
 
 .rt-nav__cta {
@@ -3095,6 +3120,9 @@ footer {
     font-size: 0.9rem;
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
     transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 135px;
 }
 
 .rt-nav__cta:hover {
@@ -3116,6 +3144,8 @@ footer {
     background: transparent;
     border: 0;
     cursor: pointer;
+    position: relative;
+    z-index: 2;
     width: 44px;
     height: 44px;
     border-radius: 10px;
@@ -3238,6 +3268,7 @@ footer {
     font-weight: 500;
     color: var(--text);
     line-height: 1.2;
+    white-space: nowrap;
 }
 
 .rt-nav__logged-in #nav-user-name,
