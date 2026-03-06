@@ -84,6 +84,7 @@ const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 const SENDGRID_API_KEY = defineSecret("SENDGRID_API_KEY");
 const ADMIN_EMAILS = defineString("ADMIN_EMAILS", { default: "" });
 const PORTAL_BASE_URL = defineString("PORTAL_BASE_URL", { default: "https://rolling-translations.com/portal" });
+const CF_VERIFY_EMAIL_URL = "https://us-central1-rolling-crowdsourcing.cloudfunctions.net/verifyEmail";
 
 const CHECKOUT_ORIGIN = process.env.checkout_origin || process.env.CHECKOUT_ORIGIN || "https://mbelenluna.github.io/rolling-portal";
 const ALLOWED_ORIGINS = [
@@ -823,6 +824,41 @@ exports.healthCheck = onRequest(
   })
 );
 
+// ===== 5c) Send test email (for SendGrid verification) =====
+exports.sendTestEmail = onRequest(
+  { region: "us-central1", cors: true, secrets: [SENDGRID_API_KEY] },
+  withPortalCors(async (req, res) => {
+    try {
+      const key = SENDGRID_API_KEY.value();
+      if (!key || !String(key).trim()) {
+        return res.status(500).json({ ok: false, error: "SENDGRID_API_KEY not set" });
+      }
+      sgMail.setApiKey(key);
+      await sgMail.send({
+        to: "info@rolling-translations.com",
+        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+        subject: "SendGrid test — Rolling Translations",
+        html: `
+          <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
+            <h2>SendGrid test successful</h2>
+            <p>This is a test email sent at ${new Date().toISOString()} to verify SendGrid is configured correctly.</p>
+            <p>If you received this, email delivery is working.</p>
+          </div>
+        `,
+      });
+      logger.info("sendTestEmail: sent successfully");
+      return res.json({ ok: true, message: "Test email sent to info@rolling-translations.com" });
+    } catch (err) {
+      logger.error("sendTestEmail error", err?.message || err, err?.response?.body || err);
+      return res.status(500).json({
+        ok: false,
+        error: err?.message || String(err),
+        sendgridResponse: err?.response?.body,
+      });
+    }
+  })
+);
+
 // ===== 6) Ensure user profile (portal auth) =====
 exports.ensureUserProfile = onRequest(
   { region: "us-central1", cors: true },
@@ -880,6 +916,11 @@ exports.sendVerificationEmail = onRequest(
   withPortalCors(async (req, res) => {
     try {
       if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+      const sendgridKey = SENDGRID_API_KEY.value();
+      if (!sendgridKey || !String(sendgridKey).trim()) {
+        logger.error("sendVerificationEmail: SENDGRID_API_KEY not set");
+        return res.status(500).json({ error: "Email service not configured", message: "SENDGRID_API_KEY is missing. Contact support." });
+      }
       const decoded = await verifyAuth(req);
       if (!decoded) return res.status(401).json({ error: "Unauthorized" });
       const uid = decoded.uid;
@@ -898,14 +939,16 @@ exports.sendVerificationEmail = onRequest(
       const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
       const tokensRef = db.collection("verificationTokens");
       await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
-      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
+      // Use API redirect URL so verification happens server-side (avoids client fetch timeout)
+      const verifyUrl = `${CF_VERIFY_EMAIL_URL}?token=${encodeURIComponent(token)}&redirect=1`;
       sgMail.setApiKey(SENDGRID_API_KEY.value());
-      await sgMail.send({
-        to: userEmail,
-        from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
-        subject: "Verify your email — Rolling Translations Client Portal",
-        html: `
+      logger.info("sendVerificationEmail: sending", { to: userEmail, uid });
+      try {
+        await sgMail.send({
+          to: userEmail,
+          from: { email: "info@rolling-translations.com", name: "Rolling Translations" },
+          subject: "Verify your email — Rolling Translations Client Portal",
+          html: `
           <div style="font-family:ui-sans-serif,system-ui,sans-serif;">
             <h2>Verify your email address</h2>
             <p>Thanks for signing up for the Rolling Translations Client Portal. Please click the link below to verify your email and activate your account.</p>
@@ -914,7 +957,17 @@ exports.sendVerificationEmail = onRequest(
             <p style="color:#6b7280;font-size:12px;">Or copy this link: ${verifyUrl}</p>
           </div>
         `,
-      });
+        });
+        logger.info("sendVerificationEmail: SendGrid success", { to: userEmail });
+      } catch (sgErr) {
+        logger.error("sendVerificationEmail: SendGrid error", {
+          message: sgErr?.message,
+          code: sgErr?.code,
+          response: sgErr?.response?.body,
+          statusCode: sgErr?.response?.statusCode,
+        });
+        throw sgErr;
+      }
       return res.json({ ok: true, message: "Verification email sent." });
     } catch (err) {
       logger.error("sendVerificationEmail error", err?.message || err, err?.stack);
@@ -927,21 +980,37 @@ exports.sendVerificationEmail = onRequest(
 );
 
 // ===== 6c) Verify email (public, token in query) =====
+// Supports redirect flow: ?token=xxx&redirect=1 → redirects to portal success/error page (avoids client fetch timeout)
 exports.verifyEmail = onRequest(
   { region: "us-central1", cors: true },
   withPortalCors(async (req, res) => {
+    const useRedirect = req.query.redirect === "1";
+    const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
+    const redirectTo = (params) => {
+      const u = new URL(portalBase + "/verify-email.html");
+      Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
+      return res.redirect(302, u.toString());
+    };
     try {
       const token = (req.query.token || req.body?.token || "").trim();
-      if (!token) return res.status(400).json({ error: "Missing token", success: false });
+      if (!token) {
+        if (useRedirect) return redirectTo({ error: "1", message: "Missing token" });
+        return res.status(400).json({ error: "Missing token", success: false });
+      }
       const db = admin.firestore();
       const tokenDoc = await db.collection("verificationTokens").doc(token).get();
       if (!tokenDoc.exists) {
+        if (useRedirect) return redirectTo({ error: "1", message: "Invalid or expired token" });
         return res.status(400).json({ error: "Invalid or expired token", success: false });
       }
       const data = tokenDoc.data();
-      const expiresAt = data.expiresAt?.toMillis ? data.expiresAt.toMillis() : data.expiresAt;
+      let expiresAt = 0;
+      if (data.expiresAt?.toMillis) expiresAt = data.expiresAt.toMillis();
+      else if (data.expiresAt?._seconds != null) expiresAt = data.expiresAt._seconds * 1000;
+      else if (typeof data.expiresAt === "number") expiresAt = data.expiresAt;
       if (Date.now() > expiresAt) {
         await tokenDoc.ref.delete();
+        if (useRedirect) return redirectTo({ error: "1", message: "Token has expired" });
         return res.status(400).json({ error: "Token has expired", success: false });
       }
       const uid = data.uid;
@@ -949,6 +1018,7 @@ exports.verifyEmail = onRequest(
       const userSnap = await userRef.get();
       if (!userSnap.exists) {
         await tokenDoc.ref.delete();
+        if (useRedirect) return redirectTo({ error: "1", message: "User not found" });
         return res.status(400).json({ error: "User not found", success: false });
       }
       await userRef.update({
@@ -957,9 +1027,12 @@ exports.verifyEmail = onRequest(
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       await tokenDoc.ref.delete();
+      logger.info("verifyEmail: success", { uid });
+      if (useRedirect) return redirectTo({ verified: "1" });
       return res.json({ success: true, message: "Email verified successfully." });
     } catch (err) {
       logger.error("verifyEmail error", err?.message || err, err?.stack);
+      if (useRedirect) return redirectTo({ error: "1", message: err?.message || "Server error" });
       return res.status(500).json({
         error: "Server error",
         message: err?.message || String(err),
@@ -993,8 +1066,7 @@ exports.resendVerificationEmail = onRequest(
       const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
       const tokensRef = db.collection("verificationTokens");
       await tokensRef.doc(token).set({ uid, expiresAt, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-      const portalBase = PORTAL_BASE_URL.value().replace(/\/$/, "");
-      const verifyUrl = `${portalBase}/verify-email.html?token=${encodeURIComponent(token)}`;
+      const verifyUrl = `${CF_VERIFY_EMAIL_URL}?token=${encodeURIComponent(token)}&redirect=1`;
       sgMail.setApiKey(SENDGRID_API_KEY.value());
       await sgMail.send({
         to: userEmail,
