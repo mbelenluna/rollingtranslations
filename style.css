@@ -3361,10 +3361,13 @@ footer {
     gap: 12px;
     transition: transform 0.28s ease;
     z-index: 1000;
+    pointer-events: none;
+    overflow-y: auto;
 }
 
 .rt-nav__mobile.is-open {
     transform: translateY(0);
+    pointer-events: auto;
 }
 
 .rt-nav__mobile-link,
@@ -3450,7 +3453,8 @@ footer {
 
     .rt-nav__hamburger {
         display: inline-flex !important;
-        z-index: 1001;
+        z-index: 1003;
+        position: relative;
     }
 
     .rt-nav__bar {
@@ -3462,6 +3466,11 @@ footer {
         min-width: 0;
     }
 
+    /* Hide desktop logged-in in header on mobile — show only in mobile drawer */
+    .rt-nav__right .rt-nav__logged-in-wrap {
+        display: none !important;
+    }
+
     .theme-toggle {
         margin-left: auto;
         margin-right: 2px;
@@ -3470,6 +3479,12 @@ footer {
 
     .rt-nav__hamburger {
         order: 2;
+    }
+
+    /* Ensure rt-nav__right doesn't overflow and hamburger stays clickable */
+    .rt-nav__right {
+        flex-shrink: 0;
+        gap: 8px;
     }
 }
 

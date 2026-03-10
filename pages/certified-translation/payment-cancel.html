@@ -86,19 +86,24 @@
             display: inline-block;
             padding: 12px 24px;
             background: var(--blue);
-            color: white;
+            color: #ffffff !important;
             border-radius: 8px;
             font-weight: 600;
             text-decoration: none;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
-        .btn:hover { background: var(--blue-hover); }
+        .btn:hover { background: var(--blue-hover); color: #ffffff !important; }
         .btn-secondary {
             background: transparent;
             color: var(--blue);
             border: 2px solid var(--blue);
         }
-        .btn-secondary:hover { background: var(--blue); color: white; }
+        .btn-secondary:hover { background: var(--blue); color: #ffffff !important; }
+        /* Footer logo — smaller on this page */
+        .rt-footer .logo {
+            max-height: 48px;
+            width: auto;
+        }
     </style>
 </head>
 <body>
