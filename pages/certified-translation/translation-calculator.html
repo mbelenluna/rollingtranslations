@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,13 +18,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script> 
 <script>
         firebase.initializeApp({
-            apiKey: "AIzaSyCm_dLvJ3BSVhmuxDb4keM9bmOKSGr12lk",
-            authDomain: "immigration-translation-e8a11.firebaseapp.com",
-            projectId: "immigration-translation-e8a11",
-            storageBucket: "immigration-translation-e8a11.firebasestorage.app",
-            messagingSenderId: "525339124091",
-            appId: "1:525339124091:web:203cae6f5dff6e74085dde",
-            measurementId: "G-0C8SHC2PWW"
+            apiKey: "AIzaSyC9bhzaUn1rdB_9ClJ_7LWlJE3K_pt-htY",
+            authDomain: "rolling-translations-personal.firebaseapp.com",
+            projectId: "rolling-translations-personal",
+            storageBucket: "rolling-translations-personal.firebasestorage.app",
+            messagingSenderId: "1052334781317",
+            appId: "1:1052334781317:web:a3f0e66dd70d3359e54aec",
+            measurementId: "G-573JFFYSPE"
         });
     </script> 
 
@@ -70,7 +71,7 @@
             min-height: 100vh;
         }
 
-        /* ── Background decoration ── */
+        /* ── Background decoration (subtle) ── */
         body::before {
             content: '';
             position: fixed;
@@ -78,7 +79,7 @@
             right: -200px;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, var(--blue-glow) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(51, 102, 255, 0.04) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
@@ -257,9 +258,27 @@
             color: var(--gray-400);
         }
 
-        .form-group input.invalid {
+        .form-group input.invalid,
+        .form-group select.invalid {
             border-color: var(--red);
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-group select {
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--white);
+            color: var(--gray-800);
+            cursor: pointer;
+            width: 100%;
+        }
+        .form-group select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px var(--blue-glow);
+            outline: none;
         }
 
         /* ── Upload zone ── */
@@ -409,8 +428,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--navy);
-            color: white;
+            background: #1B2A4A;
+            color: #ffffff;
             border-radius: var(--radius);
             padding: 16px 24px;
             margin-top: 20px;
@@ -421,6 +440,8 @@
         .total-pages .count {
             font-family: 'DM Serif Display', serif;
             font-size: 28px;
+            color: #ffffff;
+            font-weight: 600;
         }
 
         /* ── Tier selection ── */
@@ -435,23 +456,23 @@
         }
 
         .tier-card {
-            border: 2px solid var(--gray-200);
+            border: 2px solid #334155;
             border-radius: var(--radius);
             padding: 24px 20px;
             cursor: pointer;
             transition: all 0.25s;
             position: relative;
-            background: var(--white);
+            background: #1B2A4A;
         }
 
         .tier-card:hover {
-            border-color: var(--gray-300);
+            border-color: #475569;
             box-shadow: var(--shadow-sm);
         }
 
         .tier-card.selected {
             border-color: var(--blue);
-            background: var(--blue-soft);
+            background: #2C3E6B;
             box-shadow: 0 0 0 3px var(--blue-glow);
         }
 
@@ -464,8 +485,8 @@
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            background: var(--navy);
-            color: white;
+            background: var(--blue);
+            color: #ffffff;
             padding: 3px 14px;
             border-radius: 100px;
             white-space: nowrap;
@@ -474,27 +495,27 @@
         .tier-name {
             font-family: 'DM Serif Display', serif;
             font-size: 20px;
-            color: var(--navy);
+            color: #ffffff;
             margin-bottom: 2px;
         }
 
         .tier-speed {
             font-size: 13px;
-            color: var(--gray-500);
+            color: rgba(255,255,255,0.85);
             margin-bottom: 16px;
         }
 
         .tier-price {
             font-family: 'DM Serif Display', serif;
             font-size: 32px;
-            color: var(--navy);
+            color: #ffffff;
         }
 
         .tier-price span {
             font-family: 'DM Sans', sans-serif;
             font-size: 14px;
             font-weight: 400;
-            color: var(--gray-500);
+            color: rgba(255,255,255,0.85);
         }
 
         .tier-features {
@@ -509,7 +530,7 @@
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            color: var(--gray-600);
+            color: rgba(255,255,255,0.95);
         }
 
         .tier-feature svg {
@@ -526,7 +547,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            border: 2px solid var(--gray-300);
+            border: 2px solid rgba(255,255,255,0.5);
             transition: all 0.2s;
         }
 
@@ -595,48 +616,62 @@
 
         /* ── Summary ── */
         .summary-card {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
-            color: white;
+            background: linear-gradient(135deg, #1B2A4A 0%, #2C3E6B 100%);
+            color: #ffffff;
             border: none;
         }
 
-        .summary-card .card-title { color: white; }
-        .summary-card .card-subtitle { color: rgba(255,255,255,0.6); }
+        .summary-card .card-title { color: #ffffff; }
+        .summary-card .card-subtitle { color: rgba(255,255,255,0.85); }
 
         .summary-rows {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            width: 100%;
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            width: 100%;
             font-size: 14px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.9);
         }
 
-        .summary-row .label { display: flex; align-items: center; gap: 6px; }
-        .summary-row .value { font-weight: 600; color: white; }
+        .summary-row .label {
+            flex-shrink: 0;
+            color: rgba(255,255,255,0.85);
+        }
+        .summary-row .value {
+            font-weight: 600;
+            color: #ffffff;
+            text-align: right;
+        }
 
         .summary-divider {
             border: none;
-            border-top: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255,255,255,0.2);
             margin: 12px 0;
+            width: 100%;
         }
 
         .summary-total {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
             font-size: 16px;
             font-weight: 600;
+            color: #ffffff;
         }
 
         .summary-total .amount {
             font-family: 'DM Serif Display', serif;
             font-size: 36px;
+            color: #ffffff;
         }
 
         /* ── Checkout button ── */
@@ -736,8 +771,117 @@
             .step-line { width: 20px; }
         }
     </style>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon/favicon-16x16.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        /* Override main site styles for calculator page — ensure readable text and full width */
+        .translation-calc .page-wrapper { max-width: 900px; width: 100%; }
+        .translation-calc .page-wrapper .card:not(.summary-card) {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0;
+        }
+        .translation-calc .page-wrapper .card:not(.summary-card) .card-title {
+            color: #1B2A4A !important;
+            font-family: 'DM Serif Display', serif;
+            font-size: 20px;
+        }
+        .translation-calc .page-wrapper .card:not(.summary-card) .card-subtitle { color: #64748b !important; }
+        .translation-calc .page-wrapper .form-group label { color: #475569 !important; }
+        .translation-calc .page-wrapper .form-group input { color: #1e293b !important; }
+        .translation-calc .page-wrapper .form-group select { color: #1e293b !important; background: #ffffff !important; }
+        .translation-calc .page-wrapper { background: transparent; }
+        .translation-calc body { background: #f8fafc !important; }
+
+        /* Order Summary card — override style.css .card; force full width, dark bg, white text */
+        .translation-calc .summary-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            background: linear-gradient(135deg, #1B2A4A 0%, #2C3E6B 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            padding: 36px !important;
+            overflow: visible !important;
+            transform: none !important;
+        }
+        .translation-calc .summary-card .card-title { color: #ffffff !important; }
+        .translation-calc .summary-card .card-subtitle { color: rgba(255,255,255,0.9) !important; }
+        .translation-calc .summary-rows { width: 100% !important; }
+        .translation-calc .summary-row {
+            width: 100% !important;
+            color: rgba(255,255,255,0.95) !important;
+        }
+        .translation-calc .summary-row .label { color: rgba(255,255,255,0.9) !important; }
+        .translation-calc .summary-row .value { color: #ffffff !important; font-weight: 600 !important; }
+        .translation-calc .summary-total { width: 100% !important; color: #ffffff !important; }
+        .translation-calc .summary-total .amount { color: #ffffff !important; }
+    </style>
 </head>
-<body>
+<body class="translation-calc">
+    <div class="rt-top-banner">
+        <div>Get <b>15% off</b> your first project with us. <a href="../../index.html#cta">Contact us today →</a></div>
+    </div>
+    <header class="rt-nav" id="site-header">
+        <div class="rt-nav__bar">
+            <a class="rt-nav__logo" href="../../index.html" aria-label="Rolling Translations Home"><img class="rt-logo" src="../../images/logo.png" alt="Rolling Translations Logo"></a>
+            <nav class="rt-nav__menu" aria-label="Main">
+                <ul class="rt-nav__list" id="menu-items">
+                    <li class="items"><a href="../../index.html">Home</a></li>
+                    <li class="items"><a href="../../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li class="active-menu-item has-dropdown">
+                    <a href="../services.html">Services</a>
+                    <ul class="rt-nav__dropdown">
+                        <li><a href="../services/certified-translation.html">Certified Translation</a></li>
+                        <li><a href="../services/legal-translation.html">Legal Translation</a></li>
+                        <li><a href="../services/medical-translation.html">Medical Translation</a></li>
+                        <li><a href="../services/phone-interpreting.html">Phone Interpreting</a></li>
+                        <li><a href="../services/immigration-translations.html">Immigration Translations</a></li>
+                        <li><a href="../services.html">Other Services</a></li>
+                    </ul>
+                </li>
+                    <li class="items"><a href="../about.html">About</a></li>
+                    <li class="items"><a href="../blog.html">Blog</a></li>
+                    <li class="items"><a href="../../index.html#cta">Contact</a></li>
+                    <li class="items"><a href="../../portal/dashboard.html">My Projects</a></li>
+                    <li class="items" id="nav-login-li"><a href="../../portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="../../portal/#register">Register</a></li>
+                    <li class="contact-menu-item"><a class="rt-nav__cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
+                </ul>
+            </nav>
+            <div class="rt-nav__right">
+                <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+                    <i class="fa-solid fa-sun theme-icon-light"></i>
+                    <i class="fa-solid fa-moon theme-icon-dark"></i>
+                </button>
+                <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu" aria-expanded="false"><span></span></button>
+            </div>
+        </div>
+    </header>
+    <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
+        <a class="rt-nav__mobile-link" href="../../index.html">Home</a>
+        <a class="rt-nav__mobile-link" href="../services.html">Services</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/certified-translation.html">Certified Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/legal-translation.html">Legal Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/medical-translation.html">Medical Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/phone-interpreting.html">Phone Interpreting</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/immigration-translations.html">Immigration Translations</a>
+        <a class="rt-nav__mobile-link" href="../../rolling-professional/professional.html">Instant Quote</a>
+        <a class="rt-nav__mobile-link" href="../about.html">About</a>
+        <a class="rt-nav__mobile-link" href="../blog.html">Blog</a>
+        <a class="rt-nav__mobile-link" href="../../index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" href="../../portal/dashboard.html">My Projects</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="../../portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="../../portal/#register">Register</a>
+        <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+        <a class="rt-nav__mobile-cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
+    </nav>
 
 <div class="page-wrapper">
 
@@ -797,6 +941,100 @@
                 <div class="form-group">
                     <label>Phone <span style="color:var(--gray-400);font-weight:400;">(optional)</span></label>
                     <input type="tel" id="phone" placeholder="+1 (555) 123-4567" autocomplete="tel">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Source language <span class="req">*</span></label>
+                    <select id="sourceLang" required>
+                        <option value="English" selected>English</option>
+                        <option value="Albanian">Albanian</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Armenian">Armenian</option>
+                        <option value="Bahasa Indonesian">Bahasa Indonesian</option>
+                        <option value="Bahasa Malaysian">Bahasa Malaysian</option>
+                        <option value="Bengali">Bengali</option>
+                        <option value="Burmese">Burmese</option>
+                        <option value="Cambodian">Cambodian</option>
+                        <option value="Catalan">Catalan</option>
+                        <option value="Czech">Czech</option>
+                        <option value="Dari">Dari</option>
+                        <option value="Dutch">Dutch</option>
+                        <option value="Farsi">Farsi</option>
+                        <option value="Fijian">Fijian</option>
+                        <option value="Finnish">Finnish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Greek">Greek</option>
+                        <option value="Hebrew">Hebrew</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Ilocano">Ilocano</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Lao">Lao</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Punjabi">Punjabi</option>
+                        <option value="Romanian">Romanian</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Simplified Chinese">Simplified Chinese</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Swahili">Swahili</option>
+                        <option value="Swedish">Swedish</option>
+                        <option value="Tagalog">Tagalog</option>
+                        <option value="Thai">Thai</option>
+                        <option value="Traditional Chinese">Traditional Chinese</option>
+                        <option value="Turkish">Turkish</option>
+                        <option value="Urdu">Urdu</option>
+                        <option value="Vietnamese">Vietnamese</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target language <span class="req">*</span></label>
+                    <select id="targetLang" required>
+                        <option value="" disabled selected>Select language…</option>
+                        <option value="Albanian">Albanian</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Armenian">Armenian</option>
+                        <option value="Bahasa Indonesian">Bahasa Indonesian</option>
+                        <option value="Bahasa Malaysian">Bahasa Malaysian</option>
+                        <option value="Bengali">Bengali</option>
+                        <option value="Burmese">Burmese</option>
+                        <option value="Cambodian">Cambodian</option>
+                        <option value="Catalan">Catalan</option>
+                        <option value="Czech">Czech</option>
+                        <option value="Dari">Dari</option>
+                        <option value="Dutch">Dutch</option>
+                        <option value="English">English</option>
+                        <option value="Farsi">Farsi</option>
+                        <option value="Fijian">Fijian</option>
+                        <option value="Finnish">Finnish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                        <option value="Greek">Greek</option>
+                        <option value="Hebrew">Hebrew</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Ilocano">Ilocano</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Lao">Lao</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Punjabi">Punjabi</option>
+                        <option value="Romanian">Romanian</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Simplified Chinese">Simplified Chinese</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Swahili">Swahili</option>
+                        <option value="Swedish">Swedish</option>
+                        <option value="Tagalog">Tagalog</option>
+                        <option value="Thai">Thai</option>
+                        <option value="Traditional Chinese">Traditional Chinese</option>
+                        <option value="Turkish">Turkish</option>
+                        <option value="Urdu">Urdu</option>
+                        <option value="Vietnamese">Vietnamese</option>
+                    </select>
                 </div>
             </div>
 
@@ -933,6 +1171,10 @@
                     <span class="label">Email</span>
                     <span class="value" id="summaryEmail">—</span>
                 </div>
+                <div class="summary-row">
+                    <span class="label">Language pair</span>
+                    <span class="value" id="summaryLanguages">—</span>
+                </div>
                 <hr class="summary-divider">
                 <div class="summary-row">
                     <span class="label">Total pages</span>
@@ -985,6 +1227,58 @@
 
 </div>
 
+    <footer class="rt-footer">
+        <div class="rt-footer__inner">
+            <div class="rt-footer__col rt-footer__left" id="logo-footer">
+                <img class="logo" src="../../images/logo.png" alt="Rolling Translations Logo">
+                <p class="small-text">Copyright &copy; 2025 Rolling Translations LLC. All rights reserved.</p>
+                <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming, California, Colorado, and Florida.</p>
+                <div class="rt-socials">
+                    <div class="footer-social">
+                        <a href="https://www.linkedin.com/company/rolling-translations/" target="_blank"><i class="fa-brands fa-linkedin-in fa-fw"></i></a>
+                        <a href="https://www.instagram.com/rollingtranslations" target="_blank"><i class="fa-brands fa-instagram fa-fw"></i></a>
+                        <a href="https://www.facebook.com/rollingtranslations" target="_blank"><i class="fa-brands fa-facebook-f fa-fw"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="rt-footer__col rt-footer__center" id="info">
+                <ul class="contact-list">
+                    <li class="contact-row"><img src="../../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+                        <div class="contact-content">
+                            <h4 class="contact-title">Our Offices</h4>
+                            <div class="offices">
+                                <p><strong>Florida:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p>
+                                <p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p>
+                                <p><strong>Wyoming:</strong> 30 N Gould St Ste R, Sheridan, WY 82801</p>
+                                <p><strong>Colorado:</strong> 6635 S Dayton St Ste 310, Greenwood Village, CO 80111</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="contact-row"><img src="../../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com</div>
+                    </li>
+                </ul>
+            </div>
+            <nav class="rt-footer__col rt-footer__right footer-navigation">
+                <h4 class="rt-footer__nav-title">Quick Links</h4>
+                <ul class="links-nav">
+                    <li><a href="../services.html">Services</a></li>
+                    <li><a href="../services/certified-translation.html">Certified Translation</a></li>
+                    <li><a href="../services/medical-translation.html">Medical Translation</a></li>
+                    <li><a href="../services/legal-translation.html">Legal Translation</a></li>
+                    <li><a href="../services/phone-interpreting.html">Phone Interpreting</a></li>
+                    <li><a href="../services/immigration-translations.html">Immigration Translations</a></li>
+                    <li><a href="../../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../blog.html">Blog</a></li>
+                    <li><a href="../../index.html#cta">Contact</a></li>
+                    <li><a href="../privacypolicy.html">Privacy Policy</a></li>
+                    <li><a href="#" id="rt-open-consent">Cookie preferences</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
 <script>
 // ──────────────────────────────────────────
 // CONFIGURATION — edit these values
@@ -997,8 +1291,8 @@ const CONFIG = {
     },
     notarizationPerDoc: 20.00,
     hardCopyFlat: 15.00,
-    // ⬇️ Replace with your Firebase Cloud Function URL (see SETUP-GUIDE.md)
-    checkoutEndpoint: 'https://rolling-translations.com/api/createCheckoutSession',
+    // ⬇️ Cloud Function URL. Update to Cloud Run URL from deploy output if needed.
+    checkoutEndpoint: 'https://us-central1-rolling-translations-personal.cloudfunctions.net/createCheckoutSession',
 };
 
 // PDF.js worker
@@ -1011,7 +1305,7 @@ let files = [];
 let selectedTier = null;
 let addons = { notarization: false, hardcopy: false };
 let counting = 0;
-let contact = { firstName: '', lastName: '', email: '', phone: '' };
+let contact = { firstName: '', lastName: '', email: '', phone: '', sourceLang: 'English', targetLang: '' };
 
 // ──────────────────────────────────────────
 // STEP 1: CONTACT VALIDATION
@@ -1020,9 +1314,11 @@ function validateContact() {
     const fn = document.getElementById('firstName');
     const ln = document.getElementById('lastName');
     const em = document.getElementById('email');
+    const srcLang = document.getElementById('sourceLang');
+    const tgtLang = document.getElementById('targetLang');
     const errEl = document.getElementById('contactError');
 
-    [fn, ln, em].forEach(el => el.classList.remove('invalid'));
+    [fn, ln, em, srcLang, tgtLang].forEach(el => el && el.classList.remove('invalid'));
     errEl.classList.remove('show');
 
     let errors = [];
@@ -1031,6 +1327,10 @@ function validateContact() {
     if (!em.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())) {
         em.classList.add('invalid');
         errors.push('a valid email');
+    }
+    if (!tgtLang.value.trim()) {
+        tgtLang.classList.add('invalid');
+        errors.push('target language');
     }
 
     if (errors.length) {
@@ -1043,6 +1343,8 @@ function validateContact() {
     contact.lastName = ln.value.trim();
     contact.email = em.value.trim();
     contact.phone = document.getElementById('phone').value.trim();
+    contact.sourceLang = srcLang.value;
+    contact.targetLang = tgtLang.value;
 
     goToStep(2);
 }
@@ -1237,6 +1539,7 @@ function buildSummary() {
 
     document.getElementById('summaryClient').textContent = contact.firstName + ' ' + contact.lastName;
     document.getElementById('summaryEmail').textContent = contact.email;
+    document.getElementById('summaryLanguages').textContent = (contact.sourceLang || '—') + ' → ' + (contact.targetLang || '—');
     document.getElementById('summaryPages').textContent = pages;
     document.getElementById('summaryFiles').textContent = files.length + ' file' + (files.length > 1 ? 's' : '');
     document.getElementById('summaryTier').textContent = tierNames[selectedTier];
@@ -1280,26 +1583,36 @@ async function handleCheckout() {
         (addons.hardcopy ? ' + Hard Copy Mailing' : '');
 
     try {
-        // ── 1. Upload PDFs to Firebase Storage ──
+        // ── 1. Upload PDFs to Firebase Storage (skip on localhost — CORS blocks it) ──
         const orderTimestamp = Date.now();
         const uploadedFiles = [];
+        const isLocalhost = /^(127\.0\.0\.1|localhost)(:\d+)?$/.test(window.location.host) ||
+            window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
 
-        if (typeof firebase !== 'undefined' && firebase.storage) {
+        if (!isLocalhost && typeof firebase !== 'undefined' && firebase.storage) {
             const storageRef = firebase.storage().ref();
             for (let i = 0; i < files.length; i++) {
                 btn.innerHTML = `<span class="spinner"></span> Uploading file ${i + 1} of ${files.length}…`;
-                const fileRef = storageRef.child(`orders/${orderTimestamp}/${files[i].name}`);
-                await fileRef.put(files[i].file);
-                const downloadURL = await fileRef.getDownloadURL();
-                uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: downloadURL });
+                try {
+                    const fileRef = storageRef.child(`orders/${orderTimestamp}/${files[i].name}`);
+                    await fileRef.put(files[i].file);
+                    const downloadURL = await fileRef.getDownloadURL();
+                    uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: downloadURL });
+                } catch (uploadErr) {
+                    console.warn('Storage upload failed:', uploadErr.message);
+                    uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: null });
+                }
             }
         } else {
-            // Firebase not configured — include file names only (for testing)
             files.forEach(f => uploadedFiles.push({ name: f.name, pages: f.pages, url: null }));
         }
 
         // ── 2. Create Stripe Checkout Session via Cloud Function ──
         btn.innerHTML = '<span class="spinner"></span> Redirecting to payment…';
+
+        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '') || window.location.origin;
+        const successUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'payment-success.html';
+        const cancelUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'payment-cancel.html';
 
         const res = await fetch(CONFIG.checkoutEndpoint, {
             method: 'POST',
@@ -1312,10 +1625,26 @@ async function handleCheckout() {
                 totalPages: getTotalPages(),
                 files: uploadedFiles,
                 addons,
+                sourceLang: contact.sourceLang,
+                targetLang: contact.targetLang,
+                successUrl,
+                cancelUrl,
             }),
         });
 
-        const data = await res.json();
+        if (res.status === 403) {
+            throw new Error('403 Forbidden — Cloud Run is blocking unauthenticated requests.\n\n' +
+                'Run this command to fix:\n' +
+                'gcloud run services add-iam-policy-binding createcheckoutsession --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal\n\n' +
+                'Or add allUsers as Cloud Run Invoker in Cloud Console. See SETUP-GUIDE.md Step 3b.');
+        }
+
+        let data;
+        try {
+            data = await res.json();
+        } catch (parseErr) {
+            throw new Error('Server returned invalid response (status ' + res.status + '). Is the Cloud Function deployed?');
+        }
 
         if (data.url) {
             window.location.href = data.url;
@@ -1326,15 +1655,19 @@ async function handleCheckout() {
     } catch (err) {
         console.error('Checkout error:', err);
 
-        // Fallback while Stripe/Firebase aren't configured
+        let msg = err.message || 'Unknown error';
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+            msg = 'Cannot reach the payment server. Possible causes:\n' +
+                '• Cloud Functions not deployed (run: firebase deploy --only functions)\n' +
+                '• Wrong endpoint URL in CONFIG.checkoutEndpoint\n' +
+                '• CORS or network block';
+        }
+
         alert(
-            `Stripe/Firebase not configured yet.\n\n` +
-            `Client: ${contact.firstName} ${contact.lastName}\n` +
-            `Email: ${contact.email}\n` +
-            `Phone: ${contact.phone || 'N/A'}\n` +
-            `Order total: $${total.toFixed(2)}\n` +
-            `${description}\n\n` +
-            `See the SETUP-GUIDE.md file for backend instructions.`
+            'Payment error:\n\n' + msg + '\n\n' +
+            'Order: ' + description + ' — $' + total.toFixed(2) + '\n' +
+            'Client: ' + contact.email + '\n\n' +
+            'See SETUP-GUIDE.md for setup instructions.'
         );
 
         btn.disabled = false;
@@ -1342,6 +1675,22 @@ async function handleCheckout() {
     }
 }
 </script>
-
+    <script src="../../script.js"></script>
+    <script type="module" src="../../header-auth.js"></script>
+    <script>
+        (function () {
+            var toggle = document.getElementById('themeToggle');
+            var root = document.documentElement;
+            var saved = localStorage.getItem('rt-theme');
+            if (saved === 'dark') root.setAttribute('data-theme', 'dark');
+            else root.setAttribute('data-theme', 'light');
+            if (toggle) toggle.addEventListener('click', function () {
+                var current = root.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('rt-theme', next);
+            });
+        })();
+    </script>
 </body>
 </html>

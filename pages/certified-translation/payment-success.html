@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Received — Rolling Translations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --navy: #1B2A4A;
+            --blue: #3366FF;
+            --green: #22C55E;
+            --green-bg: #ECFDF5;
+            --gray-50: #F8FAFC;
+            --gray-500: #64748B;
+            --gray-800: #1E293B;
+            --radius: 12px;
+        }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .payment-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+        }
+        .success-card {
+            max-width: 520px;
+            text-align: center;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 48px 24px;
+        }
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--green-bg);
+            color: var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 28px;
+        }
+        .success-card h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--navy);
+            margin-bottom: 16px;
+        }
+        .success-card p {
+            font-size: 16px;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+        }
+        .success-card a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+        .success-card a:hover { text-decoration: underline; }
+        .redirect-msg {
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        .countdown { font-weight: 600; color: var(--navy); }
+    </style>
+</head>
+<body>
+    <div class="rt-top-banner">
+        <div>Get <b>15% off</b> your first project with us. <a href="../../index.html#cta">Contact us today →</a></div>
+    </div>
+    <header class="rt-nav" id="site-header">
+        <div class="rt-nav__bar">
+            <a class="rt-nav__logo" href="../../index.html" aria-label="Rolling Translations Home"><img class="rt-logo" src="../../images/logo.png" alt="Rolling Translations Logo"></a>
+            <nav class="rt-nav__menu" aria-label="Main">
+                <ul class="rt-nav__list" id="menu-items">
+                    <li class="items"><a href="../../index.html">Home</a></li>
+                    <li class="items"><a href="../../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li class="items has-dropdown">
+                    <a href="../services.html">Services</a>
+                    <ul class="rt-nav__dropdown">
+                        <li><a href="../services/certified-translation.html">Certified Translation</a></li>
+                        <li><a href="../services/legal-translation.html">Legal Translation</a></li>
+                        <li><a href="../services/medical-translation.html">Medical Translation</a></li>
+                        <li><a href="../services/phone-interpreting.html">Phone Interpreting</a></li>
+                        <li><a href="../services/immigration-translations.html">Immigration Translations</a></li>
+                        <li><a href="../services.html">Other Services</a></li>
+                    </ul>
+                </li>
+                    <li class="items"><a href="../about.html">About</a></li>
+                    <li class="items"><a href="../blog.html">Blog</a></li>
+                    <li class="items"><a href="../../index.html#cta">Contact</a></li>
+                    <li class="items"><a href="../../portal/dashboard.html">My Projects</a></li>
+                    <li class="items" id="nav-login-li"><a href="../../portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="../../portal/#register">Register</a></li>
+                    <li class="contact-menu-item"><a class="rt-nav__cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
+                </ul>
+            </nav>
+            <div class="rt-nav__right">
+                <div id="nav-logged-in-li" class="rt-nav__logged-in-wrap" style="display:none"><span class="rt-nav__logged-in"><span id="nav-user-name"></span> <a href="#" id="nav-logout" style="margin-left:8px">Log out</a></span></div>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme"><i class="fa-solid fa-sun theme-icon-light"></i><i class="fa-solid fa-moon theme-icon-dark"></i></button>
+                <button class="rt-nav__hamburger" id="navToggle" aria-label="Open menu"><span></span></button>
+            </div>
+        </div>
+    </header>
+    <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
+        <a class="rt-nav__mobile-link" href="../../index.html">Home</a>
+        <a class="rt-nav__mobile-link" href="../services.html">Services</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/certified-translation.html">Certified Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/legal-translation.html">Legal Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/medical-translation.html">Medical Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/phone-interpreting.html">Phone Interpreting</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../services/immigration-translations.html">Immigration Translations</a>
+        <a class="rt-nav__mobile-link" href="../../rolling-professional/professional.html">Instant Quote</a>
+        <a class="rt-nav__mobile-link" href="../about.html">About</a>
+        <a class="rt-nav__mobile-link" href="../blog.html">Blog</a>
+        <a class="rt-nav__mobile-link" href="../../index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" href="../../portal/dashboard.html">My Projects</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="../../portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="../../portal/#register">Register</a>
+        <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
+        <a class="rt-nav__mobile-cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
+    </nav>
+    <main class="payment-main">
+    <div class="success-card">
+        <div class="success-icon">✓</div>
+        <h1>Payment Received</h1>
+        <p>Thank you! We will start working on your project immediately.</p>
+        <p>If you have any questions, please email us at <a href="mailto:info@rolling-translations.com">info@rolling-translations.com</a>.</p>
+        <p class="redirect-msg">Redirecting to homepage in <span class="countdown" id="countdown">5</span> seconds…</p>
+    </div>
+    </main>
+    <footer class="rt-footer">
+        <div class="rt-footer__inner">
+            <div class="rt-footer__col rt-footer__left"><img class="logo" src="../../images/logo.png" alt="Rolling Translations Logo"><p class="small-text">Copyright &copy; 2025 Rolling Translations LLC.</p><div class="rt-socials"><div class="footer-social"><a href="https://www.linkedin.com/company/rolling-translations/" target="_blank"><i class="fa-brands fa-linkedin-in fa-fw"></i></a><a href="https://www.instagram.com/rollingtranslations" target="_blank"><i class="fa-brands fa-instagram fa-fw"></i></a><a href="https://www.facebook.com/rollingtranslations" target="_blank"><i class="fa-brands fa-facebook-f fa-fw"></i></a></div></div></div>
+            <div class="rt-footer__col rt-footer__center"><ul class="contact-list"><li class="contact-row"><img src="../../images/icons8-address-50.png" alt="Our Offices" class="contact-icon"><div class="contact-content"><h4 class="contact-title">Our Offices</h4><div class="offices"><p><strong>Florida:</strong> 1317 Edgewater Dr Suite 1064, Orlando, FL 32804</p><p><strong>California:</strong> 453 S Spring St Ste 400, Los Angeles, CA 90013</p></div></div></li><li class="contact-row"><img src="../../images/icons8-email-50.png" alt="Email" class="contact-icon"><div class="contact-content">info@rolling-translations.com</div></li></ul></div>
+            <nav class="rt-footer__col rt-footer__right footer-navigation"><h4 class="rt-footer__nav-title">Quick Links</h4><ul class="links-nav"><li><a href="../services.html">Services</a></li><li><a href="../services/certified-translation.html">Certified Translation</a></li><li><a href="../../rolling-professional/professional.html">Instant Quote</a></li><li><a href="../about.html">About</a></li><li><a href="../blog.html">Blog</a></li><li><a href="../../index.html#cta">Contact</a></li><li><a href="../privacypolicy.html">Privacy Policy</a></li></ul></nav>
+        </div>
+    </footer>
+    <script src="../../script.js"></script>
+    <script type="module" src="../../header-auth.js"></script>
+    <script>
+        const homeUrl = window.location.origin + '/';
+        let sec = 5;
+        const el = document.getElementById('countdown');
+        const t = setInterval(() => {
+            sec--;
+            el.textContent = sec;
+            if (sec <= 0) {
+                clearInterval(t);
+                window.location.href = homeUrl;
+            }
+        }, 1000);
+    </script>
+    <script>
+        (function () {
+            var toggle = document.getElementById('themeToggle');
+            var root = document.documentElement;
+            var saved = localStorage.getItem('rt-theme');
+            if (saved === 'dark') root.setAttribute('data-theme', 'dark');
+            else root.setAttribute('data-theme', 'light');
+            if (toggle) toggle.addEventListener('click', function () {
+                var current = root.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('rt-theme', next);
+            });
+        })();
+    </script>
+</body>
+</html>
