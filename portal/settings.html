@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,7 +23,17 @@
         <ul class="rt-nav__list" id="menu-items">
           <li class="items"><a href="../index.html">Home</a></li>
           <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-          <li class="items"><a href="../pages/services.html">Services</a></li>
+          <li class="items has-dropdown">
+          <a href="../pages/services.html">Services</a>
+          <ul class="rt-nav__dropdown">
+            <li><a href="../pages/services/certified-translation.html">Certified Translation</a></li>
+            <li><a href="../pages/services/legal-translation.html">Legal Translation</a></li>
+            <li><a href="../pages/services/medical-translation.html">Medical Translation</a></li>
+            <li><a href="../pages/services/phone-interpreting.html">Phone Interpreting</a></li>
+            <li><a href="../pages/services/immigration-translations.html">Immigration Translations</a></li>
+            <li><a href="../pages/services.html">Other Services</a></li>
+          </ul>
+        </li>
           <li class="items"><a href="../pages/about.html">About</a></li>
           <li class="items"><a href="../pages/blog.html">Blog</a></li>
           <li class="items"><a href="../index.html#cta">Contact</a></li>
@@ -45,6 +56,11 @@
     <a class="rt-nav__mobile-link" href="../index.html">Home</a>
     <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
     <a class="rt-nav__mobile-link" href="../pages/services.html">Services</a>
+    <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../pages/services/certified-translation.html">Certified Translation</a>
+    <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../pages/services/legal-translation.html">Legal Translation</a>
+    <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../pages/services/medical-translation.html">Medical Translation</a>
+    <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../pages/services/phone-interpreting.html">Phone Interpreting</a>
+    <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="../pages/services/immigration-translations.html">Immigration Translations</a>
     <a class="rt-nav__mobile-link" href="../pages/about.html">About</a>
     <a class="rt-nav__mobile-link" href="../pages/blog.html">Blog</a>
     <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>

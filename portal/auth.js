@@ -72,14 +72,33 @@ export async function register(emailOrOpts, password) {
   return cred.user;
 }
 
+/** Map Firebase auth error codes to user-friendly messages */
+function getAuthErrorMessage(code) {
+  const messages = {
+    "auth/invalid-credential": "Invalid email or password.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/user-not-found": "No account found with this email.",
+    "auth/wrong-password": "Invalid email or password.",
+    "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+    "auth/user-disabled": "This account has been disabled.",
+    "auth/operation-not-allowed": "Email/password sign-in is not enabled.",
+  };
+  return messages[code] || "Invalid credentials. Please check your email and password.";
+}
+
 export async function login(email, password) {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
   try {
-    await ensureUserProfile(cred.user);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    try {
+      await ensureUserProfile(cred.user);
+    } catch (e) {
+      console.warn("ensureUserProfile failed:", e?.message || e);
+    }
+    return cred.user;
   } catch (e) {
-    console.warn("ensureUserProfile failed:", e?.message || e);
+    const code = e?.code || (e?.message && e.message.includes("auth/") ? e.message.match(/auth\/[a-z-]+/)?.[0] : null);
+    throw new Error(code ? getAuthErrorMessage(code) : (e?.message || "Invalid credentials. Please check your email and password."));
   }
-  return cred.user;
 }
 
 export function logout() {

@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
 <head>
     <meta charset="UTF-8">
     <meta name="description"
-        content="Human, certified translations for legal, medical, and technical content. Transparent pricing and convenient payment.">
-    <meta name="keywords"
-        content="translation, certified translation, medical, legal, technical, marketing, instant quote, rolling translations">
+        content="Certified translations in 160+ languages from $24.95/page. Legal, medical & technical documents. 12-hour turnaround. Trusted by businesses nationwide. Get your instant quote.">
+    <link rel="canonical" href="https://rolling-translations.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rolling-translations.com/">
+    <meta property="og:title" content="Rolling Translations — Certified Translation Services">
+    <meta property="og:description" content="Certified translations in 160+ languages from $24.95/page. Legal, medical & technical. 12-hour turnaround. Trusted nationwide. Get your instant quote.">
+    <meta property="og:image" content="https://rolling-translations.com/images/logo.png">
+    <meta property="og:site_name" content="Rolling Translations">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Rolling Translations — Certified Translation Services">
+    <meta name="twitter:description" content="Certified translations in 160+ languages from $24.95/page. Legal, medical & technical. 12-hour turnaround. Trusted nationwide.">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +36,25 @@
     <link rel="manifest" href="images/favicon/site.webmanifest">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="style.css">
-    <title>Rolling Translations — Human & Certified Translations</title>
+    <title>Rolling Translations — Certified Translation Services | Fast, Trusted, Nationwide</title>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Rolling Translations",
+        "description": "Professional certified translation services in 160+ languages. Document translation, legal, medical, and business translations. Orlando, Los Angeles & nationwide.",
+        "url": "https://rolling-translations.com",
+        "logo": "https://rolling-translations.com/images/logo.png",
+        "email": "info@rolling-translations.com",
+        "areaServed": [
+            {"@type": "City", "name": "Orlando", "containedInPlace": {"@type": "State", "name": "Florida"}},
+            {"@type": "City", "name": "Los Angeles", "containedInPlace": {"@type": "State", "name": "California"}},
+            {"@type": "Country", "name": "United States"}
+        ],
+        "priceRange": "$$",
+        "sameAs": ["https://www.linkedin.com/company/rolling-translations/", "https://www.instagram.com/rollingtranslations", "https://www.facebook.com/rollingtranslations"]
+    }
+    </script>
     <style>
         .how-it-works {
             --bg-start: #0f1a2e;
@@ -155,7 +182,17 @@
                 <ul class="rt-nav__list" id="menu-items">
                     <li class="active-menu-item"><a href="#hero">Home</a></li>
                     <li class="items"><a href="rolling-professional/professional.html">Instant Quote</a></li>
-                    <li class="items"><a href="pages/services.html">Services</a></li>
+                    <li class="items has-dropdown">
+                        <a href="pages/services.html">Services</a>
+                        <ul class="rt-nav__dropdown">
+                            <li><a href="pages/services/certified-translation.html">Certified Translation</a></li>
+                            <li><a href="pages/services/legal-translation.html">Legal Translation</a></li>
+                            <li><a href="pages/services/medical-translation.html">Medical Translation</a></li>
+                            <li><a href="pages/services/phone-interpreting.html">Phone Interpreting</a></li>
+                            <li><a href="pages/services/immigration-translations.html">Immigration Translations</a></li>
+                            <li><a href="pages/services.html">Other Services</a></li>
+                        </ul>
+                    </li>
                     <li class="items"><a href="pages/about.html">About</a></li>
                     <li class="items"><a href="pages/blog.html">Blog</a></li>
                     <li class="items"><a href="#cta">Contact</a></li>
@@ -180,6 +217,11 @@
     <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
         <a class="rt-nav__mobile-link active" href="#hero">Home</a>
         <a class="rt-nav__mobile-link" href="pages/services.html">Services</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="pages/services/certified-translation.html">Certified Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="pages/services/legal-translation.html">Legal Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="pages/services/medical-translation.html">Medical Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="pages/services/phone-interpreting.html">Phone Interpreting</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="pages/services/immigration-translations.html">Immigration Translations</a>
         <a class="rt-nav__mobile-link" href="rolling-professional/professional.html">Instant Quote</a>
         <a class="rt-nav__mobile-link" href="pages/about.html">About</a>
         <a class="rt-nav__mobile-link" href="pages/blog.html">Blog</a>
@@ -247,7 +289,7 @@
     <section class="how-it-works" id="how-it-works">
         <div class="container">
             <h2 class="title">How it works</h2>
-            <p class="subtitle">Get a clear price in minutes and kick off your project the same day.</p>
+            <p class="subtitle">Get a clear price in minutes and kick off your project the same day. <a href="pages/services.html">Explore our translation services</a> or <a href="rolling-professional/professional.html">get an instant quote</a>.</p>
             <div class="grid">
                 <article class="step-card">
                     <header class="step-head"><span class="step-badge" aria-hidden="true">1</span><i
@@ -357,16 +399,16 @@
     <section id="services" class="rt-services">
         <div class="container">
             <h2 class="rt-services__title">Our Service Solutions</h2>
-            <p class="rt-services__sub">Leading experts in interpretation and translation</p>
+            <p class="rt-services__sub">Leading experts in interpretation and translation. <a href="pages/about.html">Meet our team</a> · <a href="pages/blog.html">Read our blog</a></p>
             <div class="rt-services__grid">
                 <article class="rt-card">
                     <h3><b>Onsite & Remote Interpreting</b></h3>
-                    <p>Onsite, VRI, and OPI for healthcare, courts, schools, government, and insurance.</p><a
+                    <p>Onsite, VRI, and OPI for healthcare, courts, schools, government, and insurance. <a href="pages/services/phone-interpreting.html">Phone interpreting</a>.</p><a
                         class="rt-card__link" href="pages/services.html">Explore</a>
                 </article>
                 <article class="rt-card">
                     <h3><b>Document Translation</b></h3>
-                    <p>Certified, legal, medical, technical, and public-facing content in 350+ languages.</p><a
+                    <p>Certified, legal, medical, technical, and public-facing content in 350+ languages. <a href="pages/services/certified-translation.html">Certified</a> · <a href="pages/services/medical-translation.html">Medical</a> · <a href="pages/services/legal-translation.html">Legal</a>.</p><a
                         class="rt-card__link" href="pages/services.html">Explore</a>
                 </article>
                 <article class="rt-card">
@@ -414,7 +456,7 @@
         <div class="cta container">
             <h4>Don't have a project yet? Send us an email.</h4>
             <p class="cta-text">If you don't have a project or are not ready to pay yet, fill out the form and we'll get
-                back to you within minutes.</p>
+                back to you within minutes. Ready to start? <a href="rolling-professional/professional.html">Get an instant quote</a> or <a href="pages/about.html">learn about our team</a>.</p>
             <form class="contact-form" id="contact-form" novalidate>
                 <div class="hp-row" aria-hidden="true"><label for="company">Company</label><input type="text"
                         id="company" name="company" autocomplete="off" tabindex="-1"></div>
@@ -493,6 +535,11 @@
                 <h4 class="rt-footer__nav-title">Quick Links</h4>
                 <ul class="links-nav">
                     <li><a href="pages/services.html">Services</a></li>
+                    <li><a href="pages/services/certified-translation.html">Certified Translation</a></li>
+                    <li><a href="pages/services/medical-translation.html">Medical Translation</a></li>
+                    <li><a href="pages/services/legal-translation.html">Legal Translation</a></li>
+                    <li><a href="pages/services/phone-interpreting.html">Phone Interpreting</a></li>
+                    <li><a href="pages/services/immigration-translations.html">Immigration Translations</a></li>
                     <li><a href="rolling-professional/professional.html">Instant Quote</a></li>
                     <li><a href="pages/about.html">About</a></li>
                     <li><a href="pages/blog.html">Blog</a></li>
@@ -594,7 +641,7 @@
         style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#162036;color:#fff;padding:16px;box-shadow:0 -8px 30px rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,0.08);">
         <div style="max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
             <div class="cookies-text" style="flex:1;min-width:260px;">We use cookies for analytics and advertising. See our
-                <a href="privacypolicy.html" style="color:#60a5fa;text-decoration:underline;">Privacy Policy</a>.
+                <a href="pages/privacypolicy.html" style="color:#60a5fa;text-decoration:underline;">Privacy Policy</a>.
             </div>
             <button id="rt-consent-reject"
                 style="background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.15);padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;">Reject</button>

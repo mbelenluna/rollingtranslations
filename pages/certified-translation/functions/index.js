@@ -16,6 +16,9 @@ if (!admin.apps.length) {
 const stripeSecret = defineSecret('STRIPE_SECRET_KEY');
 const sendgridSecret = defineSecret('SENDGRID_API_KEY');
 
+// Hardcoded key for test endpoint (see SETUP-GUIDE); change if needed for security
+const TEST_EMAIL_KEY = 'rt-test-email-verify-9x7k2';
+
 const SENDGRID_NO_CLICK_TRACKING = {
   trackingSettings: {clickTracking: {enable: false, enableText: false}},
 };
@@ -167,6 +170,7 @@ const NOTIFY_EMAILS = ['info@rolling-translations.com', 'connor@rolling-translat
 exports.stripeWebhook = onRequest(
   {secrets: [webhookSecret, stripeSecret, sendgridSecret], rawBody: true},
   async (req, res) => {
+    console.log('stripeWebhook invoked:', req.method, 'hasSignature:', !!req.headers['stripe-signature']);
     const sig = req.headers['stripe-signature'];
     const secret = webhookSecret.value();
 
@@ -287,5 +291,50 @@ exports.stripeWebhook = onRequest(
     }
 
     res.status(200).json({received: true});
+  }
+);
+
+/**
+ * Test endpoint to verify SendGrid email delivery.
+ * GET /api/testNotificationEmail?key=rt-test-email-verify-9x7k2
+ */
+exports.testNotificationEmail = onRequest(
+  {secrets: [sendgridSecret]},
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    if (req.method !== 'GET') {
+      res.status(405).json({error: 'Method not allowed'});
+      return;
+    }
+    const providedKey = req.query?.key;
+    if (providedKey !== TEST_EMAIL_KEY) {
+      res.status(401).json({
+        error: 'Unauthorized. Use ?key=rt-test-email-verify-9x7k2 (see SETUP-GUIDE)',
+      });
+      return;
+    }
+    const sgKey = sendgridSecret.value();
+    if (!sgKey || sgKey === '') {
+      res.status(500).json({error: 'SENDGRID_API_KEY not set'});
+      return;
+    }
+    try {
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(sgKey);
+      await sgMail.send({
+        ...SENDGRID_NO_CLICK_TRACKING,
+        to: NOTIFY_EMAILS,
+        from: {email: 'info@rolling-translations.com', name: 'Rolling Translations'},
+        subject: '[TEST] Translation calculator — SendGrid OK',
+        html: '<p>This is a test email from the translation-calculator. If you received this, SendGrid is configured correctly.</p>',
+      });
+      res.status(200).json({ok: true, message: 'Test email sent to ' + NOTIFY_EMAILS.join(', ')});
+    } catch (e) {
+      console.error('Test email SendGrid error:', e?.response?.body || e?.message || e);
+      res.status(500).json({
+        error: 'SendGrid failed',
+        details: e?.response?.body || e?.message || String(e),
+      });
+    }
   }
 );

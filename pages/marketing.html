@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
 <head>
 
     <meta charset="UTF-8">
@@ -33,10 +33,10 @@
     <!-- End Google Tag Manager -->
 
     <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon/favicon-16x16.png">
-    <link rel="manifest" href="images/favicon/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="../images/favicon/site.webmanifest">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -332,7 +332,17 @@
                 <ul class="rt-nav__list" id="menu-items">
                     <li class="active-menu-item"><a href="../index.html">Home</a></li>
                     <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                    <li class="items"><a href="services.html">Services</a></li>
+                    <li class="items has-dropdown">
+                    <a href="services.html">Services</a>
+                    <ul class="rt-nav__dropdown">
+                        <li><a href="services/certified-translation.html">Certified Translation</a></li>
+                        <li><a href="services/legal-translation.html">Legal Translation</a></li>
+                        <li><a href="services/medical-translation.html">Medical Translation</a></li>
+                        <li><a href="services/phone-interpreting.html">Phone Interpreting</a></li>
+                        <li><a href="services/immigration-translations.html">Immigration Translations</a></li>
+                        <li><a href="services.html">Other Services</a></li>
+                    </ul>
+                </li>
                     <li class="items"><a href="about.html">About</a></li>
                     <li class="items"><a href="blog.html">Blog</a></li>
                     <li class="items"><a href="#cta">Contact</a></li>
@@ -363,6 +373,11 @@
     <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
         <a class="rt-nav__mobile-link" href="../index.html">Home</a>
         <a class="rt-nav__mobile-link" href="services.html">Services</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="services/certified-translation.html">Certified Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="services/legal-translation.html">Legal Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="services/medical-translation.html">Medical Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="services/phone-interpreting.html">Phone Interpreting</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="services/immigration-translations.html">Immigration Translations</a>
         <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
         <a class="rt-nav__mobile-link" href="about.html">About</a>
         <a class="rt-nav__mobile-link" href="blog.html">Blog</a>

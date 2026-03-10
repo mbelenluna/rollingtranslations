@@ -43,10 +43,17 @@ After deployment, copy the **Function URL** from the output (e.g. `https://creat
 
 The Cloud Run service blocks unauthenticated requests by default. You **must** allow public access:
 
-**Option A — Run this command (recommended):**
+**Option A — Run these commands (recommended):**
 
 ```bash
+# Required for checkout to work from the browser
 gcloud run services add-iam-policy-binding createcheckoutsession --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
+
+# Required for Stripe webhooks (email notifications) to work
+gcloud run services add-iam-policy-binding stripewebhook --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
+
+# Optional: for the test email endpoint
+gcloud run services add-iam-policy-binding testnotificationemail --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
 ```
 
 If `gcloud` is not installed: [Install Google Cloud SDK](https://cloud.google.com/sdk/docs/install), then run `gcloud auth login` and `gcloud config set project rolling-translations-personal`.
@@ -54,11 +61,12 @@ If `gcloud` is not installed: [Install Google Cloud SDK](https://cloud.google.co
 **Option B — Via Cloud Console:**
 
 1. Go to [Google Cloud Console → Cloud Run](https://console.cloud.google.com/run?project=rolling-translations-personal)
-2. Click **createcheckoutsession**
-3. Go to **Permissions** tab → **Add principal**
-4. New principals: `allUsers`
-5. Role: **Cloud Run Invoker**
-6. Save
+2. For each service (**createcheckoutsession**, **stripewebhook**, **testnotificationemail**):
+   - Click the service name
+   - Go to **Permissions** tab → **Add principal**
+   - New principals: `allUsers`
+   - Role: **Cloud Run Invoker**
+   - Save
 
 ---
 
@@ -94,8 +102,10 @@ To serve the calculator from Firebase (e.g. `https://rolling-translations-person
 When a project is paid, the webhook sends an email to **info@rolling-translations.com** and **connor@rolling-translations.com** with all project details including file download links.
 
 1. In Stripe Dashboard → Developers → Webhooks, add endpoint:
-   - URL: `https://us-central1-rolling-translations-personal.cloudfunctions.net/stripeWebhook`
-   - Events: `checkout.session.completed`
+   - **URL (use one of these):**
+     - Cloud Run (recommended): `https://stripewebhook-tumjzeybyq-uc.a.run.app` — get the exact URL from `firebase functions:list` or Cloud Console after deploy
+     - Or: `https://us-central1-rolling-translations-personal.cloudfunctions.net/stripeWebhook`
+   - **Events:** `checkout.session.completed`
 
 2. Copy the **Signing secret** (starts with `whsec_`)
 
@@ -114,6 +124,20 @@ The webhook stores orders in Firestore (`translationOrders` collection) and send
 1. Enable the Cloud Firestore API: [Enable for rolling-translations-personal](https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=rolling-translations-personal)
 2. Redeploy: `firebase deploy --only functions`
 
+### Test email delivery (without completing a payment)
+
+To verify SendGrid works without going through Stripe checkout:
+
+1. Redeploy: `firebase deploy --only functions`
+2. Allow public access for the test endpoint (see Step 3b above — `testnotificationemail` service)
+3. Open in browser or curl:
+   ```
+   https://rolling-translations-personal.web.app/api/testNotificationEmail?key=rt-test-email-verify-9x7k2
+   ```
+   Or use the Cloud Run URL from `firebase functions:list`.
+
+If successful, you'll receive a test email at info@ and connor@. If it fails, the response will show the SendGrid error.
+
 ---
 
 ## Troubleshooting
@@ -125,6 +149,21 @@ The webhook stores orders in Firestore (`translationOrders` collection) and send
 | CORS error on Storage (localhost) | The app now falls back to file names only when upload fails. To enable uploads from localhost, configure CORS on your Storage bucket (see below). |
 | 404 on fetch | Verify the function is deployed: `firebase functions:list` |
 | Wrong redirect after payment | Check `successUrl` and `cancelUrl` in the request |
+| **No email after payment** | See "Webhook & email troubleshooting" below |
+| **Webhook returns 403** | Run the `stripewebhook` IAM command in Step 3b so Stripe can POST to the endpoint |
+
+### Webhook & email troubleshooting
+
+If you complete a payment but never receive the notification email:
+
+1. **Verify Stripe webhook is configured** — Stripe Dashboard → Developers → Webhooks. The endpoint must listen for `checkout.session.completed` and use the correct URL (Cloud Run or cloudfunctions.net).
+2. **Allow public access for stripewebhook** — Cloud Run blocks unauthenticated requests by default. Run:
+   ```bash
+   gcloud run services add-iam-policy-binding stripewebhook --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
+   ```
+3. **Check Stripe webhook logs** — Stripe Dashboard → Developers → Webhooks → your endpoint → "Recent deliveries". Failed attempts show the HTTP status (e.g. 403 = access denied).
+4. **Verify SendGrid** — Use the test endpoint: `/api/testNotificationEmail?key=rt-test-email-verify-9x7k2`. If that fails, SENDGRID_API_KEY may be wrong or the sender (info@rolling-translations.com) may not be verified in SendGrid.
+5. **Check function logs** — `firebase functions:log --only stripeWebhook` to see "Payment completed" and "Notification emails sent" or any SendGrid errors.
 
 ### Enable Storage uploads from localhost (optional)
 

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<script>(function(){var s=localStorage.getItem('rt-theme');document.documentElement.setAttribute('data-theme',s==='dark'?'dark':'light');})();</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,17 +16,17 @@
     </script>
     <script>(function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-TFB6RP7Z');</script>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon/favicon-16x16.png">
-    <link rel="manifest" href="../images/favicon/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="../../images/favicon/site.webmanifest">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@500;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../../style.css">
 
     <title>Certified Immigration Translations — USCIS Accepted | Rolling Translations</title>
 </head>
@@ -38,21 +38,31 @@
     <!-- ─── HEADER ─── -->
     <header class="rt-nav" id="site-header">
         <div class="rt-nav__bar">
-            <a class="rt-nav__logo" href="../index.html" aria-label="Rolling Translations Home"><img class="rt-logo"
-                    src="../images/logo.png" alt="Rolling Translations Logo"></a>
+            <a class="rt-nav__logo" href="../../index.html" aria-label="Rolling Translations Home"><img class="rt-logo"
+                    src="../../images/logo.png" alt="Rolling Translations Logo"></a>
             <nav class="rt-nav__menu" aria-label="Main">
                 <ul class="rt-nav__list" id="menu-items">
-                    <li class="items"><a href="../index.html">Home</a></li>
-                    <li class="items"><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                    <li class="items"><a href="services.html">Services</a></li>
-                    <li class="items"><a href="about.html">About</a></li>
-                    <li class="items"><a href="blog.html">Blog</a></li>
-                    <li class="items"><a href="../index.html#cta">Contact</a></li>
-                    <li class="items"><a href="../portal/dashboard.html">My Projects</a></li>
-                    <li class="items" id="nav-login-li"><a href="../portal/">Log in</a></li>
-                    <li class="items" id="nav-register-li"><a href="../portal/#register">Register</a></li>
-                    <li class="contact-menu-item"><a class="rt-nav__cta" href="../rolling-professional/professional.html"><img
-                                class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
+                    <li class="items"><a href="../../index.html">Home</a></li>
+                    <li class="items"><a href="../../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li class="items has-dropdown">
+                    <a href="../services.html">Services</a>
+                    <ul class="rt-nav__dropdown">
+                        <li><a href="certified-translation.html">Certified Translation</a></li>
+                        <li><a href="legal-translation.html">Legal Translation</a></li>
+                        <li><a href="medical-translation.html">Medical Translation</a></li>
+                        <li><a href="phone-interpreting.html">Phone Interpreting</a></li>
+                        <li><a href="immigration-translations.html">Immigration Translations</a></li>
+                        <li><a href="../services.html">Other Services</a></li>
+                    </ul>
+                </li>
+                    <li class="items"><a href="../about.html">About</a></li>
+                    <li class="items"><a href="../blog.html">Blog</a></li>
+                    <li class="items"><a href="../../index.html#cta">Contact</a></li>
+                    <li class="items"><a href="../../portal/dashboard.html">My Projects</a></li>
+                    <li class="items" id="nav-login-li"><a href="../../portal/">Log in</a></li>
+                    <li class="items" id="nav-register-li"><a href="../../portal/#register">Register</a></li>
+                    <li class="contact-menu-item"><a class="rt-nav__cta" href="../../rolling-professional/professional.html"><img
+                                class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a></li>
                 </ul>
             </nav>
             <div class="rt-nav__right">
@@ -67,17 +77,22 @@
         </div>
     </header>
     <nav class="rt-nav__mobile" id="mobileNav" aria-label="Mobile">
-        <a class="rt-nav__mobile-link" href="../index.html">Home</a>
-        <a class="rt-nav__mobile-link" href="services.html">Services</a>
-        <a class="rt-nav__mobile-link" href="../rolling-professional/professional.html">Instant Quote</a>
-        <a class="rt-nav__mobile-link" href="about.html">About</a>
-        <a class="rt-nav__mobile-link" href="blog.html">Blog</a>
-        <a class="rt-nav__mobile-link" href="../index.html#cta">Contact</a>
-        <a class="rt-nav__mobile-link" href="../portal/dashboard.html">My Projects</a>
-        <a class="rt-nav__mobile-link" id="mobile-login" href="../portal/">Log in</a>
-        <a class="rt-nav__mobile-link" id="mobile-register" href="../portal/#register">Register</a>
+        <a class="rt-nav__mobile-link" href="../../index.html">Home</a>
+        <a class="rt-nav__mobile-link" href="../services.html">Services</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="certified-translation.html">Certified Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="legal-translation.html">Legal Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="medical-translation.html">Medical Translation</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="phone-interpreting.html">Phone Interpreting</a>
+        <a class="rt-nav__mobile-link rt-nav__mobile-sublink" href="immigration-translations.html">Immigration Translations</a>
+        <a class="rt-nav__mobile-link" href="../../rolling-professional/professional.html">Instant Quote</a>
+        <a class="rt-nav__mobile-link" href="../about.html">About</a>
+        <a class="rt-nav__mobile-link" href="../blog.html">Blog</a>
+        <a class="rt-nav__mobile-link" href="../../index.html#cta">Contact</a>
+        <a class="rt-nav__mobile-link" href="../../portal/dashboard.html">My Projects</a>
+        <a class="rt-nav__mobile-link" id="mobile-login" href="../../portal/">Log in</a>
+        <a class="rt-nav__mobile-link" id="mobile-register" href="../../portal/#register">Register</a>
         <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
-        <a class="rt-nav__mobile-cta" href="../rolling-professional/professional.html"><img class="whatsapp" src="../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
+        <a class="rt-nav__mobile-cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
     </nav>
 
     <!-- ══════════════════════════════════════════════
@@ -91,7 +106,7 @@
             <h1 class="lp-hero__h1">Certified Translations<br>for Immigration</h1>
             <p class="lp-hero__sub">Birth certificates, marriage records, diplomas, court documents — translated and certified for USCIS, immigration courts, and law firms. <strong>Fast, accurate, and accepted every time.</strong></p>
             <div class="lp-hero__ctas">
-                <a class="lp-btn lp-btn--primary" href="certified-translation/translation-calculator.html"><i class="fa-solid fa-bolt"></i> Get Instant Quote</a>
+                <a class="lp-btn lp-btn--primary" href="../certified-translation/translation-calculator.html"><i class="fa-solid fa-bolt"></i> Get Instant Quote</a>
                 <a class="lp-btn lp-btn--outline" href="#lp-contact"><i class="fa-solid fa-envelope"></i> Contact Us</a>
             </div>
             <div class="lp-hero__proof">
@@ -232,7 +247,7 @@
                 </div>
             </div>
             <div class="lp-process__cta">
-                <a class="lp-btn lp-btn--primary" href="translation-calculator.html"><i class="fa-solid fa-bolt"></i> Start Your Translation</a>
+                <a class="lp-btn lp-btn--primary" href="../certified-translation/translation-calculator.html"><i class="fa-solid fa-bolt"></i> Start Your Translation</a>
             </div>
         </div>
     </section>
@@ -281,7 +296,7 @@
                         <li><i class="fa-solid fa-check"></i> Digital delivery (PDF)</li>
                         <li><i class="fa-solid fa-check"></i> Unlimited revisions</li>
                     </ul>
-                    <a class="lp-btn lp-btn--primary lp-btn--full" href="translation-calculator.html">Get Quote</a>
+                    <a class="lp-btn lp-btn--primary lp-btn--full" href="../certified-translation/translation-calculator.html">Get Quote</a>
                 </div>
                 <div class="lp-price-card lp-price-card--featured">
                     <div class="lp-price-card__tag">Most Popular</div>
@@ -296,7 +311,7 @@
                         <li><i class="fa-solid fa-check"></i> Dedicated translator</li>
                         <li><i class="fa-solid fa-check"></i> Email status updates</li>
                     </ul>
-                    <a class="lp-btn lp-btn--primary lp-btn--full" href="translation-calculator.html">Get Quote</a>
+                    <a class="lp-btn lp-btn--primary lp-btn--full" href="../certified-translation/translation-calculator.html">Get Quote</a>
                 </div>
                 <div class="lp-price-card">
                     <div class="lp-price-card__header">
@@ -310,7 +325,7 @@
                         <li><i class="fa-solid fa-check"></i> Direct translator access</li>
                         <li><i class="fa-solid fa-check"></i> Notarization add-on</li>
                     </ul>
-                    <a class="lp-btn lp-btn--primary lp-btn--full" href="translation-calculator.html">Get Quote</a>
+                    <a class="lp-btn lp-btn--primary lp-btn--full" href="../certified-translation/translation-calculator.html">Get Quote</a>
                 </div>
             </div>
             <p class="lp-pricing__note">Need notarization? Add it for $20 per document. Hard copy mailing available for $15.</p>
@@ -389,7 +404,7 @@
                 <h2 class="lp-section-title">Ready to Translate Your Immigration Documents?</h2>
                 <p class="lp-section-sub">Get an instant quote online or contact us directly. We respond within minutes during business hours.</p>
                 <div class="lp-cta__actions">
-                    <a class="lp-btn lp-btn--primary lp-btn--lg" href="certified-translation/translation-calculator.html"><i class="fa-solid fa-bolt"></i> Get Instant Quote</a>
+                    <a class="lp-btn lp-btn--primary lp-btn--lg" href="../certified-translation/translation-calculator.html"><i class="fa-solid fa-bolt"></i> Get Instant Quote</a>
                     <a class="lp-btn lp-btn--outline lp-btn--lg" href="https://wa.me/message/RUIZCJYIRW7ED1" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp</a>
                 </div>
                 <div class="lp-cta__contact-info">
@@ -405,7 +420,7 @@
     <footer class="rt-footer">
         <div class="rt-footer__inner">
             <div class="rt-footer__col rt-footer__left" id="logo-footer">
-                <img class="logo" src="../images/logo.png" alt="Rolling Translations Logo">
+                <img class="logo" src="../../images/logo.png" alt="Rolling Translations Logo">
                 <p class="small-text">Copyright &copy; 2025 Rolling Translations LLC. All rights reserved.</p>
                 <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming,
                     California, Colorado, and Florida.</p>
@@ -420,7 +435,7 @@
             <div class="rt-footer__col rt-footer__center" id="info">
                 <ul class="contact-list">
                     <li class="contact-row">
-                        <img src="../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
+                        <img src="../../images/icons8-address-50.png" alt="Our Offices" class="contact-icon">
                         <div class="contact-content">
                             <h4 class="contact-title">Our Offices</h4>
                             <div class="offices">
@@ -432,7 +447,7 @@
                         </div>
                     </li>
                     <li class="contact-row">
-                        <img src="../images/icons8-email-50.png" alt="Email" class="contact-icon">
+                        <img src="../../images/icons8-email-50.png" alt="Email" class="contact-icon">
                         <div class="contact-content">info@rolling-translations.com<br>connor@rolling-translations.com</div>
                     </li>
                 </ul>
@@ -440,19 +455,19 @@
             <nav class="rt-footer__col rt-footer__right footer-navigation">
                 <h4 class="rt-footer__nav-title">Quick Links</h4>
                 <ul class="links-nav">
-                    <li><a href="services.html">Services</a></li>
-                    <li><a href="../rolling-professional/professional.html">Instant Quote</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="blog.html">Blog</a></li>
-                    <li><a href="../index.html#cta">Contact</a></li>
-                    <li><a href="privacypolicy.html">Privacy Policy</a></li>
+                    <li><a href="../services.html">Services</a></li>
+                    <li><a href="../../rolling-professional/professional.html">Instant Quote</a></li>
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../blog.html">Blog</a></li>
+                    <li><a href="../../index.html#cta">Contact</a></li>
+                    <li><a href="../privacypolicy.html">Privacy Policy</a></li>
                 </ul>
             </nav>
         </div>
     </footer>
 
-    <script src="../script.js"></script>
-    <script type="module" src="../header-auth.js"></script>
+    <script src="../../script.js"></script>
+    <script type="module" src="../../header-auth.js"></script>
     <script>
         /* ── Theme Toggle ── */
         (function () {

@@ -54,6 +54,13 @@
         "functionId": "stripeWebhook",
         "region": "us-central1"
       }
+    },
+    {
+      "source": "/api/testNotificationEmail",
+      "function": {
+        "functionId": "testNotificationEmail",
+        "region": "us-central1"
+      }
     }
   ]
 }
