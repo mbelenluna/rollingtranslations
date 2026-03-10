@@ -1582,6 +1582,7 @@ async function handleCheckout() {
         (addons.notarization ? ' + Notarization' : '') +
         (addons.hardcopy ? ' + Hard Copy Mailing' : '');
 
+    let fetchTimeoutId;
     try {
         // ── 1. Upload PDFs to Firebase Storage (skip on localhost — CORS blocks it) ──
         const orderTimestamp = Date.now();
@@ -1591,11 +1592,15 @@ async function handleCheckout() {
 
         if (!isLocalhost && typeof firebase !== 'undefined' && firebase.storage) {
             const storageRef = firebase.storage().ref();
+            const UPLOAD_TIMEOUT_MS = 15000;
             for (let i = 0; i < files.length; i++) {
                 btn.innerHTML = `<span class="spinner"></span> Uploading file ${i + 1} of ${files.length}…`;
                 try {
                     const fileRef = storageRef.child(`orders/${orderTimestamp}/${files[i].name}`);
-                    await fileRef.put(files[i].file);
+                    const putPromise = fileRef.put(files[i].file);
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Upload timeout')), UPLOAD_TIMEOUT_MS));
+                    await Promise.race([putPromise, timeoutPromise]);
                     const downloadURL = await fileRef.getDownloadURL();
                     uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: downloadURL });
                 } catch (uploadErr) {
@@ -1614,7 +1619,11 @@ async function handleCheckout() {
         const successUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'payment-success.html';
         const cancelUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'payment-cancel.html';
 
+        const controller = new AbortController();
+        fetchTimeoutId = setTimeout(() => controller.abort(), 30000);
+
         const res = await fetch(CONFIG.checkoutEndpoint, {
+            signal: controller.signal,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1646,6 +1655,7 @@ async function handleCheckout() {
             throw new Error('Server returned invalid response (status ' + res.status + '). Is the Cloud Function deployed?');
         }
 
+        clearTimeout(fetchTimeoutId);
         if (data.url) {
             window.location.href = data.url;
         } else {
@@ -1653,10 +1663,13 @@ async function handleCheckout() {
         }
 
     } catch (err) {
+        try { clearTimeout(fetchTimeoutId); } catch (_) {}
         console.error('Checkout error:', err);
 
         let msg = err.message || 'Unknown error';
-        if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        if (err.name === 'AbortError') {
+            msg = 'Request timed out (30s). The payment server may be slow or unreachable. Try again.';
+        } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
             msg = 'Cannot reach the payment server. Possible causes:\n' +
                 '• Cloud Functions not deployed (run: firebase deploy --only functions)\n' +
                 '• Wrong endpoint URL in CONFIG.checkoutEndpoint\n' +
