@@ -61,6 +61,13 @@
         "functionId": "testNotificationEmail",
         "region": "us-central1"
       }
+    },
+    {
+      "source": "/api/uploadTranslationFile",
+      "function": {
+        "functionId": "uploadTranslationFile",
+        "region": "us-central1"
+      }
     }
   ]
 }

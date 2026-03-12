@@ -49,6 +49,9 @@ The Cloud Run service blocks unauthenticated requests by default. You **must** a
 # Required for checkout to work from the browser
 gcloud run services add-iam-policy-binding createcheckoutsession --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
 
+# Required for file uploads (Pay with Stripe flow)
+gcloud run services add-iam-policy-binding uploadtranslationfile --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
+
 # Required for Stripe webhooks (email notifications) to work
 gcloud run services add-iam-policy-binding stripewebhook --region=us-central1 --member="allUsers" --role="roles/run.invoker" --project=rolling-translations-personal
 
@@ -94,6 +97,7 @@ To serve the calculator from Firebase (e.g. `https://rolling-translations-person
    ```
    https://rolling-translations-personal.web.app/api/createCheckoutSession
    ```
+   File uploads use the same origin (`/api/uploadTranslationFile`) automatically when the page is served from Hosting.
 
 ---
 
@@ -120,9 +124,11 @@ When a project is paid, the webhook sends an email to **info@rolling-translation
 
 The webhook stores orders in Firestore (`translationOrders` collection) and sends a notification email with: order ID, amount paid, client name/email/phone, tier, total pages, add-ons, and **download links for each uploaded file**.
 
-**Note:** Payment works even if Firestore is not enabled. To enable full email notifications with file links:
+**Important:** For the notification email to include **client name, phone, and file download links**, you **must** enable Firestore. Without it, orders are not stored and the email will show dashes for contact info and "No files recorded."
 1. Enable the Cloud Firestore API: [Enable for rolling-translations-personal](https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=rolling-translations-personal)
 2. Redeploy: `firebase deploy --only functions`
+
+**Files:** PDFs are uploaded via the server (`/api/uploadTranslationFile`) and stored in Firebase Storage (`orders/{timestamp}/{filename}`). The webhook includes download links in the email. If the calculator is served from a different domain than your Firebase Hosting, set `uploadEndpoint` in `translation-calculator.html` to `https://rolling-translations-personal.web.app/api/uploadTranslationFile`.
 
 ### Test email delivery (without completing a payment)
 

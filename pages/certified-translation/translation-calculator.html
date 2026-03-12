@@ -222,7 +222,8 @@
         }
 
         .form-group {
-            flex: 1;
+            flex: 1 1 50%;
+            min-width: 0;
             display: flex;
             flex-direction: column;
         }
@@ -936,8 +937,6 @@
                     <label>Email address <span class="req">*</span></label>
                     <input type="email" id="email" placeholder="john@example.com" autocomplete="email">
                 </div>
-            </div>
-            <div class="form-row">
                 <div class="form-group">
                     <label>Phone <span style="color:var(--gray-400);font-weight:400;">(optional)</span></label>
                     <input type="tel" id="phone" placeholder="+1 (555) 123-4567" autocomplete="tel">
@@ -1231,7 +1230,7 @@
         <div class="rt-footer__inner">
             <div class="rt-footer__col rt-footer__left" id="logo-footer">
                 <img class="logo" src="../../images/logo.png" alt="Rolling Translations Logo">
-                <p class="small-text">Copyright &copy; 2025 Rolling Translations LLC. All rights reserved.</p>
+                <p class="small-text">Copyright &copy; 2026 Rolling Translations LLC. All rights reserved.</p>
                 <p class="small-text">Officially registered as Rolling Translations LLC in the state of Wyoming, California, Colorado, and Florida.</p>
                 <div class="rt-socials">
                     <div class="footer-social">
@@ -1293,6 +1292,8 @@ const CONFIG = {
     hardCopyFlat: 15.00,
     // ⬇️ Cloud Function URL. Update to Cloud Run URL from deploy output if needed.
     checkoutEndpoint: 'https://us-central1-rolling-translations-personal.cloudfunctions.net/createCheckoutSession',
+    // ⬇️ File upload API. Use same origin when on Firebase Hosting, or set full URL if page is on another domain.
+    uploadEndpoint: null, // e.g. 'https://rolling-translations-personal.web.app/api/uploadTranslationFile'
 };
 
 // PDF.js worker
@@ -1584,32 +1585,38 @@ async function handleCheckout() {
 
     let fetchTimeoutId;
     try {
-        // ── 1. Upload PDFs to Firebase Storage (skip on localhost — CORS blocks it) ──
+        // ── 1. Upload PDFs via server (bypasses client CORS / Storage rules) ──
         const orderTimestamp = Date.now();
         const uploadedFiles = [];
-        const isLocalhost = /^(127\.0\.0\.1|localhost)(:\d+)?$/.test(window.location.host) ||
-            window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+        const uploadUrl = CONFIG.uploadEndpoint || (window.location.origin + '/api/uploadTranslationFile');
+        const UPLOAD_TIMEOUT_MS = 15000;
 
-        if (!isLocalhost && typeof firebase !== 'undefined' && firebase.storage) {
-            const storageRef = firebase.storage().ref();
-            const UPLOAD_TIMEOUT_MS = 15000;
-            for (let i = 0; i < files.length; i++) {
-                btn.innerHTML = `<span class="spinner"></span> Uploading file ${i + 1} of ${files.length}…`;
-                try {
-                    const fileRef = storageRef.child(`orders/${orderTimestamp}/${files[i].name}`);
-                    const putPromise = fileRef.put(files[i].file);
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Upload timeout')), UPLOAD_TIMEOUT_MS));
-                    await Promise.race([putPromise, timeoutPromise]);
-                    const downloadURL = await fileRef.getDownloadURL();
-                    uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: downloadURL });
-                } catch (uploadErr) {
-                    console.warn('Storage upload failed:', uploadErr.message);
-                    uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: null });
+        for (let i = 0; i < files.length; i++) {
+            btn.innerHTML = `<span class="spinner"></span> Uploading file ${i + 1} of ${files.length}…`;
+            try {
+                const formData = new FormData();
+                formData.append('file', files[i].file);
+                formData.append('orderTimestamp', String(orderTimestamp));
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+                const uploadRes = await fetch(uploadUrl, {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                });
+                clearTimeout(timeoutId);
+
+                if (!uploadRes.ok) {
+                    const errData = await uploadRes.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Upload failed');
                 }
+                const { url } = await uploadRes.json();
+                uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: url || null });
+            } catch (uploadErr) {
+                console.warn('Upload failed for', files[i].name, uploadErr.message);
+                uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: null });
             }
-        } else {
-            files.forEach(f => uploadedFiles.push({ name: f.name, pages: f.pages, url: null }));
         }
 
         // ── 2. Create Stripe Checkout Session via Cloud Function ──

@@ -24,6 +24,84 @@ const SENDGRID_NO_CLICK_TRACKING = {
 };
 
 /**
+ * Server-side file upload for translation orders.
+ * Bypasses client CORS issues. POST multipart/form-data with field "file".
+ * Returns { url, name } or { error }.
+ */
+const Busboy = require('busboy');
+
+function parseMultipart(rawBody, headers) {
+  return new Promise((resolve, reject) => {
+    const fields = {};
+    let fileData = null;
+    let pendingFiles = 0;
+    const bb = Busboy({headers});
+    bb.on('field', (name, val) => { fields[name] = val; });
+    bb.on('file', (name, stream, info) => {
+      pendingFiles++;
+      const chunks = [];
+      stream.on('data', (c) => chunks.push(c));
+      stream.on('end', () => {
+        fileData = {buffer: Buffer.concat(chunks), filename: info.filename || 'document.pdf'};
+        pendingFiles--;
+        tryResolve();
+      });
+    });
+    bb.on('error', reject);
+    function tryResolve() {
+      if (pendingFiles === 0) resolve({fields, fileData});
+    }
+    bb.on('finish', tryResolve);
+    bb.end(rawBody);
+  });
+}
+
+exports.uploadTranslationFile = onRequest(
+  {maxInstances: 10, rawBody: true},
+  async (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+    if (req.method !== 'POST') {
+      res.status(405).json({error: 'Method not allowed'});
+      return;
+    }
+    const rawBody = req.rawBody || req.body;
+    if (!rawBody || rawBody.length === 0) {
+      res.status(400).json({error: 'No file received'});
+      return;
+    }
+    try {
+      const {fields, fileData} = await parseMultipart(rawBody, req.headers);
+      if (!fileData || !fileData.buffer || fileData.buffer.length === 0) {
+        res.status(400).json({error: 'No file in request. Send multipart/form-data with field "file".'});
+        return;
+      }
+      const orderTimestamp = fields.orderTimestamp || String(Date.now());
+      const safeName = (fileData.filename || 'document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `orders/${orderTimestamp}/${safeName}`;
+      const bucket = admin.storage().bucket();
+      const file = bucket.file(filePath);
+      await file.save(fileData.buffer, {
+        metadata: {contentType: 'application/pdf'},
+      });
+      const [url] = await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      res.status(200).json({url, name: safeName});
+    } catch (err) {
+      console.error('uploadTranslationFile error:', err);
+      res.status(500).json({error: err.message || 'Upload failed'});
+    }
+  }
+);
+
+/**
  * Create a Stripe Checkout Session for translation orders.
  * Stores full order in Firestore so webhook can send notification email with all details.
  * POST /api/createCheckoutSession
@@ -107,6 +185,7 @@ exports.createCheckoutSession = onRequest(
       const metadata = {
         contactEmail: (contact && contact.email) || '',
         contactName: contact ? `${contact.firstName || ''} ${contact.lastName || ''}`.trim() : '',
+        contactPhone: (contact && contact.phone) || '',
         tier: tier || 'standard',
         totalPages: String(totalPages || 0),
         sourceLang: sourceLang || '',
@@ -194,32 +273,56 @@ exports.stripeWebhook = onRequest(
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
-      const orderId = session.metadata?.orderId;
+      let orderId = session.metadata?.orderId;
       const amountTotal = typeof session.amount_total === 'number' ? session.amount_total / 100 : null;
 
-      console.log('Payment completed:', session.id, 'orderId:', orderId);
+      console.log('Payment completed:', session.id, 'orderId from metadata:', orderId);
 
       const db = admin.firestore();
       let orderData = {};
+      let orderRef = null;
 
       if (orderId) {
         const orderSnap = await db.collection('translationOrders').doc(orderId).get();
         if (orderSnap.exists) {
+          orderRef = orderSnap.ref;
           orderData = orderSnap.data() || {};
-          await orderSnap.ref.update({
+        }
+      }
+      // Fallback: look up order by stripeSessionId (in case orderId was missing from metadata)
+      if (Object.keys(orderData).length === 0) {
+        const bySessionSnap = await db.collection('translationOrders')
+          .where('stripeSessionId', '==', session.id)
+          .limit(1)
+          .get();
+        if (!bySessionSnap.empty) {
+          const doc = bySessionSnap.docs[0];
+          orderRef = doc.ref;
+          orderId = doc.id;
+          orderData = doc.data() || {};
+          console.log('Found order by stripeSessionId:', orderId);
+        }
+      }
+
+      if (orderRef) {
+        try {
+          await orderRef.update({
             status: 'paid',
             paidAt: admin.firestore.FieldValue.serverTimestamp(),
             amountPaid: amountTotal,
             notificationSentAt: admin.firestore.FieldValue.serverTimestamp(),
           });
+        } catch (e) {
+          console.warn('Could not update order status:', e.message);
         }
       }
 
-      // Build notification email with ALL project details
+      // Build notification email with ALL project details (fallback to session metadata when order not found)
       const contact = orderData.contact || {};
-      const contactName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || '—';
-      const contactEmail = contact.email || session.customer_details?.email || '—';
-      const contactPhone = contact.phone || '—';
+      const contactName = [contact.firstName, contact.lastName].filter(Boolean).join(' ') ||
+        session.metadata?.contactName?.trim() || '—';
+      const contactEmail = contact.email || session.metadata?.contactEmail || session.customer_details?.email || '—';
+      const contactPhone = contact.phone || session.metadata?.contactPhone || '—';
       const tier = orderData.tier || session.metadata?.tier || '—';
       const totalPages = orderData.totalPages ?? session.metadata?.totalPages ?? '—';
       const description = orderData.description || '—';
