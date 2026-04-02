@@ -29,6 +29,127 @@
     <link rel="stylesheet" href="../../style.css">
 
     <title>Certified Immigration Translations — USCIS Accepted | Rolling Translations</title>
+
+    <style>
+        /* ── Easter Special Promo Bar ── */
+        .easter-promo-bar {
+            background: linear-gradient(90deg, #7c3aed 0%, #a855f7 50%, #7c3aed 100%);
+            color: #fff;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            position: relative;
+            z-index: 100;
+        }
+        .easter-promo-bar__inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .easter-promo-bar__tag {
+            background: #fff;
+            color: #7c3aed;
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+        .easter-promo-bar__limit {
+            font-size: 0.78rem;
+            opacity: 0.85;
+            font-style: italic;
+            white-space: nowrap;
+        }
+        /* ── Easter Pricing Discount Styles ── */
+        .lp-price-card__original {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            text-decoration: line-through;
+            margin-bottom: 2px;
+        }
+        .lp-price-card__easter-badge {
+            display: inline-block;
+            background: #7c3aed;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .lp-price-card--featured .lp-price-card__original {
+            color: #9ca3af;
+        }
+        /* ── Easter Promo Section ── */
+        .lp-easter-promo {
+            background: linear-gradient(135deg, #fdf4ff 0%, #f5f3ff 100%);
+            border-top: 3px solid #a855f7;
+            border-bottom: 3px solid #a855f7;
+            padding: 48px 20px;
+        }
+        [data-theme="dark"] .lp-easter-promo {
+            background: linear-gradient(135deg, #1e1030 0%, #160e2a 100%);
+        }
+        .lp-easter-promo__inner {
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .lp-easter-promo__emoji {
+            font-size: 2.4rem;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .lp-easter-promo__title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 700;
+            color: #7c3aed;
+            margin: 0 0 8px;
+        }
+        .lp-easter-promo__sub {
+            font-size: 1.05rem;
+            color: #6b7280;
+            margin: 0 0 18px;
+            line-height: 1.6;
+        }
+        [data-theme="dark"] .lp-easter-promo__sub {
+            color: #c4b5fd;
+        }
+        .lp-easter-promo__desc {
+            font-size: 0.95rem;
+            color: #374151;
+            margin: 0 0 20px;
+            line-height: 1.7;
+        }
+        [data-theme="dark"] .lp-easter-promo__desc {
+            color: #e9d5ff;
+        }
+        .lp-easter-promo__limit {
+            display: inline-block;
+            border: 1.5px solid #a855f7;
+            color: #7c3aed;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 18px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        [data-theme="dark"] .lp-easter-promo__limit {
+            color: #c4b5fd;
+            border-color: #c4b5fd;
+        }
+    </style>
 </head>
 
 <body>
@@ -94,6 +215,16 @@
         <div id="mobile-logged-in" style="display:none" class="rt-nav__mobile-link"><span id="mobile-user-name"></span> <a href="#" id="mobile-logout" style="margin-left:8px">Log out</a></div>
         <a class="rt-nav__mobile-cta" href="../../rolling-professional/professional.html"><img class="whatsapp" src="../../images/whatsapp.png" alt="Whatsapp"> Order Now</a>
     </nav>
+
+    <!-- ─── EASTER PROMO ANNOUNCEMENT BAR ─── -->
+    <div class="easter-promo-bar" role="banner" aria-label="Easter Special Offer">
+        <div class="easter-promo-bar__inner">
+            <span>🐣</span>
+            <span class="easter-promo-bar__tag">Easter Special</span>
+            <span><strong>20% off your first project</strong> — Celebrate the season with a fresh start.</span>
+            <span class="easter-promo-bar__limit">Limited-time offer.</span>
+        </div>
+    </div>
 
     <!-- ══════════════════════════════════════════════
          LANDING PAGE CONTENT
@@ -277,19 +408,32 @@
         </div>
     </section>
 
+    <!-- ─── EASTER SPECIAL PROMO ─── -->
+    <section class="lp-easter-promo" aria-label="Easter Special Offer">
+        <div class="lp-easter-promo__inner">
+            <div class="lp-easter-promo__emoji">🐣</div>
+            <h2 class="lp-easter-promo__title">Easter Special — 20% Off Your First Project</h2>
+            <p class="lp-easter-promo__sub">Celebrate the season with a fresh start.</p>
+            <p class="lp-easter-promo__desc">For a limited time, enjoy <strong>20% off your first translation project</strong> with Rolling Translations. High-quality, human-reviewed translations — now at an introductory rate.</p>
+            <span class="lp-easter-promo__limit">🌷 Limited-time offer</span>
+        </div>
+    </section>
+
     <!-- ─── PRICING HIGHLIGHT ─── -->
     <section class="lp-pricing" id="pricing">
         <div class="lp-pricing__inner">
             <div class="lp-section-label">Transparent Pricing</div>
             <h2 class="lp-section-title">Simple, Honest Pricing</h2>
-            <p class="lp-section-sub">No hidden fees. Every certified translation includes the signed Certificate of Accuracy.</p>
+            <p class="lp-section-sub">No hidden fees. Every certified translation includes the signed Certificate of Accuracy. <strong style="color:#7c3aed;">Easter Special: 20% off your first project.</strong></p>
             <div class="lp-pricing__cards">
                 <div class="lp-price-card">
                     <div class="lp-price-card__header">
                         <h3>Standard</h3>
                         <p>3–5 business days</p>
                     </div>
-                    <div class="lp-price-card__price">Starts at <strong>$24.95</strong><span>/page</span></div>
+                    <span class="lp-price-card__easter-badge">🐣 Easter Special</span>
+                    <div class="lp-price-card__original">Was $24.95/page</div>
+                    <div class="lp-price-card__price">Starts at <strong>$19.96</strong><span>/page</span></div>
                     <ul class="lp-price-card__features">
                         <li><i class="fa-solid fa-check"></i> Certified translation</li>
                         <li><i class="fa-solid fa-check"></i> Certificate of Accuracy</li>
@@ -304,7 +448,9 @@
                         <h3>Rush</h3>
                         <p>1–2 business days</p>
                     </div>
-                    <div class="lp-price-card__price">Starts at <strong>$34.95</strong><span>/page</span></div>
+                    <span class="lp-price-card__easter-badge">🐣 Easter Special</span>
+                    <div class="lp-price-card__original">Was $34.95/page</div>
+                    <div class="lp-price-card__price">Starts at <strong>$27.96</strong><span>/page</span></div>
                     <ul class="lp-price-card__features">
                         <li><i class="fa-solid fa-check"></i> Everything in Standard</li>
                         <li><i class="fa-solid fa-check"></i> Priority processing</li>
@@ -318,7 +464,9 @@
                         <h3>Urgent</h3>
                         <p>Within 24 hours</p>
                     </div>
-                    <div class="lp-price-card__price">Starts at <strong>$49.95</strong><span>/page</span></div>
+                    <span class="lp-price-card__easter-badge">🐣 Easter Special</span>
+                    <div class="lp-price-card__original">Was $49.95/page</div>
+                    <div class="lp-price-card__price">Starts at <strong>$39.96</strong><span>/page</span></div>
                     <ul class="lp-price-card__features">
                         <li><i class="fa-solid fa-check"></i> Everything in Rush</li>
                         <li><i class="fa-solid fa-check"></i> Same-day start</li>
@@ -329,6 +477,7 @@
                 </div>
             </div>
             <p class="lp-pricing__note">Need notarization? Add it for $20 per document. Hard copy mailing available for $15.</p>
+            <p class="lp-pricing__note" style="margin-top:8px; color:#7c3aed; font-style:italic;">🐣 Easter Special prices apply to your first project. Limited-time offer.</p>
         </div>
     </section>
 
