@@ -506,6 +506,24 @@
             margin-bottom: 16px;
         }
 
+        .tier-badge-easter {
+            display: inline-block;
+            background: #7c3aed;
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tier-price-original {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            text-decoration: line-through;
+            margin-bottom: 2px;
+        }
         .tier-price {
             font-family: 'DM Serif Display', serif;
             font-size: 32px;
@@ -1090,7 +1108,9 @@
                     <div class="radio-dot"></div>
                     <div class="tier-name">Standard</div>
                     <div class="tier-speed">3–5 business days</div>
-                    <div class="tier-price">$24.95 <span>/page</span></div>
+                    <div class="tier-badge-easter">🐣 Easter Special</div>
+                    <div class="tier-price-original">Was $24.95/page</div>
+                    <div class="tier-price">$19.96 <span>/page</span></div>
                     <div class="tier-features">
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Certified translation</div>
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Certificate of Accuracy</div>
@@ -1105,7 +1125,9 @@
                     <div class="radio-dot"></div>
                     <div class="tier-name">Rush</div>
                     <div class="tier-speed">1–2 business days</div>
-                    <div class="tier-price">$34.95 <span>/page</span></div>
+                    <div class="tier-badge-easter">🐣 Easter Special</div>
+                    <div class="tier-price-original">Was $34.95/page</div>
+                    <div class="tier-price">$27.96 <span>/page</span></div>
                     <div class="tier-features">
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Everything in Standard</div>
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Priority processing</div>
@@ -1119,7 +1141,9 @@
                     <div class="radio-dot"></div>
                     <div class="tier-name">Urgent</div>
                     <div class="tier-speed">Within 24 hours</div>
-                    <div class="tier-price">$49.95 <span>/page</span></div>
+                    <div class="tier-badge-easter">🐣 Easter Special</div>
+                    <div class="tier-price-original">Was $49.95/page</div>
+                    <div class="tier-price">$39.96 <span>/page</span></div>
                     <div class="tier-features">
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Everything in Rush</div>
                         <div class="tier-feature"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg> Same-day start</div>
@@ -1284,9 +1308,9 @@
 // ──────────────────────────────────────────
 const CONFIG = {
     prices: {
-        standard: 24.95,
-        rush: 34.95,
-        urgent: 49.95,
+        standard: 19.96,
+        rush: 27.96,
+        urgent: 39.96,
     },
     notarizationPerDoc: 20.00,
     hardCopyFlat: 15.00,
