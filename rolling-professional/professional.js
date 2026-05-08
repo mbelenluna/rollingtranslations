@@ -212,7 +212,7 @@ const PAIR_BASE_USD = {
   "english->latvian":0.30,"english->lithuanian":0.21,"english->malay":0.19,"english->mongolian":0.21,
   "english->nepali":0.21,"english->norwegian":0.19,"english->pashto":0.15,"english->polish":0.14,
   "english->portuguese (brazil)":0.12,"english->portuguese (portugal)":0.12,"english->punjabi":0.16,
-  "english->romanian":0.22,"english->russian":0.15,"english->chinese (simplified)":0.14,"english->slovak":0.19,
+  "english->romanian":0.22,"english->russian":0.15,"english->serbian":0.20,"english->chinese (simplified)":0.14,"english->slovak":0.19,
   "english->slovene":0.19,"english->somali":0.19,"english->spanish (latam)":0.12,"english->spanish (spain)":0.12,
   "english->swahili":0.19,"english->swedish":0.19,"english->tagalog":0.14,"english->telugu":0.19,
   "english->thai":0.15,"english->chinese (traditional)":0.14,"english->turkish":0.19,"english->ukrainian":0.16,
