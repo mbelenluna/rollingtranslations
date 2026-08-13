@@ -473,11 +473,17 @@ async function previewQuote(){
   try {
     const user = await ensureAuth($email?.value || "");
     // Subir y calcular palabras (solo los que faltan)
+    let uploadFailed = false;
     for (const ent of selectedFiles.values()){
       if (!ent.uploaded){
         try { ent.uploaded = await uploadAndQuote(ent.file, user.uid); }
-        catch { /* si falla uno, lo ignoramos y seguimos */ }
+        catch { uploadFailed = true; }
       }
+    }
+    const anyUploaded = Array.from(selectedFiles.values()).some(e => e.uploaded);
+    if (uploadFailed && !anyUploaded) {
+      alert("We couldn't upload your file(s). Please check your connection and try again.");
+      return;
     }
     // Al terminar, renderizamos la vista de quote (esto oculta el form y muestra el quote)
     renderQuoteView();
@@ -526,6 +532,11 @@ async function startPayment(){
   const originalFiles = Array.from(selectedFiles.values())
     .filter((e) => e.uploaded)
     .map((e) => ({ filename: e.uploaded.name, storagePath: e.uploaded.gsPath }));
+
+  if (selectedFiles.size > 0 && originalFiles.length === 0) {
+    alert("Your file(s) didn't upload successfully. Please go back, re-add your file(s), and try again.");
+    return;
+  }
 
   const headers = { "Content-Type": "application/json" };
   if (loggedInUser) {
