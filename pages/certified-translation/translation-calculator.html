@@ -1318,8 +1318,7 @@ const CONFIG = {
     hardCopyFlat: 15.00,
     // ⬇️ Cloud Function URL. Update to Cloud Run URL from deploy output if needed.
     checkoutEndpoint: 'https://us-central1-rolling-translations-personal.cloudfunctions.net/createCheckoutSession',
-    // ⬇️ File upload API. Use same origin when on Firebase Hosting, or set full URL if page is on another domain.
-    uploadEndpoint: null, // e.g. 'https://rolling-translations-personal.web.app/api/uploadTranslationFile'
+    uploadEndpoint: 'https://us-central1-rolling-translations-personal.cloudfunctions.net/uploadTranslationFile',
 };
 
 // PDF.js worker
@@ -1643,6 +1642,10 @@ async function handleCheckout() {
                 console.warn('Upload failed for', files[i].name, uploadErr.message);
                 uploadedFiles.push({ name: files[i].name, pages: files[i].pages, url: null });
             }
+        }
+
+        if (files.length > 0 && uploadedFiles.every(f => !f.url)) {
+            throw new Error('Your file(s) could not be uploaded. Please check your connection and try again.');
         }
 
         // ── 2. Create Stripe Checkout Session via Cloud Function ──
